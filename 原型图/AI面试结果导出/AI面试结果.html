@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>易面 · AI面试演示</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand: #1677ff;
+    --brand-light: #e6f0ff;
+    --brand-dark: #0958d9;
+    --success: #52c41a;
+    --warning: #faad14;
+    --danger: #ff4d4f;
+    --text-primary: #1a1a2e;
+    --text-secondary: #595959;
+    --text-tertiary: #8c8c8c;
+    --border: #e8e8e8;
+    --bg-page: #f5f7fa;
+    --bg-card: #ffffff;
+    --radius: 8px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Noto Sans SC', sans-serif; background: var(--bg-page); color: var(--text-primary); font-size: 14px; line-height: 1.6; }
+
+  /* TOPBAR */
+  .topbar { background: var(--brand); display: flex; align-items: center; padding: 0 24px; height: 52px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(22,119,255,0.25); }
+  .topbar-logo { display: flex; align-items: center; gap: 8px; color: #fff; font-size: 18px; font-weight: 700; letter-spacing: 1px; min-width: 120px; padding-right: 24px; border-right: 1px solid rgba(255,255,255,0.25); }
+  .topbar-logo .logo-icon { width: 32px; height: 32px; background: rgba(255,255,255,0.2); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; }
+  .topbar-nav { display: flex; align-items: center; margin-left: 8px; flex: 1; }
+  .topbar-nav a { color: rgba(255,255,255,0.85); text-decoration: none; padding: 0 16px; height: 52px; display: flex; align-items: center; font-size: 14px; transition: all .2s; }
+  .topbar-nav a:hover, .topbar-nav a.active { color: #fff; background: rgba(255,255,255,0.15); }
+  .topbar-nav a.active { border-bottom: 2px solid #fff; }
+  .topbar-right { display: flex; align-items: center; gap: 16px; color: rgba(255,255,255,0.9); font-size: 13px; }
+  .topbar-right a { color: rgba(255,255,255,0.9); text-decoration: none; }
+  .topbar-right .divider { color: rgba(255,255,255,0.3); }
+
+  /* BREADCRUMB */
+  .breadcrumb { padding: 12px 32px; font-size: 13px; color: var(--text-tertiary); }
+  .breadcrumb a { color: var(--text-tertiary); text-decoration: none; cursor: pointer; }
+  .breadcrumb a:hover { color: var(--brand); }
+  .breadcrumb span { margin: 0 6px; }
+
+  /* PAGE CONTAINERS */
+  .page-view { display: none; }
+  .page-view.active { display: block; }
+
+  /* ── MONITOR PAGE ── */
+  .monitor-layout { display: flex; min-height: calc(100vh - 52px); }
+  .sidebar { width: 200px; flex-shrink: 0; background: #fff; border-right: 1px solid var(--border); padding: 16px 0; }
+  .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 12px 20px; font-size: 14px; color: var(--text-secondary); cursor: pointer; transition: background .15s; }
+  .sidebar-item:hover { background: var(--brand-light); color: var(--brand); }
+  .sidebar-item.active { background: var(--brand-light); color: var(--brand); font-weight: 600; border-right: 3px solid var(--brand); }
+  .sidebar-item .icon { font-size: 16px; width: 20px; text-align: center; }
+  .monitor-main { flex: 1; padding: 0; }
+  .monitor-breadcrumb { padding: 12px 24px; font-size: 13px; color: var(--text-tertiary); border-bottom: 1px solid var(--border); background: #fff; }
+  .monitor-breadcrumb a { color: var(--text-tertiary); text-decoration: none; }
+  .monitor-content { padding: 20px 24px; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 20px; background: #fff; padding: 0 4px; border-radius: 4px 4px 0 0; }
+  .tab { padding: 12px 20px; font-size: 14px; cursor: pointer; color: var(--text-tertiary); border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all .2s; }
+  .tab.active { color: var(--brand); border-bottom-color: var(--brand); font-weight: 600; }
+
+  /* TOOLBAR */
+  .toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .search-box { display: flex; align-items: center; gap: 8px; border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; background: #fff; width: 260px; font-size: 13px; color: var(--text-tertiary); }
+  .toolbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .selected-info { font-size: 13px; color: var(--text-tertiary); }
+  .btn-outline { border: 1px solid var(--brand); color: var(--brand); background: #fff; border-radius: 6px; padding: 6px 14px; font-size: 13px; cursor: pointer; font-family: inherit; transition: all .15s; }
+  .btn-outline:hover { background: var(--brand-light); }
+  .btn-solid { border: none; background: var(--brand); color: #fff; border-radius: 6px; padding: 6px 14px; font-size: 13px; cursor: pointer; font-family: inherit; transition: background .15s; }
+  .btn-solid:hover { background: var(--brand-dark); }
+
+  /* MONITOR TABLE */
+  .mon-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+  .mon-table th { padding: 12px 16px; font-size: 13px; color: var(--text-tertiary); font-weight: 500; text-align: left; border-bottom: 1px solid var(--border); background: #fff; }
+  .mon-table td { padding: 14px 16px; font-size: 13px; border-bottom: 1px solid #f0f0f0; }
+  .mon-table tr:last-child td { border-bottom: none; }
+  .mon-table .check-col { width: 40px; }
+  .candidate-link { color: var(--brand); cursor: pointer; text-decoration: none; font-weight: 500; }
+  .candidate-link:hover { text-decoration: underline; }
+  .score-blue { color: var(--brand); font-weight: 600; }
+  .sort-icon { font-size: 11px; color: var(--text-tertiary); margin-left: 3px; }
+  .filter-btn { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--border); border-radius: 4px; padding: 2px 8px; font-size: 12px; color: var(--text-secondary); background: #fff; cursor: pointer; }
+  .table-footer { padding: 12px 16px; font-size: 13px; color: var(--text-secondary); background: #fff; border-top: 1px solid var(--border); }
+  .table-footer em { color: var(--brand); font-style: normal; font-weight: 600; }
+
+  /* ── DETAIL PAGE ── */
+  .detail-page { padding: 0 32px 40px; max-width: 1300px; margin: 0 auto; }
+  .candidate-card { background: var(--bg-card); border-radius: var(--radius); padding: 24px 28px; display: flex; align-items: flex-start; gap: 24px; box-shadow: var(--shadow); margin-bottom: 16px; position: relative; }
+  .avatar { width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg,#c9d6ff,#e2e2e2); display: flex; align-items: center; justify-content: center; font-size: 32px; flex-shrink: 0; }
+  .candidate-info { flex: 1; }
+  .name-row { display: flex; gap: 40px; margin-bottom: 8px; flex-wrap: wrap; }
+  .info-item { display: flex; gap: 6px; align-items: center; }
+  .info-label { color: var(--text-tertiary); }
+  .info-value { color: var(--text-primary); font-weight: 500; }
+  .edit-btn { position: absolute; top: 24px; right: 28px; background: var(--brand); color: #fff; border: none; border-radius: 6px; padding: 6px 16px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 6px; transition: background .2s; }
+  .edit-btn:hover { background: var(--brand-dark); }
+
+  /* SCHEDULE SECTION */
+  .section-card { background: var(--bg-card); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; margin-bottom: 16px; }
+  .table-head { display: grid; grid-template-columns: 130px 110px 1fr 80px 70px 70px 80px 110px 90px; padding: 11px 20px; background: #fafafa; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text-tertiary); font-weight: 500; }
+  .schedule-row { display: grid; grid-template-columns: 130px 110px 1fr 80px 70px 70px 80px 110px 90px; padding: 14px 20px; border-bottom: 1px solid var(--border); align-items: center; font-size: 13px; }
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+  .badge-green { background: #f6ffed; color: #52c41a; border: 1px solid #b7eb8f; }
+  .score-val { font-weight: 700; color: var(--brand); font-size: 15px; }
+
+  /* TOGGLE BUTTONS */
+  .toggle-btn { background: none; border: none; cursor: pointer; color: var(--brand); font-size: 13px; display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 4px; transition: background .15s; font-family: inherit; }
+  .toggle-btn:hover { background: var(--brand-light); }
+  .toggle-btn .arrow { font-size: 10px; transition: transform .25s; display: inline-block; }
+  .toggle-btn.open .arrow { transform: rotate(180deg); }
+  .btn-group { display: flex; gap: 4px; }
+
+  /* EXPANDABLE PANEL */
+  .expand-wrap { overflow: hidden; max-height: 0; transition: max-height 0.45s cubic-bezier(0.4,0,0.2,1); }
+  .expand-wrap.open { max-height: 4000px; }
+  .expand-inner { border-top: 2px solid var(--brand-light); background: #f8fbff; }
+
+  /* AI HEADER */
+  .ai-header { background: var(--brand); color: #fff; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+
+  /* MAIN SCORE TABLE */
+  .mtable { width: 100%; border-collapse: collapse; background: #fff; }
+  .mtable th { background: #f5f8ff; padding: 10px 16px; font-size: 12px; color: var(--text-tertiary); font-weight: 600; text-align: left; border-bottom: 1px solid var(--border); }
+  .mtable td { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: top; }
+  .mtable tr:last-child td { border-bottom: none; }
+
+  /* EVIDENCE LIST */
+  .ev-list { list-style: none; padding: 0; }
+  .ev-list li { padding: 3px 0 3px 12px; position: relative; color: var(--text-secondary); line-height: 1.75; font-size: 12px; }
+  .ev-list li::before { content: '·'; position: absolute; left: 0; color: var(--brand); font-weight: 900; }
+
+  /* RISK CARDS */
+  .risk-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; padding: 0 20px 20px; background: #fff; }
+  .risk-card { border-radius: 8px; padding: 14px 16px; border-left: 3px solid; }
+  .risk-card.orange { background: #fffbe6; border-color: #faad14; }
+  .risk-card.red { background: #fff2f0; border-color: #ff4d4f; }
+  .risk-card.blue { background: #f0f5ff; border-color: #1677ff; }
+  .risk-title { font-weight: 700; font-size: 13px; margin-bottom: 6px; }
+  .risk-card p { font-size: 12px; color: var(--text-secondary); line-height: 1.75; }
+  .risk-guide { margin-top: 8px; font-size: 12px; color: var(--brand); font-style: italic; }
+
+  /* KEY QA */
+  .qa-grid { padding: 0 20px 20px; background: #fff; display: flex; flex-direction: column; gap: 12px; }
+  .dim-tag { display: inline-block; background: var(--brand-light); color: var(--brand); font-size: 11px; padding: 2px 10px; border-radius: 4px; font-weight: 600; margin-bottom: 5px; }
+  .qa-a { font-size: 12px; color: var(--text-secondary); padding: 8px 12px; background: #fafafa; border-radius: 6px; line-height: 1.8; border-left: 2px solid var(--border); }
+
+  /* LOG PANEL */
+  .log-wrap { overflow: hidden; max-height: 0; transition: max-height 0.4s cubic-bezier(0.4,0,0.2,1); }
+  .log-wrap.open { max-height: 600px; }
+  .log-inner { background: #f9f9f9; color: var(--text-secondary); font-family: 'Noto Sans SC', sans-serif; font-size: 13px; padding: 16px 20px; line-height: 1.8; border-top: 1px solid var(--border); }
+  .log-inner .log-line { display: flex; gap: 24px; }
+  .log-inner .ts { color: var(--text-tertiary); white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR (shared) -->
+<div class="topbar">
+  <div class="topbar-logo">
+    <div class="logo-icon">易</div>易面
+  </div>
+  <nav class="topbar-nav">
+    <a href="#" class="active">项目</a>
+    <a href="#">评分表</a>
+    <a href="#">面试题</a>
+    <a href="#">岗位</a>
+    <a href="#">面试官</a>
+    <a href="#">面试间</a>
+    <a href="#">组织管理 ›</a>
+  </nav>
+  <div class="topbar-right">
+    <a href="#">终端入口 ›</a>
+    <span class="divider">|</span>
+    <a href="#">帮助</a>
+    <span class="divider">|</span>
+    <span>superadmin ▾</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PAGE 1：监控统计
+════════════════════════════════════════ -->
+<div class="page-view active" id="page-monitor">
+  <div class="monitor-layout">
+    <!-- 左侧边栏 -->
+    <div class="sidebar">
+      <div class="sidebar-item"><span class="icon">⊞</span>日程信息</div>
+      <div class="sidebar-item"><span class="icon">📅</span>候选人名单</div>
+      <div class="sidebar-item"><span class="icon">✏️</span>签到管理</div>
+      <div class="sidebar-item"><span class="icon">📎</span>面试安排</div>
+      <div class="sidebar-item active"><span class="icon">◎</span>监控统计</div>
+    </div>
+
+    <!-- 右侧主区 -->
+    <div class="monitor-main">
+      <div class="monitor-breadcrumb">
+        <a href="#">我的面试项目</a> / <a href="#">AI面试-演示</a> / <a href="#">演示日程1</a> / 监控统计
+      </div>
+      <div class="monitor-content">
+        <!-- Tabs -->
+        <div class="tabs">
+          <div class="tab active">候选人</div>
+          <div class="tab">录屏管理</div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+          <div class="search-box">🔍&nbsp; 姓名、身份证号、编号、</div>
+          <div class="toolbar-right">
+            <span class="selected-info">已选0人</span>
+            <button class="btn-outline">导出评分表pdf</button>
+            <button class="btn-solid">安排下一轮日程</button>
+            <button class="btn-solid">导出候选结果</button>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <table class="mon-table">
+          <thead>
+            <tr>
+              <th class="check-col"><input type="checkbox"></th>
+              <th>姓名</th>
+              <th>性别</th>
+              <th><span class="filter-btn">候选组 ▾</span></th>
+              <th>签到照</th>
+              <th>客户编号</th>
+              <th>AI虚拟评分表 <span class="sort-icon">↓</span></th>
+              <th>总得分 <span class="sort-icon">↓</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="checkbox"></td>
+              <td><span class="candidate-link" onclick="goToDetail('雷达3')">雷达3</span></td>
+              <td>男</td>
+              <td>--</td>
+              <td>--</td>
+              <td>1</td>
+              <td>15.3</td>
+              <td class="score-blue">15.3</td>
+            </tr>
+            <tr>
+              <td><input type="checkbox"></td>
+              <td><span class="candidate-link" onclick="goToDetail('hxr2')">hxr2</span></td>
+              <td>男</td>
+              <td>--</td>
+              <td><span class="candidate-link">查看</span></td>
+              <td>2</td>
+              <td>14.3</td>
+              <td class="score-blue">14.3</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="table-footer">已筛选<em>2</em>人/共<em>2</em>人</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PAGE 2：候选人详情
+════════════════════════════════════════ -->
+<div class="page-view" id="page-detail">
+  <div class="breadcrumb">
+    <a onclick="goBack()">我的面试项目</a><span>/</span>
+    <a onclick="goBack()">AI面试-演示</a><span>/</span>
+    <a onclick="goBack()">监控统计</a><span>/</span>
+    候选人详情
+  </div>
+
+  <div class="detail-page">
+    <!-- CANDIDATE CARD -->
+    <div class="candidate-card">
+      <div class="avatar">👤</div>
+      <div class="candidate-info">
+        <div class="name-row">
+          <div class="info-item"><span class="info-label">姓名：</span><span class="info-value" id="detail-name">雷达3</span></div>
+          <div class="info-item"><span class="info-label">性别：</span><span class="info-value">男</span></div>
+          <div class="info-item"><span class="info-label">岗位：</span><span class="info-value">测试工程师</span></div>
+        </div>
+        <div class="name-row">
+          <div class="info-item"><span class="info-label">客户编号：</span><span class="info-value">261718</span></div>
+          <div class="info-item"><span class="info-label">创建时间：</span><span class="info-value">2026/05/29 10:00</span></div>
+          <div class="info-item"><span class="info-label">上次修改：</span><span class="info-value">2026/05/29 10:38</span></div>
+        </div>
+      </div>
+      <button class="edit-btn">✏️ 编辑</button>
+    </div>
+
+    <!-- SCHEDULE SECTION -->
+    <div class="section-card">
+      <div class="table-head">
+        <div>日期</div><div>轮次</div><div>日程名称</div>
+        <div>分组</div><div>序号</div><div>编号</div><div>成绩</div>
+        <div>成绩表</div><div>日志</div>
+      </div>
+
+      <!-- ROW 1 -->
+      <div class="schedule-row">
+        <div>2026-05-29</div>
+        <div><span class="badge badge-green">▶ 一面</span></div>
+        <div>演示日程1</div>
+        <div>--</div><div>--</div><div>1</div>
+        <div class="score-val">65</div>
+        <div class="btn-group">
+          <button class="toggle-btn" id="btn-score-1" onclick="togglePanel('score-1','btn-score-1')">
+            成绩表 <span class="arrow">▼</span>
+          </button>
+        </div>
+        <div>
+          <button class="toggle-btn" id="btn-log-1" onclick="toggleLog('log-1','btn-log-1')">
+            日志 <span class="arrow">▼</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- SCORE EXPAND PANEL -->
+      <div class="expand-wrap" id="score-1">
+        <div class="expand-inner">
+          <div style="padding: 20px 40px 28px; background:#f8fbff;">
+          <table style="width:100%;border-collapse:collapse;border:1px solid #d0e4ff;background:#fff;">
+
+            <!-- ① AI虚拟评分表 蓝色双行表头 -->
+            <tr>
+              <td colspan="4" style="background:var(--brand);color:#fff;text-align:center;padding:10px 16px;font-size:15px;font-weight:600;">AI虚拟评分表</td>
+            </tr>
+            <tr>
+              <td colspan="4" style="background:var(--brand);color:rgba(255,255,255,0.92);text-align:center;padding:4px 16px 10px;font-size:13px;">
+                AI虚拟面试官组 —— ysmsap1登录ID：264549&nbsp;&nbsp;&nbsp;地址：<a href="#" style="color:#fff;text-decoration:underline;">查看</a>
+              </td>
+            </tr>
+
+            <!-- ② 总体得分 + 雷达图（左70%）+ 总体评价（右30%） -->
+            <tr>
+              <td colspan="3" style="width:70%;padding:16px 20px;border:1px solid #e0ecff;vertical-align:middle;">
+                <div style="display:flex;align-items:center;gap:24px;">
+                  <div style="text-align:center;flex-shrink:0;">
+                    <div style="font-size:12px;color:var(--text-tertiary);margin-bottom:4px;">总体得分</div>
+                    <div style="font-size:44px;font-weight:800;color:var(--text-primary);line-height:1.1;">65<span style="font-size:15px;color:var(--text-tertiary);font-weight:400;">/100</span></div>
+                    <div style="margin-top:8px;background:#fff7e6;color:#d48806;border:1px solid #ffd591;padding:2px 10px;border-radius:4px;font-size:12px;font-weight:600;display:inline-block;">暂缓</div>
+                  </div>
+                  <svg width="440" height="260" viewBox="0 0 440 260">
+                    <g transform="translate(220,130)">
+                      <text x="0" y="-110" text-anchor="middle" font-size="12" fill="#595959">测试设计能力</text>
+                      <text x="108" y="-30" text-anchor="start" font-size="12" fill="#595959">缺陷分析与闭环能力</text>
+                      <text x="68" y="88" text-anchor="start" font-size="12" fill="#595959">工具与技术实践</text>
+                      <text x="-68" y="88" text-anchor="end" font-size="12" fill="#595959">质量保障思维</text>
+                      <text x="-108" y="-30" text-anchor="end" font-size="12" fill="#595959">沟通协作与责任心</text>
+                      <g opacity="0.2">
+                        <polygon points="0,-84 79.9,-26.0 49.4,68.0 -49.4,68.0 -79.9,-26.0" fill="none" stroke="#1677ff" stroke-width="1"/>
+                        <polygon points="0,-63 59.9,-19.5 37.0,51.0 -37.0,51.0 -59.9,-19.5" fill="none" stroke="#1677ff" stroke-width="1"/>
+                        <polygon points="0,-42 39.9,-13.0 24.7,34.0 -24.7,34.0 -39.9,-13.0" fill="none" stroke="#1677ff" stroke-width="1"/>
+                        <polygon points="0,-21 20.0,-6.5 12.3,17.0 -12.3,17.0 -20.0,-6.5" fill="none" stroke="#1677ff" stroke-width="1"/>
+                      </g>
+                      <line x1="0" y1="0" x2="0" y2="-84" stroke="#ddd" stroke-width="1"/>
+                      <line x1="0" y1="0" x2="79.9" y2="-26.0" stroke="#ddd" stroke-width="1"/>
+                      <line x1="0" y1="0" x2="49.4" y2="68.0" stroke="#ddd" stroke-width="1"/>
+                      <line x1="0" y1="0" x2="-49.4" y2="68.0" stroke="#ddd" stroke-width="1"/>
+                      <line x1="0" y1="0" x2="-79.9" y2="-26.0" stroke="#ddd" stroke-width="1"/>
+                      <polygon points="0,-50.4 47.9,-15.6 39.5,54.4 -39.5,54.4 -31.9,-10.4" fill="rgba(22,119,255,0.15)" stroke="#1677ff" stroke-width="2"/>
+                      <circle cx="0" cy="-50.4" r="4" fill="#1677ff"/>
+                      <circle cx="47.9" cy="-15.6" r="4" fill="#1677ff"/>
+                      <circle cx="39.5" cy="54.4" r="4" fill="#1677ff"/>
+                      <circle cx="-39.5" cy="54.4" r="4" fill="#1677ff"/>
+                      <circle cx="-31.9" cy="-10.4" r="4" fill="#1677ff"/>
+                    </g>
+                  </svg>
+                </div>
+              </td>
+              <td style="width:30%;padding:16px 20px;border:1px solid #e0ecff;vertical-align:top;font-size:13px;color:var(--text-secondary);line-height:1.85;">
+                候选人具备Python开发背景，在性能测试（Locust）和接口自动化（Postman）方面有一定实践经验，能够处理基本的动态参数和日志记录，但在UI自动化深度、缺陷根因分析的严谨性及质量保障思维上表现较为局限。面对部分专业追问时表现出回避知识盲区，整体倾向于从开发思维而非测试系统性视角看待测试工程，建议结合具体项目需求的情境考核或追加试题。
+              </td>
+            </tr>
+
+
+            <!-- ③ 维度评分明细 标题行 -->
+            <tr>
+              <td colspan="4" style="padding:12px 16px;border:1px solid #e0ecff;font-size:14px;font-weight:600;color:var(--text-primary);background:#f5f8ff;">维度评分明细</td>
+            </tr>
+            <!-- 列头 -->
+            <tr style="background:#fafafa;">
+              <td style="padding:10px 16px;border:1px solid #e0ecff;font-size:13px;color:var(--text-tertiary);text-align:center;">维度</td>
+              <td style="padding:10px 16px;border:1px solid #e0ecff;font-size:13px;color:var(--text-tertiary);text-align:center;width:60px;">分数</td>
+              <td colspan="2" style="padding:10px 16px;border:1px solid #e0ecff;font-size:13px;color:var(--text-tertiary);">证据</td>
+            </tr>
+            <!-- 维度行 × 5 -->
+            <tr>
+              <td style="padding:14px 16px;border:1px solid #e0ecff;font-weight:600;font-size:13px;vertical-align:top;text-align:center;">测试设计能力</td>
+              <td style="padding:14px 16px;border:1px solid #e0ecff;font-weight:700;font-size:15px;text-align:center;vertical-align:top;">3/5</td>
+              <td colspan="2" style="padding:14px 16px;border:1px solid #e0ecff;vertical-align:top;">
+                <ul class="ev-list">
+                  <li>在性能测试场景中，能利用Locust模拟高并发登录和答题行为，通过随机时间间隔模拟真实用户操作，体现了基本的场景设计能力。</li>
+                  <li>对于边界条件和异常场景，候选人表示主要在功能测试中覆盖，性能测试仅关注压力和超时，未展示在高性能场景下对数据一致性或特定边界条件的深入设计。</li>
+                  <li>当被问及Web端登录完毕的手工测试与UI自动化测试设计差异时，候选人直接拒绝回答，导致该维度关键证据缺失。</li>
+                </ul>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:14px 16px;border:1px solid #e0ecff;font-weight:600;font-size:13px;vertical-align:top;text-align:center;">缺陷分析与闭环能力</td>
+              <td style="padding:14px 16px;border:1px solid #e0ecff;font-weight:700;font-size:15px;text-align:center;vertical-align:top;">3/5</td>
+              <td colspan="2" style="padding:14px 16px;border:1px solid #e0ecff;vertical-align:top;">
+                <ul class="ev-list">
+                  <li>能通过浏览器开发者工具查看HTTP状态码（401/403 vs 502）来区分会话超时问题类型，闭环认知可用。</li>
+                  <li>提到修复后会进行原路径验证及相关路由回归，多浏览器兼容性验证，闭环知识可用。</li>
+                  <li>对其他诱因及开发修复细节描述较为笼统，缺乏更深度的根因级或日志级分析描述。</li>
+                </ul>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:14px 16px;border:1px solid #e0ecff;font-weight:600;font-size:13px;vertical-align:top;text-align:center;">工具与技术实践</td>
+              <td style="padding:14px 16px;border:1px solid #e0ecff;font-weight:700;font-size:15px;text-align:center;vertical-align:top;">4/5</td>
+              <td colspan="2" style="padding:14px 16px;border:1px solid #e0ecff;vertical-align:top;">
+                <ul class="ev-list">
+                  <li>熟练使用Postman进行接口测试，了解Token鉴权配置。</li>
+                  <li>能够使用Python requests编写脚本处理动态Token提取和传递，并通过打印日志进行排查，具备实际的代码实现能力。</li>
+                  <li>提及使用Playwright进行UI自动化，但仅知道通过"加等待"解决元素定位问题，对框架自带的智能等待机制了解有限。</li>
+                  <li>混淆了性能测试工具Locust与功能自动化框架的概念，经引导后才区分UI和接口自动化工具。</li>
+                </ul>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:14px 16px;border:1px solid #e0ecff;font-weight:600;font-size:13px;vertical-align:top;text-align:center;">质量保障思维</td>
+              <td style="padding:14px 16px;border:1px solid #e0ecff;font-weight:700;font-size:15px;text-align:center;vertical-align:top;">3/5</td>
+              <td colspan="2" style="padding:14px 16px;border:1px solid #e0ecff;vertical-align:top;">
+                <ul class="ev-list">
+                  <li>主要描述Reopen缺陷和周会通报，属于事后补救，缺乏系统性的复盘方法论（如5Why分析、故障树等）。</li>
+                  <li>左移实践内容较通用，未结合具体案例说明如何通过该左移实践发现关键缺陷。</li>
+                  <li>在项目阶段压缩下，能提出检查覆盖率策略，具备一定的风险权衡意识。</li>
+                </ul>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:14px 16px;border:1px solid #e0ecff;font-weight:600;font-size:13px;vertical-align:top;text-align:center;">沟通协作与责任心</td>
+              <td style="padding:14px 16px;border:1px solid #e0ecff;font-weight:700;font-size:15px;text-align:center;vertical-align:top;">2/5</td>
+              <td colspan="2" style="padding:14px 16px;border:1px solid #e0ecff;vertical-align:top;">
+                <ul class="ev-list">
+                  <li>在讨论跨团队协作的沟通案例时，候选人直接回答"没有碰到过"，未能提供有效证据，缺乏主动风险思考。</li>
+                  <li>当被要求对比手工与自动化测试设计差异时，以"时间快到了"为由拒绝回答，沟通配合度较低。</li>
+                  <li>整体表达逻辑可以，但在压力追问时倾向于回避而非积极解决。</li>
+                </ul>
+              </td>
+            </tr>
+
+            <!-- ④ 风险与特追问 标题行 -->
+            <tr>
+              <td colspan="4" style="padding:12px 16px;border:1px solid #e0ecff;font-size:14px;font-weight:600;color:var(--text-primary);background:#f5f8ff;">风险与特追问</td>
+            </tr>
+            <tr>
+              <td colspan="4" style="padding:14px 16px;border:1px solid #e0ecff;font-size:13px;color:var(--text-secondary);line-height:1.8;">
+                <span style="font-weight:700;color:var(--text-primary);">沟通配合度与职业态度风险：</span>候选人在面试过程中明确拒绝回答专业问题，理由是时间不够，表现出较低的配合度和抗压能力，可能影响团队协作品质。追问：在面对工作压力或不熟悉的任务时，你通常如何调整心态，确保与同事和跨团队成员保持有效的协作？
+              </td>
+            </tr>
+            <tr>
+              <td colspan="4" style="padding:14px 16px;border:1px solid #e0ecff;font-size:13px;color:var(--text-secondary);line-height:1.8;">
+                <span style="font-weight:700;color:var(--text-primary);">UI自动化测试深度不足：</span>对Playwright和现代UI自动化框架的高级特性了解有限，仅停留在基础使用层面，可能难以胜任复杂的UI自动化建设任务。追问：参考你接触过的最复杂的UI自动化实践，请谈谈Page Object模式在你的脚本中是如何应用的。
+              </td>
+            </tr>
+            <tr>
+              <td colspan="4" style="padding:14px 16px;border:1px solid #e0ecff;font-size:13px;color:var(--text-secondary);line-height:1.8;">
+                <span style="font-weight:700;color:var(--text-primary);">测试理论体系薄弱：</span>候选人倾向于用开发思维或性能测试视角看待问题，对测试用例设计的系统性方法了解不深。追问：请阐述在设计一个核心业务的自动化测试用例时，你会如何融合功能验证与自动化，哪些步骤中手工测试无法被替代？
+              </td>
+            </tr>
+
+            <!-- ⑤ 关键回答证据 标题行 -->
+            <tr>
+              <td colspan="4" style="padding:12px 16px;border:1px solid #e0ecff;font-size:14px;font-weight:600;color:var(--text-primary);background:#f5f8ff;">关键回答证据</td>
+            </tr>
+            <tr>
+              <td colspan="4" style="padding:16px;border:1px solid #e0ecff;font-size:13px;line-height:1.8;">
+                <div style="font-weight:700;font-size:14px;margin-bottom:6px;">测试设计能力</div>
+                <div style="color:var(--text-primary);margin-bottom:6px;">使用Locust模拟在线考试系统高并发，通过gevent机制模拟大量请求。设计了登录、答题、交卷的不同频率调用，并在随机时间间隔内产生行为。最终达到5万并发。</div>
+                <div style="color:var(--text-tertiary);font-size:12px;">展示了性能测试场景设计能力，但对功能边界和异常场景的测试设计描述不足，将功能异常排除在性能测试关注点之外略显片面。</div>
+              </td>
+            </tr>
+            <tr>
+              <td colspan="4" style="padding:16px;border:1px solid #e0ecff;font-size:13px;line-height:1.8;">
+                <div style="font-weight:700;font-size:14px;margin-bottom:6px;">缺陷分析与闭环能力</div>
+                <div style="color:var(--text-primary);margin-bottom:6px;">案例：考生长时间不答题被剔除。定位：通过浏览器Network查看状态码，401/403代表会话丢失，502代表网络超时。闭环：修复后验证原路径、相关路由及多浏览器兼容性。</div>
+                <div style="color:var(--text-tertiary);font-size:12px;">定位方法合理，利用了前端工具辅助判断。但缺乏后端日志或代码层面的根因分析细节，闭环措施较为常规。</div>
+              </td>
+            </tr>
+            <tr>
+              <td colspan="4" style="padding:16px;border:1px solid #e0ecff;font-size:13px;line-height:1.8;">
+                <div style="font-weight:700;font-size:14px;margin-bottom:6px;">工具与技术实践</div>
+                <div style="color:var(--text-primary);margin-bottom:6px;">常用Postman。复杂依赖使用Python requests库，先调用登录接口获取Token，解析后作为变量传递给后续接口。出错时通过打印日志排查。</div>
+                <div style="color:var(--text-tertiary);font-size:12px;">具备实际的接口自动化脚本编写能力，技术栈匹配岗位要求。</div>
+              </td>
+            </tr>
+            <tr>
+              <td colspan="4" style="padding:16px;border:1px solid #e0ecff;font-size:13px;line-height:1.8;">
+                <div style="font-weight:700;font-size:14px;margin-bottom:6px;">质量保障思维</div>
+                <div style="color:var(--text-primary);margin-bottom:6px;">复盘：Reopen缺陷，周会通报。左移：参与需求评审，制定验收标准，列出常见问题清单要求开发自验。</div>
+                <div style="color:var(--text-tertiary);font-size:12px;">回答较为套路化，缺乏具体的成功案例支撑，对质量左移的理解停留在表面流程。</div>
+              </td>
+            </tr>
+            <tr>
+              <td colspan="4" style="padding:16px;border:1px solid #e0ecff;font-size:13px;line-height:1.8;">
+                <div style="font-weight:700;font-size:14px;margin-bottom:6px;">沟通协作与责任心</div>
+                <div style="color:var(--text-primary);margin-bottom:6px;">回答："这一类的问题倒是没有碰到过哎。"</div>
+                <div style="color:var(--text-tertiary);font-size:12px;">未提供有效证据，可能存在经验不足或回避问题的情况。</div>
+              </td>
+            </tr>
+
+          </table>
+          </div>
+        </div><!-- /expand-inner -->
+      </div><!-- /expand-wrap score -->
+
+      <!-- LOG EXPAND PANEL -->
+      <div class="log-wrap" id="log-1">
+        <div class="log-inner">
+          <div class="log-line"><span class="ts">2026-05-09 12:24</span><span>管理端批量签到 【签到成功】</span></div>
+        </div>
+      </div>
+
+      <!-- ROW 2 -->
+      <div class="schedule-row">
+        <div>2026-06-05</div>
+        <div><span class="badge" style="background:#f5f5f5;color:#8c8c8c;border:1px solid #d9d9d9">⏳ 二面</span></div>
+        <div>技术终面</div>
+        <div>A组</div><div>--</div><div>2</div>
+        <div style="color:var(--text-tertiary);font-size:12px">待面试</div>
+        <div><button class="toggle-btn" style="opacity:.4;cursor:default" disabled>成绩表 <span class="arrow">▼</span></button></div>
+        <div><button class="toggle-btn" style="opacity:.4;cursor:default" disabled>日志 <span class="arrow">▼</span></button></div>
+      </div>
+
+    </div><!-- /section-card -->
+  </div><!-- /detail-page -->
+</div><!-- /page-detail -->
+
+<script>
+  function goToDetail(name) {
+    document.getElementById('detail-name').textContent = name;
+    document.getElementById('page-monitor').classList.remove('active');
+    document.getElementById('page-detail').classList.add('active');
+    window.scrollTo(0, 0);
+    // reset expand panels
+    document.querySelectorAll('.expand-wrap').forEach(p => p.classList.remove('open'));
+    document.querySelectorAll('.log-wrap').forEach(p => p.classList.remove('open'));
+    document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('open'));
+  }
+  function goBack() {
+    document.getElementById('page-detail').classList.remove('active');
+    document.getElementById('page-monitor').classList.add('active');
+    window.scrollTo(0, 0);
+  }
+  function togglePanel(id, btnId) {
+    const panel = document.getElementById(id);
+    const btn = document.getElementById(btnId);
+    const isOpen = panel.classList.contains('open');
+    document.querySelectorAll('.expand-wrap').forEach(p => p.classList.remove('open'));
+    document.querySelectorAll('.toggle-btn[id^="btn-score"]').forEach(b => b.classList.remove('open'));
+    if (!isOpen) {
+      panel.classList.add('open');
+      btn.classList.add('open');
+      setTimeout(() => panel.scrollIntoView({behavior:'smooth', block:'nearest'}), 50);
+    }
+  }
+  function toggleLog(id, btnId) {
+    const panel = document.getElementById(id);
+    const btn = document.getElementById(btnId);
+    panel.classList.toggle('open');
+    btn.classList.toggle('open');
+  }
+</script>
+</body>
+</html>
+
