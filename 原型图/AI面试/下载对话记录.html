@@ -154,7 +154,7 @@ function duration(s,e){const ms=new Date(e)-new Date(s),m=Math.floor(ms/60000),s
 
 function buildTxt(iv){
   const dash='─'.repeat(52),name=iv.interview_subject,L=[];
-  L.push('面试编号    '+iv.room_id);
+  L.push('会议室ID    '+iv.room_id);
   L.push('面试日程    '+iv.schedule);
   L.push('面试安排    '+iv.arrangement);
   L.push('面试对象    '+name);
