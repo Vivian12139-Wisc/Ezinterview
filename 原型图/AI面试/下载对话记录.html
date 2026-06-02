@@ -1,0 +1,190 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'PingFang SC','Microsoft YaHei',sans-serif}
+.app{display:flex;flex-direction:column;min-height:600px;background:#f5f6fa}
+.topbar{background:#1890ff;display:flex;align-items:center;height:48px;padding:0 16px;flex-shrink:0}
+.logo{display:flex;align-items:center;gap:8px;color:#fff;font-size:16px;font-weight:600;padding:0 16px 0 0;border-right:1px solid rgba(255,255,255,0.3);margin-right:8px}
+.logo-icon{width:28px;height:28px;background:#fff;border-radius:6px;display:flex;align-items:center;justify-content:center}
+.logo-icon span{color:#1890ff;font-size:11px;font-weight:700}
+.nav-item{color:rgba(255,255,255,0.85);font-size:14px;padding:0 16px;height:48px;display:flex;align-items:center;cursor:pointer}
+.nav-item.active{color:#fff;border-bottom:2px solid #fff}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:16px;color:rgba(255,255,255,0.85);font-size:13px}
+.main{display:flex;flex:1}
+.sidebar{width:180px;background:#fff;border-right:1px solid #e8e8e8;padding:8px 0;flex-shrink:0}
+.sidebar-item{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:14px;color:#555;cursor:pointer}
+.sidebar-item.active{background:#e6f4ff;color:#1890ff;font-weight:500}
+.content{flex:1;padding:20px;overflow:auto}
+.breadcrumb{font-size:13px;color:#999;margin-bottom:16px}
+.panel{background:#fff;border-radius:8px;border:1px solid #e8e8e8;overflow:hidden}
+.tabs{display:flex;border-bottom:1px solid #e8e8e8;padding:0 20px}
+.tab{padding:14px 16px;font-size:14px;color:#666;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab.active{color:#1890ff;border-bottom-color:#1890ff;font-weight:500}
+.toolbar{padding:12px 20px;display:flex;justify-content:flex-end;align-items:center;gap:10px;border-bottom:1px solid #f0f0f0}
+.badge{font-size:13px;color:#666}
+.btn-dl-all{background:#1890ff;color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:13px;cursor:pointer}
+.btn-dl-all:hover{background:#096dd9}
+.table{width:100%;border-collapse:collapse;font-size:13px}
+.table th{background:#fafafa;color:#888;font-weight:500;padding:11px 16px;border-bottom:1px solid #f0f0f0;text-align:left;white-space:nowrap}
+.table td{padding:13px 16px;border-bottom:1px solid #f8f8f8;color:#333;vertical-align:middle;white-space:nowrap}
+.table tr:hover td{background:#fafeff}
+.cb{width:14px;height:14px;accent-color:#1890ff;cursor:pointer}
+.status-done{background:#f6ffed;color:#52c41a;border:1px solid #b7eb8f;border-radius:4px;padding:2px 8px;font-size:12px}
+.op-btn{color:#1890ff;cursor:pointer;font-size:13px;background:none;border:none;padding:0}
+.op-btn:hover{text-decoration:underline}
+.op-sep{color:#ddd;margin:0 4px}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-10px);background:#333;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;opacity:0;transition:all .3s;pointer-events:none;z-index:9999}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+
+<div class="app">
+  <div class="topbar">
+    <div class="logo"><div class="logo-icon"><span>易面</span></div>易面</div>
+    <div class="nav-item active">项目</div>
+    <div class="nav-item">评分表</div>
+    <div class="nav-item">面试题</div>
+    <div class="nav-item">岗位</div>
+    <div class="nav-item">面试官</div>
+    <div class="nav-item">面试间</div>
+    <div class="nav-item">组织管理 ›</div>
+    <div class="nav-right"><span>终端入口 ›</span><span>? 帮助</span><span>superadmin ▾</span></div>
+  </div>
+  <div class="main">
+    <div class="sidebar">
+      <div class="sidebar-item"><span>⊞</span> 日程信息</div>
+      <div class="sidebar-item"><span>☰</span> 候选人名单</div>
+      <div class="sidebar-item"><span>✍</span> 签到管理</div>
+      <div class="sidebar-item"><span>📎</span> 面试安排</div>
+      <div class="sidebar-item active"><span>◎</span> 监控统计</div>
+    </div>
+    <div class="content">
+      <div class="breadcrumb">我的面试项目 / AI面试-演示 / 演示日程1 / 监控统计</div>
+      <div class="panel">
+        <div class="tabs">
+          <div class="tab">候选人</div>
+          <div class="tab active">录屏管理</div>
+        </div>
+        <div class="toolbar">
+          <span class="badge">已选 0 个</span>
+          <button class="btn-dl-all">↓ 下载会议录屏</button>
+        </div>
+        <table class="table">
+          <thead>
+            <tr>
+              <th style="width:40px"><input type="checkbox" class="cb"></th>
+              <th style="width:40px">#</th>
+              <th>会议室ID</th><th>房间类型</th><th>状态</th><th>面试官小组</th>
+              <th>开始时间</th><th>结束时间</th><th>持续时间</th><th>安排</th><th>参会人数</th><th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="checkbox" class="cb"></td>
+              <td>1</td><td>14301</td><td>腾讯会议</td>
+              <td><span class="status-done">已完成</span></td>
+              <td>AI虚拟面试官组</td><td>21:56</td><td>21:57</td><td>0:00:51</td><td>ysmsap1</td><td>1</td>
+              <td>
+                <button class="op-btn">查看录屏</button><span class="op-sep">|</span>
+                <button class="op-btn">查看合并录像</button><span class="op-sep">|</span>
+                <button class="op-btn">下载录屏</button><span class="op-sep">|</span>
+                <button class="op-btn" onclick="downloadLog(0)">下载对话记录</button>
+              </td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="cb"></td>
+              <td>2</td><td>14314</td><td>腾讯会议</td>
+              <td><span class="status-done">已完成</span></td>
+              <td>AI虚拟面试官组</td><td>14:14</td><td>14:14</td><td>0:00:33</td><td>ysmsap2</td><td>1</td>
+              <td>
+                <button class="op-btn">查看录屏</button><span class="op-sep">|</span>
+                <button class="op-btn">查看合并录像</button><span class="op-sep">|</span>
+                <button class="op-btn">下载录屏</button><span class="op-sep">|</span>
+                <button class="op-btn" onclick="downloadLog(1)">下载对话记录</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const interviews = [
+  {
+    room_id:"14301",schedule:"2026/05/28 演示日程1",arrangement:"ysmsap1",
+    interview_subject:"张三",position:"算法工程师",score_sheet:"AI虚拟评分表",interviewer:"AI面试官",
+    start_time:"2026-03-12T15:15:48.117305+08:00",end_time:"2026-03-12T15:26:15.804243+08:00",
+    conversation:[
+      {role:"assistant",content:"你好，张三。我们开始算法工程师岗位的面试，先请介绍一下你最熟悉的机器学习框架。",timestamp:"2026-03-12T15:15:51.107639+08:00"},
+      {role:"user",content:"面试官您好，我最熟悉的是 PyTorch，我用它做过多个深度学习项目，特别喜欢它的动态图机制，调试非常直观，而且它的社区活跃，源码易读，方便我深入理解底层原理。",timestamp:"2026-03-12T15:16:18.304353+08:00"},
+      {role:"assistant",content:"好的，了解你对PyTorch的偏好。那请说说你在项目中如何优化模型训练效率？",timestamp:"2026-03-12T15:16:20.023347+08:00"},
+      {role:"user",content:"面试官，我主要从三方面优化：一是数据加载，用多进程和锁页内存，让 GPU 不饿。二是计算，用混合精度训练，提速且省显存。三是多卡训练，用 DDP 扩展算力。",timestamp:"2026-03-12T15:16:46.790007+08:00"},
+      {role:"assistant",content:"好的，你提到的混合精度和多卡训练很实用。那在模型收敛不稳定时，你通常如何调整学习率策略？",timestamp:"2026-03-12T15:16:49.122841+08:00"},
+      {role:"user",content:"面试官针对不收敛，我首选预热加余弦退火，预热能防初期震荡，余弦平滑下降助后期收敛。若后期卡住，我会加 ReduceLROnPlateau 监控指标自动降学习率来找最优解。",timestamp:"2026-03-12T15:17:17.392167+08:00"},
+      {role:"assistant",content:"好的，你对学习率调度的策略很系统。那在模型过拟合时，你通常会优先尝试哪些正则化手段？",timestamp:"2026-03-12T15:17:19.692716+08:00"},
+      {role:"user",content:"面试官，您是觉得这个策略可行，还是想听听我在特定场景下的其他调参经验呢？",timestamp:"2026-03-12T15:17:36.981395+08:00"},
+      {role:"assistant",content:"好的，我更想听你具体场景下的调参经验。比如在小样本任务中，你如何平衡正则化和模型容量？",timestamp:"2026-03-12T15:17:39.409967+08:00"},
+      {role:"user",content:"面试官，小样本下我首选迁移学习加微调，直接上大模型容易过拟合，我会冻结主干网络，只训练头部，或者用 Adapter 做参数高效微调，正则化上 Dropout 和强数据增强是标配，再配合早停法，防止模型在噪声上走太远。",timestamp:"2026-03-12T15:18:11.160602+08:00"},
+      {role:"assistant",content:"好的，你对小样本的处理很全面。那在模型推理阶段，你如何权衡准确率和推理速度？有没有实际压测数据？",timestamp:"2026-03-12T15:18:14.151553+08:00"},
+      {role:"user",content:"面试官，这得看场景。实时性要求高就用 INT8 量化或蒸馏，牺牲一点精度换速度。我实测过，在昇腾 NPU 上，Llama 37B 模型量化后吞吐量翻倍，精度仅降 0.4%，性价比很高。",timestamp:"2026-03-12T15:18:46.024284+08:00"},
+      {role:"assistant",content:"好的，你对模型压缩和硬件适配有实测数据。那在模型部署时，你如何监控线上推理的稳定性与资源消耗？",timestamp:"2026-03-12T15:18:48.805906+08:00"},
+      {role:"user",content:"我主要用 Prometheus + Grafana，重点监控 GPU 显存和 P99 延迟，防溢出和长尾延迟，配合 ELK 查日志，设置阈值告警，能快速定位资源瓶颈或代码异常。",timestamp:"2026-03-12T15:19:17.208906+08:00"},
+      {role:"assistant",content:"好的，你对线上监控体系很扎实。那在模型版本迭代时，你如何保证新旧版本切换的平滑性和回滚机制？",timestamp:"2026-03-12T15:19:19.787191+08:00"},
+      {role:"user",content:"面试官，我首选双实例热切换或蓝绿部署，先让新旧版本并行，通过网关切流，观察监控无异常再全量。回滚时只要把流量切回旧版本，或者用 MLflow 一键加载稳定快照，非常安全。",timestamp:"2026-03-12T15:19:50.012357+08:00"},
+      {role:"assistant",content:"好的，你对版本发布和回滚有成熟方案。那在模型训练过程中，你如何处理数据分布偏移问题？有没有实际应对经验？",timestamp:"2026-03-12T15:19:52.990748+08:00"},
+      {role:"user",content:"面试官，我主要分三步，首先用 PSI 监控数据漂移，早发现早预警，其次针对样本不均衡，用 SMOTE 过采样，最后针对分布差异，结合对抗训练做域自适应，让特征分布对齐，效果很好。",timestamp:"2026-03-12T15:20:24.769305+08:00"}
+    ]
+  },
+  {
+    room_id:"14314",schedule:"2026/05/28 演示日程1",arrangement:"ysmsap2",
+    interview_subject:"张三",position:"算法工程师",score_sheet:"AI虚拟评分表",interviewer:"AI面试官",
+    start_time:"2026-03-12T14:14:00.000000+08:00",end_time:"2026-03-12T14:14:33.000000+08:00",
+    conversation:[
+      {role:"assistant",content:"你好，请先做个简短的自我介绍。",timestamp:"2026-03-12T14:14:05.000000+08:00"},
+      {role:"user",content:"面试官好，我叫张三，有五年算法工程师经验，专注于推荐系统和大模型落地。",timestamp:"2026-03-12T14:14:20.000000+08:00"}
+    ]
+  }
+];
+
+function fmt(iso){const d=new Date(iso),p=n=>String(n).padStart(2,'0');return`${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;}
+function fmtT(iso){return fmt(iso).split(' ')[1];}
+function duration(s,e){const ms=new Date(e)-new Date(s),m=Math.floor(ms/60000),sec=Math.floor((ms%60000)/1000);return`${m} 分 ${sec} 秒`;}
+
+function buildTxt(iv){
+  const dash='─'.repeat(52),name=iv.interview_subject,L=[];
+  L.push('面试编号    '+iv.room_id);
+  L.push('面试日程    '+iv.schedule);
+  L.push('面试安排    '+iv.arrangement);
+  L.push('面试对象    '+name);
+  L.push('应聘岗位    '+iv.position);
+  L.push('面试评分表  '+iv.score_sheet);
+  L.push('面试官      '+iv.interviewer);
+  L.push('开始时间    '+fmt(iv.start_time));
+  L.push('结束时间    '+fmt(iv.end_time));
+  L.push('持续时长    '+duration(iv.start_time,iv.end_time));
+  L.push('对话轮次    '+iv.conversation.length+' 轮');
+  L.push('');L.push(dash);L.push('');
+  iv.conversation.forEach(msg=>{
+    const speaker=msg.role==='assistant'?'【面试官】':`【${name}】`;
+    L.push(`${speaker}  ${fmtT(msg.timestamp)}`);
+    L.push(`  ${msg.content}`);
+    L.push('');
+  });
+  L.push(dash);
+  L.push('生成时间：'+fmt(new Date().toISOString()));
+  return L.join('\n');
+}
+
+function downloadLog(idx){
+  const iv=interviews[idx];
+  const blob=new Blob(['\uFEFF'+buildTxt(iv)],{type:'text/plain;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  window.open(url,'_blank');
+  const t=document.getElementById('toast');
+  t.textContent=`✓ 已在新标签页打开：${iv.interview_subject}_${iv.room_id}_面试对话记录.txt`;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+</script>
