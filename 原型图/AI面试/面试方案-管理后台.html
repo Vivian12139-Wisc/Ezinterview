@@ -160,6 +160,12 @@
   .plan-md ul { padding-left: 18px; margin: 0 0 6px; }
   .plan-md li { margin-bottom: 3px; }
 
+  .plan-edit-btn { background: rgba(255,255,255,0.22); color: #fff; border: 1px solid rgba(255,255,255,0.5); border-radius: 5px; padding: 4px 14px; font-size: 13px; cursor: pointer; font-family: inherit; }
+  .plan-edit-btn:hover { background: rgba(255,255,255,0.35); }
+  #plan-textarea { width: 100%; border: none; border-top: 1px solid var(--border); padding: 20px 40px; font-size: 13px; font-family: 'Noto Sans SC', sans-serif; line-height: 1.8; color: var(--text-primary); resize: none; display: none; min-height: 480px; }
+  #plan-textarea:focus { outline: none; }
+  #plan-actions { display: none; padding: 12px 40px 16px; gap: 10px; border-top: 1px solid var(--border); }
+
   /* LOG PANEL */
   .log-wrap { overflow: hidden; max-height: 0; transition: max-height 0.4s cubic-bezier(0.4,0,0.2,1); }
   .log-wrap.open { max-height: 600px; }
@@ -338,11 +344,14 @@
       <!-- PLAN EXPAND PANEL -->
       <div class="plan-wrap" id="plan-1">
         <div class="plan-inner">
-          <div style="background:var(--brand);color:#fff;text-align:center;padding:10px 16px;font-size:15px;font-weight:600;">面试方案</div>
+          <div style="background:var(--brand);color:#fff;padding:10px 20px;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:space-between;">
+            <span>面试方案</span>
+            <button class="plan-edit-btn" id="plan-edit-btn" onclick="startPlanEdit()">编辑</button>
+          </div>
           <div style="background:var(--brand);color:rgba(255,255,255,0.9);text-align:center;padding:4px 16px 10px;font-size:13px;">
             候选人：雷达3 &nbsp;·&nbsp; 岗位：测试工程师 &nbsp;·&nbsp; 面试时间：2026-05-29 &nbsp;10:00
           </div>
-          <div class="plan-md">
+          <div class="plan-md" id="plan-view">
             <h1>面试方案 - 雷达3</h1>
             <ul>
               <li>候选人：雷达3</li>
@@ -374,6 +383,11 @@
 
             <h2>潜在风险提示</h2>
             <p>简历中测试工具覆盖较广但多处于基础使用层面，建议追问实际项目中工具选型的决策依据；另外开发背景较强，注意甄别其测试思维的独立性，避免混淆开发自测与测试工程师视角。</p>
+          </div>
+          <textarea id="plan-textarea"></textarea>
+          <div id="plan-actions">
+            <button class="btn-solid" onclick="savePlanEdit()">保存</button>
+            <button class="btn-outline" onclick="cancelPlanEdit()">取消</button>
           </div>
         </div>
       </div><!-- /plan-wrap -->
@@ -632,6 +646,31 @@
       document.getElementById(btnId).classList.add('open');
       setTimeout(() => panel.scrollIntoView({behavior:'smooth', block:'nearest'}), 50);
     }
+  }
+  function startPlanEdit() {
+    const view = document.getElementById('plan-view');
+    const ta = document.getElementById('plan-textarea');
+    const actions = document.getElementById('plan-actions');
+    ta.value = view.innerText;
+    ta.style.height = ta.scrollHeight + 'px';
+    view.style.display = 'none';
+    ta.style.display = 'block';
+    actions.style.display = 'flex';
+    document.getElementById('plan-edit-btn').style.display = 'none';
+    ta.focus();
+  }
+  function savePlanEdit() {
+    const view = document.getElementById('plan-view');
+    const ta = document.getElementById('plan-textarea');
+    view.innerHTML = '<p style="white-space:pre-wrap">' + ta.value + '</p>';
+    exitPlanEdit();
+  }
+  function cancelPlanEdit() { exitPlanEdit(); }
+  function exitPlanEdit() {
+    document.getElementById('plan-view').style.display = 'block';
+    document.getElementById('plan-textarea').style.display = 'none';
+    document.getElementById('plan-actions').style.display = 'none';
+    document.getElementById('plan-edit-btn').style.display = 'block';
   }
   function toggleLog(id, btnId) {
     const panel = document.getElementById(id);
