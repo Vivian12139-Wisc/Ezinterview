@@ -30,7 +30,7 @@ body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;backgr
 .tip-body{color:#94a3b8;font-size:11px}
 
 /* ── Screens ── */
-#sw{margin-top:53px;position:relative;-webkit-overflow-scrolling:touch}
+#sw{margin-top:91px;position:relative;-webkit-overflow-scrolling:touch}
 .scr{display:none;-webkit-overflow-scrolling:touch}.scr.on{display:block;overflow-y:auto}
 .nav-back{font-size:17px;cursor:pointer;color:rgba(255,255,255,.9);padding:0 10px;line-height:1;flex-shrink:0;user-select:none;transition:opacity .15s}
 .nav-back:hover{color:#fff;opacity:1}
@@ -199,6 +199,18 @@ td{padding:12px 10px;border-bottom:1px solid #f8f8f8;font-size:13px;vertical-ali
 #done-banner.on{display:flex}
 
 
+
+/* ── 流程条 ── */
+#flow-bar{position:fixed;top:53px;left:0;right:0;z-index:1998;background:#fff;border-bottom:1px solid #e8e8e8;display:flex;align-items:center;justify-content:center;height:38px;gap:0;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.fs{display:flex;align-items:center;gap:4px;cursor:default;user-select:none;flex-shrink:0}
+.fs-num{width:20px;height:20px;border-radius:50%;background:#e8e8e8;color:#bfbfbf;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s,color .2s}
+.fs-lbl{font-size:11px;color:#bfbfbf;white-space:nowrap;transition:color .2s,font-weight .2s}
+.fs.active .fs-num{background:#1677ff;color:#fff}
+.fs.active .fs-lbl{color:#1677ff;font-weight:700}
+.fs.done .fs-num{background:#52c41a;color:#fff}
+.fs.done .fs-lbl{color:#52c41a}
+.fa{color:#d9d9d9;font-size:10px;margin:0 3px;flex-shrink:0}
+
 /* ═══════════════════════════════════════════════
    iPhone 17 横屏适配  ~852 × 393 CSS px
    原则：不改版式，仅缩减字号与间距
@@ -211,7 +223,11 @@ td{padding:12px 10px;border-bottom:1px solid #f8f8f8;font-size:13px;vertical-ali
   #gbar .g-desc  { font-size: 11px; max-width: 200px; overflow: hidden;
                    text-overflow: ellipsis; white-space: nowrap; }
   #prev-btn      { font-size: 11px; padding: 4px 10px; border-radius: 16px; }
-  #sw            { margin-top: 45px; }
+  #sw            { margin-top: 80px; }  /* 42+3+35 */
+  #flow-bar       { top: 45px; height: 35px; }
+  .fs-lbl         { font-size: 10px; }
+  .fs-num         { width: 18px; height: 18px; font-size: 9px; }
+  .fa             { margin: 0 2px; }
   #prog-bar      { top: 42px; height: 3px; }
 
   /* 登录页左栏 */
@@ -336,6 +352,21 @@ td{padding:12px 10px;border-bottom:1px solid #f8f8f8;font-size:13px;vertical-ali
   </div>
 </div>
 <div id="prog-bar"><div id="prog-fill"></div></div>
+<div id="flow-bar">
+  <div class="fs" data-flow="1"><div class="fs-num">1</div><span class="fs-lbl">登录</span></div>
+  <div class="fa">›</div>
+  <div class="fs" data-flow="2"><div class="fs-num">2</div><span class="fs-lbl">进入场次</span></div>
+  <div class="fa">›</div>
+  <div class="fs" data-flow="3"><div class="fs-num">3</div><span class="fs-lbl">核对考生</span></div>
+  <div class="fa">›</div>
+  <div class="fs" data-flow="4"><div class="fs-num">4</div><span class="fs-lbl">评分</span></div>
+  <div class="fa">›</div>
+  <div class="fs" data-flow="5"><div class="fs-num">5</div><span class="fs-lbl">签字</span></div>
+  <div class="fa">›</div>
+  <div class="fs" data-flow="6"><div class="fs-num">6</div><span class="fs-lbl">下一场</span></div>
+  <div class="fa">›</div>
+  <div class="fs" data-flow="7"><div class="fs-num">7</div><span class="fs-lbl">离场</span></div>
+</div>
 <div id="dim"></div>
 
 <div id="sw">
@@ -673,7 +704,7 @@ td{padding:12px 10px;border-bottom:1px solid #f8f8f8;font-size:13px;vertical-ali
       </div>
     </div>
     <div class="score-card">
-      <div class="cand-tabs">
+      <div class="cand-tabs" id="cand-tabs-bar">
         <div class="ctab active">1. 测试考生030</div>
         <div class="ctab" id="ctab-2" onclick="switchCandidate(); if(cur===8) go(1);">2. 测试考生029</div>
         <div class="ctab">3. 测试考生035</div>
@@ -877,7 +908,7 @@ td{padding:12px 10px;border-bottom:1px solid #f8f8f8;font-size:13px;vertical-ali
           <td><div class="op-btns">
             <button class="btn-sm btn-signed">已签字</button>
             <button class="btn-sm btn-ready">准备入场</button>
-            <button class="btn-sm btn-view">查看</button>
+            <button class="btn-sm btn-view" id="btn-view-s2" onclick="if(cur===14) go(1);">查看</button>
           </div></td>
         </tr>
         <tr>
@@ -1035,7 +1066,7 @@ td{padding:12px 10px;border-bottom:1px solid #f8f8f8;font-size:13px;vertical-ali
 const STEPS = [
   {
     screen:'s1', tid:'btn-login',
-    label:'步骤 1/16 — 登录',
+    label:'步骤 1/17 — 登录',
     desc:'输入您的账号密码，点击登录',
     title:'① 输入账号密码 · 点登录',
     body:'使用您专属的账号（邮箱）和密码登录面试官评分系统。',
@@ -1043,7 +1074,7 @@ const STEPS = [
   },
   {
     screen:'s2', tid:'btn-arr',
-    label:'步骤 2/16 — 选择日程',
+    label:'步骤 2/17 — 选择日程',
     desc:'找到对应日程，点「查看安排」（注意上下午勿选错）',
     title:'② 点击「查看安排」',
     body:'在「我的日程」中找到您今天负责的日程卡片，点击底部「查看安排」按钮。',
@@ -1052,7 +1083,7 @@ const STEPS = [
   },
   {
     screen:'s3', tid:'btn-view-1',
-    label:'步骤 3/16 — 选择场次',
+    label:'步骤 3/17 — 选择场次',
     desc:'选择面试场次，点「查看」进入考生列表',
     title:'③ 点击「查看」进入考生列表',
     body:'在任务列表中找到您负责的面试场次，点击右侧「查看」按钮进入考生列表。',
@@ -1060,7 +1091,7 @@ const STEPS = [
   },
   {
     screen:'s4', tid:'btn-score-c1',
-    label:'步骤 4/16 — 核对考生信息',
+    label:'步骤 4/17 — 核对考生信息',
     desc:'核对考生信息后，点「评分」按钮',
     title:'④ 核对信息 · 点击「评分」',
     body:'进入考生列表后，核对姓名、身份证等信息无误，点击该考生右侧「评分」按钮。',
@@ -1068,7 +1099,7 @@ const STEPS = [
   },
   {
     screen:'s5', tid:'btn-start-score',
-    label:'步骤 5/16 — 开始评分',
+    label:'步骤 5/17 — 开始评分',
     desc:'主面试官需先点击开启面试，再点「开始评分」',
     title:'⑤ 点击「开始评分」',
     body:'主面试官需先在笔记本点击「开启面试」，之后您再点击「开始评分」按钮开始打分。',
@@ -1077,7 +1108,7 @@ const STEPS = [
   },
   {
     screen:'s6', tid:'sft-qs',
-    label:'步骤 6/16 — 查看评分表和试题',
+    label:'步骤 6/17 — 查看评分表和试题',
     desc:'可切换「评分表」和「试题」标签查看内容',
     title:'⑥ 切换查看「评分表」和「试题」',
     body:'点击「试题」标签可查看本场抽到的面试题目，点击「评分表」可查看评分维度说明。',
@@ -1086,7 +1117,7 @@ const STEPS = [
   },
   {
     screen:'s6', tid:'sc-row',
-    label:'步骤 7/16 — 输入综合评分',
+    label:'步骤 7/17 — 输入综合评分',
     desc:'在右侧输入框输入综合总分（0-100），或用 −/+ 调整',
     title:'⑦ 输入综合评分（0-100）',
     body:'在右侧评分框直接输入总分（0-100 的整数），也可点击「−」「+」微调。输入后系统将自动进入下一步。',
@@ -1094,15 +1125,15 @@ const STEPS = [
   },
   {
     screen:'s6', tid:'btn-done',
-    label:'步骤 8/16 — 点击完成，提交评分',
+    label:'步骤 8/17 — 点击完成，提交评分',
     desc:'评分填写完成后，点击右上角「完 成」按钮提交',
     title:'⑧ 点击「完 成」提交评分',
     body:'评分输入完毕后，点击右上角蓝色「完 成」按钮提交。\n⚠ 若评分低于80或高于90，需先在下方填写评语再点「完 成」。',
     dir:'below',
   },
   {
-    screen:'s6', tid:'ctab-2',
-    label:'步骤 9/16 — 切换至下一位考生',
+    screen:'s6', tid:'cand-tabs-bar',
+    label:'步骤 9/17 — 切换至下一位考生',
     desc:'当前考生完成后，点击顶部标签切换至下一位考生',
     title:'⑨ 切换至下一位考生',
     body:'完成当前考生评分后，点击顶部标签切换至下一位考生，按同样方式依次完成所有考生的评分。全部完成后，点击左上角「↺」返回任务列表。',
@@ -1111,7 +1142,7 @@ const STEPS = [
   },
   {
     screen:'s6', tid:'nav-back-s6',
-    label:'步骤 10/16 — 评分完成，返回任务列表',
+    label:'步骤 10/17 — 评分完成，返回任务列表',
     desc:'点击左上角返回键，回到任务列表',
     title:'⑩ 完成后 · 点左上角「↺」返回',
     body:'本场所有考生评分完成后，点击左上角「↺」返回按钮，回到任务列表进行评分签字。',
@@ -1119,7 +1150,7 @@ const STEPS = [
   },
   {
     screen:'s7', tid:'btn-sign7',
-    label:'步骤 11/16 — 各场次完成后逐一签字',
+    label:'步骤 11/17 — 各场次完成后逐一签字',
     desc:'本场所有考生评分完成后，点「评分签字」',
     title:'⑪ 各场次完成后 · 逐一点击「评分签字」',
     body:'各场次全部考生评分完成后，在任务列表逐场点击「评分签字」确认。本演示以第一场为例，其余场次操作相同。',
@@ -1127,7 +1158,7 @@ const STEPS = [
   },
   {
     screen:'s8', tid:'sign-link-btn',
-    label:'步骤 12/16 — 核实评分并签字',
+    label:'步骤 12/17 — 核实评分并签字',
     desc:'再次核实评分无误，点击签字链接',
     title:'⑫ 再次核实 · 点击签字',
     body:'在签字确认页核实所有考生评分及评语无误后，点击「请点击此处进行签字」。',
@@ -1135,7 +1166,7 @@ const STEPS = [
   },
   {
     screen:'s8', tid:'sign-link-btn',
-    label:'步骤 13/16 — 手写签名并提交',
+    label:'步骤 13/17 — 手写签名并提交',
     desc:'在签字板手写签名，点「确认提交」（签字后不可改！）',
     title:'⑬ 手写签名 · 确认提交',
     body:'弹出签字板后，用手指或鼠标手写签名，确认无误后点「确认提交」。',
@@ -1144,25 +1175,33 @@ const STEPS = [
   },
   {
     screen:'s8', tid:'nav-back-s8',
-    label:'步骤 14/16 — 签字完成，返回任务列表',
+    label:'步骤 14/17 — 签字完成，返回任务列表',
     desc:'点击左上角返回键，回到任务列表',
     title:'⑭ 签字完成 · 点「↺」返回任务列表',
     body:'手写签字提交后，点击左上角「↺」返回按钮，回到任务列表。全部场次签字完成后再点击「离场确认」。',
     dir:'right',
   },
   {
+    screen:'s9', tid:'btn-view-s2',
+    label:'步骤 15/17 — 查看下一场',
+    desc:'完成一场后，可在任务列表点击其他场次「查看」',
+    title:'⑮ 查看下一场任务',
+    body:'按照以上相同步骤，完成所有场次的评分与签字后，各场次依次显示「已签字」。可点击其他场次「查看」了解进度，无需重新操作。',
+    dir:'above',
+  },
+  {
     screen:'s9', tid:'btn-dep9',
-    label:'步骤 15/16 — 确认所有场次已签字后离场',
+    label:'步骤 16/17 — 确认所有场次已签字后离场',
     desc:'所有安排签字完成后，点击右上角「离场确认」',
-    title:'⑮ 点「离场确认」',
-    body:'按照以上相同步骤，完成所有场次的评分与签字后，任务列表全部场次均显示「已签字」，点击右上角「离场确认」，面试工作正式结束。',
+    title:'⑯ 点「离场确认」',
+    body:'<strong style="color:#1677ff;font-weight:700">按照以上相同步骤，完成所有场次的评分与签字</strong>后，任务列表全部场次均显示「已签字」，点击右上角「离场确认」，面试工作正式结束。',
     dir:'below',
   },
   {
     screen:'s10', tid:null,
-    label:'步骤 16/16 — 面试工作结束',
+    label:'步骤 17/17 — 面试工作结束',
     desc:'全部完成！按钮变为「您已离场」，面试工作结束',
-    title:'⑯ 完成！',
+    title:'⑰ 完成！',
     body:'离场确认完成后，按钮变为「您已离场」状态，本次面试工作正式结束。',
   },
 ];
@@ -1185,6 +1224,7 @@ function render(idx){
 
   // Progress
   $('prog-fill').style.width = ((idx+1)/STEPS.length*100) + '%';
+  updateFlowBar(idx);
   $('gdesc').textContent = s.desc || s.label;
   $('prev-btn').disabled = idx === 0;
 
@@ -1442,6 +1482,20 @@ function switchCandidate(){
   if(inp){ inp.value = ''; }
   $('comment-ta').value = '';
   calcTotal(false);
+}
+
+
+// 指引步骤 idx → 宏观流程步骤映射
+const FLOW_MAP = [1,2,2,3,4,4,4,4,4,4,5,5,5,5,6,7,7];
+
+function updateFlowBar(idx){
+  const active = FLOW_MAP[idx] || 1;
+  document.querySelectorAll('.fs').forEach(el => {
+    const n = parseInt(el.dataset.flow);
+    el.classList.remove('active','done');
+    if(n === active) el.classList.add('active');
+    else if(n < active) el.classList.add('done');
+  });
 }
 
 // ═══════════════════════ INIT ═══════════════════════
