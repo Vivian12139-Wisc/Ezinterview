@@ -30,8 +30,8 @@ body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;backgr
 .tip-body{color:#94a3b8;font-size:11px}
 
 /* ── Screens ── */
-#sw{margin-top:53px;position:relative}
-.scr{display:none}.scr.on{display:block}
+#sw{margin-top:53px;position:relative;-webkit-overflow-scrolling:touch}
+.scr{display:none;-webkit-overflow-scrolling:touch}.scr.on{display:block;overflow-y:auto}
 .nav-back{font-size:17px;cursor:pointer;color:rgba(255,255,255,.9);padding:0 10px;line-height:1;flex-shrink:0;user-select:none;transition:opacity .15s}
 .nav-back:hover{color:#fff;opacity:1}
 .sys-nav{background:#1677ff;color:#fff;display:flex;align-items:center;height:48px;padding:0 16px;gap:12px;font-size:13px}
@@ -198,6 +198,122 @@ td{padding:12px 10px;border-bottom:1px solid #f8f8f8;font-size:13px;vertical-ali
 #done-banner{display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.65);align-items:center;justify-content:center}
 #done-banner.on{display:flex}
 
+
+/* ═══════════════════════════════════════════════
+   iPhone 17 横屏适配  ~852 × 393 CSS px
+   原则：不改版式，仅缩减字号与间距
+═══════════════════════════════════════════════ */
+@media screen and (max-width: 900px) {
+
+  /* 顶部指引条 */
+  #gbar { height: 42px; padding: 0 12px; gap: 8px; }
+  #gbar .g-title { font-size: 12px; }
+  #gbar .g-desc  { font-size: 11px; max-width: 200px; overflow: hidden;
+                   text-overflow: ellipsis; white-space: nowrap; }
+  #prev-btn      { font-size: 11px; padding: 4px 10px; border-radius: 16px; }
+  #sw            { margin-top: 45px; }
+  #prog-bar      { top: 42px; height: 3px; }
+
+  /* 登录页左栏 */
+  .login-left  { width: 220px; }
+  .ll-top      { padding: 20px 14px; gap: 12px; }
+  .ll-logo-box { width: 38px; height: 38px; font-size: 17px; border-radius: 10px; border-width: 2px; }
+  .ll-logo-name { font-size: 20px; }
+  .ll-logo-en  { font-size: 8px; letter-spacing: 2px; }
+  .ll-illus    { width: 170px; }
+  .ll-footer   { font-size: 9px; line-height: 1.8; padding: 10px 14px; }
+
+  /* 登录表单 */
+  .login-box    { width: 270px; }
+  .login-box h2 { font-size: 20px; }
+  .lb-en        { font-size: 12px; margin-bottom: 18px; }
+  .lb-accent    { margin-bottom: 8px; }
+  .lb-inp       { padding: 10px 38px 10px 12px; font-size: 13px; }
+  .lb-btn       { padding: 11px; font-size: 13px; margin-bottom: 10px; }
+  .lb-note      { font-size: 11px; }
+  .lb-lang      { font-size: 12px; padding: 5px 10px; }
+
+  /* 系统导航栏 */
+  .sys-nav       { height: 40px; padding: 0 10px; font-size: 12px; }
+  .sys-nav .title { font-size: 13px; }
+  .nav-back      { font-size: 15px; padding: 0 6px; }
+  .avatar-btn    { font-size: 11px; padding: 3px 7px; }
+
+  /* 日程/任务列表 */
+  .det-side   { padding: 14px 12px; }
+  .det-main   { padding: 12px; }
+  .ds-lbl, .ds-val  { font-size: 11px; }
+  .ds-date    { font-size: 12px; }
+  h3          { font-size: 14px; }
+  .toolbar    { padding: 6px 12px; font-size: 12px; }
+  .search-b   { font-size: 11px; padding: 4px 10px; }
+  .btn-depart { font-size: 11px; padding: 4px 10px; border-radius: 14px; }
+  th, td      { padding: 7px 10px; font-size: 11px; }
+  .btn-sm     { padding: 3px 8px; font-size: 10.5px; border-radius: 4px; }
+
+  /* 考生列表 */
+  .cand-item  { padding: 8px 14px; font-size: 12px; }
+  .cand-name  { font-size: 13px; }
+  .tag        { font-size: 10px; padding: 1px 6px; }
+
+  /* 评分预览/评分卡 */
+  .score-card { margin: 6px; }
+  .score-top  { padding: 8px 14px; }
+  .session-lbl { font-size: 12px; }
+  .btn-meeting, .btn-group-score { font-size: 11px; padding: 5px 10px; }
+  .cand-tabs  { padding: 0; }
+  .ctab       { padding: 8px 14px; font-size: 12px; }
+  .cand-info-row { padding: 8px 14px; gap: 10px; }
+  .cand-photo { width: 52px; height: 66px; font-size: 24px; border-radius: 5px; }
+  .cf         { font-size: 11px; }
+  .btn-start  { font-size: 12px; padding: 6px 14px; }
+
+  /* 评分表单 */
+  .score-single  { padding: 10px 14px 6px; gap: 12px; }
+  .score-criteria { font-size: 11.5px; line-height: 1.85; }
+  .sc-range  { width: 126px; font-size: 10px; }
+  .sc-btn    { width: 30px; height: 34px; font-size: 18px; }
+  .sc-inp-box { width: 64px; height: 34px; font-size: 18px; }
+  .si-total  { padding: 6px 14px; font-size: 12px; }
+  .total-score { font-size: 20px; }
+  .comment-box { margin: 0 14px 10px; }
+  .comment-box label { font-size: 12px; }
+  .comment-box textarea { height: 58px; font-size: 12px; }
+  .req-hint  { font-size: 11px; padding: 4px 10px; }
+  .locked-bar { font-size: 12px; padding: 8px 12px; }
+
+  /* 签字页 */
+  .sign-wrap  { padding: 14px; }
+  .sign-score-box { padding: 12px; }
+  .sign-score-num { font-size: 36px; }
+  .sign-link  { font-size: 12px; }
+  .signed-result { font-size: 12px; }
+
+  /* 指引气泡 */
+  .tip        { font-size: 11px; padding: 10px 12px; }
+  .tip-step   { font-size: 10px; }
+  .tip-title  { font-size: 13px; margin-bottom: 4px; }
+  .tip-body   { font-size: 11px; }
+  .tip-warn   { font-size: 10px; margin-top: 6px; }
+  .tip-next-btn { font-size: 11px; padding: 6px 0; margin-top: 8px; }
+
+  /* 完成弹窗 */
+  #done-banner .done-card { width: 88vw; max-width: 380px; padding: 24px 20px; }
+}
+
+/* iPhone 安全区域（刘海/灵动岛横屏） */
+@supports (padding: env(safe-area-inset-left)) {
+  @media screen and (max-width: 900px) {
+    #gbar {
+      padding-left:  max(12px, env(safe-area-inset-left));
+      padding-right: max(12px, env(safe-area-inset-right));
+    }
+    body {
+      padding-left:  env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+    }
+  }
+}
 </style>
 </head>
 <body>
@@ -595,7 +711,7 @@ td{padding:12px 10px;border-bottom:1px solid #f8f8f8;font-size:13px;vertical-ali
             <div class="sc-range"><span>0</span><span>100</span></div>
             <div class="sc-row" id="sc-row">
               <button class="sc-btn" onclick="changeScore(-1)">−</button>
-              <input class="sc-inp-box" id="total-inp" type="number" min="0" max="100" placeholder="—" oninput="calcTotal(true)">
+              <input class="sc-inp-box" id="total-inp" type="number" min="0" max="100" step="1" placeholder="—" oninput="calcTotal(true)" onkeypress="return event.charCode>=48&&event.charCode<=57">
               <button class="sc-btn" onclick="changeScore(1)">+</button>
             </div>
           </div>
@@ -991,7 +1107,7 @@ const STEPS = [
     title:'⑨ 切换至下一位考生',
     body:'完成当前考生评分后，点击顶部标签切换至下一位考生，按同样方式依次完成所有考生的评分。全部完成后，点击左上角「↺」返回任务列表。',
     dir:'below',
-    tipDy:60,
+    tipDy:250,
   },
   {
     screen:'s6', tid:'nav-back-s6',
@@ -1122,7 +1238,7 @@ function render(idx){
     `;
     document.body.appendChild(tipEl);
 
-    const TW = 260, TH = tipEl.offsetHeight || 130, GAP = 12;
+    const TW = Math.min(260, Math.floor(window.innerWidth * 0.42)), TH = tipEl.offsetHeight || 130, GAP = 12;
     const VW = window.innerWidth, VH = window.innerHeight;
     const dir = s.dir || 'below';
     let ft, fl;
@@ -1173,9 +1289,17 @@ let _scoreTimer = null; // 防抖计时器
 function calcTotal(withAdvance){
   const inp = $('total-inp');
   if(!inp) return 0;
-  const raw = inp.value.trim();
+  let raw = inp.value.trim();
+  // 强制整数 0-100：有值时立即修正
+  if(raw !== ''){
+    let v = parseInt(raw, 10);
+    if(isNaN(v) || raw.includes('.')) v = isNaN(v) ? 0 : Math.round(parseFloat(raw));
+    v = Math.max(0, Math.min(100, v));
+    if(String(v) !== raw) inp.value = v; // 仅在值需要修正时更新，避免光标跳动
+    raw = String(v);
+  }
   const filled = raw !== '';
-  const avg = filled ? Math.max(0, Math.min(100, parseInt(raw) || 0)) : 0;
+  const avg = filled ? parseInt(raw) : 0;
   const forced = filled && (avg > 90 || avg < 80);
   $('req-hint').style.display = forced ? 'block' : 'none';
   $('comment-wrap').classList.toggle('req', forced);
