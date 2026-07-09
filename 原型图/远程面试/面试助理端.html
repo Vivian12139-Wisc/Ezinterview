@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>易面 · 面试助理端</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system,'PingFang SC','Helvetica Neue',sans-serif;
+  background:#f0f2f5; color:#1a1a2e; height:100vh; overflow:hidden;
+  display:flex; flex-direction:column;
+}
+
+/* ── Top nav ── */
+.top-nav {
+  height:48px; background:linear-gradient(90deg,#1677ff 0%,#36cfc9 100%);
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 20px; flex-shrink:0;
+}
+.top-logo { display:flex; align-items:center; gap:8px; }
+.logo-icon {
+  width:32px; height:32px; background:#fff; border-radius:6px;
+  display:flex; align-items:center; justify-content:center;
+}
+.logo-icon span { font-size:14px; font-weight:800; color:#1677ff; }
+.top-title { font-size:16px; font-weight:600; color:#fff; letter-spacing:2px; }
+.top-meta { display:flex; align-items:center; gap:20px; color:#e0f0ff; font-size:13px; }
+.top-meta .clock { display:flex; align-items:center; gap:5px; }
+.top-meta .user { display:flex; align-items:center; gap:5px; }
+.btn-exit {
+  padding:5px 14px; border-radius:4px; border:1.5px solid rgba(255,255,255,0.6);
+  color:#fff; background:transparent; cursor:pointer; font-size:13px;
+}
+.btn-exit:hover { background:rgba(255,255,255,0.15); }
+
+/* ── Body layout ── */
+.layout { display:flex; flex:1; overflow:hidden; }
+
+/* ── Left sidebar ── */
+.sidebar {
+  width:260px; flex-shrink:0; background:#fff;
+  border-right:1px solid #e8ecf4;
+  display:flex; flex-direction:column; overflow:hidden;
+}
+.sidebar-hd {
+  padding:12px 16px; border-bottom:1px solid #f0f0f0;
+  display:flex; gap:0;
+}
+.sb-tab {
+  flex:1; text-align:center; padding:6px 0; font-size:13px; color:#888;
+  cursor:pointer; border-bottom:2px solid transparent;
+}
+.sb-tab.active { color:#1677ff; border-color:#1677ff; font-weight:500; }
+.sidebar-body { flex:1; overflow-y:auto; padding:8px 0; }
+.arrange-item {
+  padding:12px 16px; cursor:pointer; border-bottom:1px solid #f5f5f5;
+  transition:background 0.15s;
+}
+.arrange-item:hover { background:#f8faff; }
+.arrange-item.active { background:#e6f4ff; }
+.arrange-name { font-size:14px; font-weight:600; color:#1a1a2e; margin-bottom:6px; display:flex; align-items:center; justify-content:space-between; }
+.arrange-tag {
+  font-size:11px; padding:2px 8px; border-radius:10px; font-weight:500;
+}
+.tag-notstart { background:#fff7e6; color:#d46b08; border:1px solid #ffd591; }
+.tag-video    { background:#e6f4ff; color:#1677ff; border:1px solid #91caff; }
+.tag-ongoing  { background:#e6fffb; color:#08979c; border:1px solid #87e8de; }
+.tag-end      { background:#f5f5f5; color:#999;    border:1px solid #d9d9d9; }
+.arrange-meta { font-size:12px; color:#888; display:flex; flex-direction:column; gap:2px; }
+.arrange-meta span { display:flex; align-items:center; gap:4px; }
+
+/* ── Main area ── */
+.main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+
+/* ── Sub tabs (interview stages) ── */
+.stage-tabs {
+  display:flex; background:#fff; border-bottom:1px solid #e8ecf4;
+  flex-shrink:0;
+}
+.stage-tab {
+  flex:1; display:flex; align-items:center; justify-content:center; gap:8px;
+  padding:12px 8px; font-size:13px; color:#bbb; cursor:not-allowed;
+  border-bottom:3px solid transparent; transition:all 0.2s;
+  position:relative; user-select:none;
+}
+.stage-tab.unlocked { color:#888; cursor:pointer; }
+.stage-tab.unlocked:hover { color:#555; }
+.stage-tab .tab-num {
+  width:20px; height:20px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:700;
+  background:#e0e0e0; color:#888;
+}
+.stage-tab.active { color:#1677ff; border-color:#1677ff; }
+.stage-tab.active .tab-num { background:#1677ff; color:#fff; }
+.stage-tab.done { color:#52c41a; cursor:not-allowed; pointer-events:none; }
+.stage-tab.done .tab-num { background:#52c41a; color:#fff; }
+
+/* ── Content panels ── */
+.panels { flex:1; overflow:hidden; position:relative; }
+.panel { display:none; height:100%; overflow-y:auto; padding:20px 24px; }
+.panel.active { display:block; }
+
+/* ── Arrange header ── */
+.arr-hd {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:16px; flex-wrap:wrap; gap:10px;
+}
+.arr-hd-title { font-size:18px; font-weight:700; color:#1a1a2e; }
+.arr-hd-judges { font-size:12.5px; color:#888; margin-top:4px; }
+.judge-dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:4px; }
+.j-online { background:#52c41a; }
+.j-offline { background:#bbb; }
+.j-online-text { color:#52c41a; }
+.j-offline-text { color:#bbb; }
+
+.arr-btns { display:flex; gap:8px; flex-wrap:wrap; }
+.arr-btn {
+  padding:7px 16px; border-radius:6px; font-size:13px; font-weight:500;
+  cursor:pointer; border:1.5px solid transparent; transition:all 0.2s;
+}
+.btn-primary-fill { background:#1677ff; color:#fff; border-color:#1677ff; }
+.btn-primary-fill:hover { background:#0958d9; }
+.btn-purple { background:#722ed1; color:#fff; border-color:#722ed1; }
+.btn-purple:hover { background:#531dab; }
+.btn-red { background:#ff4d4f; color:#fff; border-color:#ff4d4f; }
+.btn-red:hover { background:#cf1322; }
+.btn-outline { background:#fff; color:#1677ff; border-color:#1677ff; }
+.btn-outline:hover { background:#e6f4ff; }
+.btn-outline-gray { background:#fff; color:#555; border-color:#d9d9d9; }
+.btn-outline-gray:hover { background:#f5f5f5; }
+.btn-disabled { background:#f5f5f5; color:#bbb; border-color:#d9d9d9; cursor:default; }
+
+/* ── Candidate table ── */
+.cand-hd {
+  display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;
+}
+.cand-hd-left { display:flex; align-items:center; gap:16px; }
+.cand-hd-title { font-size:14px; font-weight:600; color:#1a1a2e; }
+.cand-stat { font-size:12.5px; color:#888; }
+
+.search-box {
+  display:flex; align-items:center; gap:6px;
+  border:1px solid #d9d9d9; border-radius:6px;
+  padding:5px 10px; font-size:12.5px; color:#888; background:#fff;
+}
+
+table { width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,0.06); }
+thead tr { background:#fafbfc; }
+th { padding:10px 12px; font-size:12.5px; color:#888; font-weight:500; text-align:left; border-bottom:1px solid #f0f0f0; }
+td { padding:12px 12px; font-size:13px; color:#333; border-bottom:1px solid #f7f7f7; vertical-align:middle; }
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:#fafbff; }
+
+.avatar-sm {
+  width:36px; height:36px; border-radius:6px; background:#c8d4e8;
+  overflow:hidden; display:flex; align-items:center; justify-content:center;
+}
+.avatar-sm img { width:100%; height:100%; object-fit:cover; }
+
+.name-mask { color:#1677ff; cursor:pointer; }
+
+.score-badge { font-size:12px; padding:2px 8px; border-radius:4px; }
+.score-notstart { background:#f5f5f5; color:#999; }
+.score-ongoing  { background:#e6f4ff; color:#1677ff; }
+
+.status-waiting  { color:#1677ff; font-size:12.5px; }
+.status-ready    { color:#52c41a; font-size:12.5px; }
+.status-going    { color:#1677ff; font-size:12.5px; font-weight:500; }
+.status-break    { color:#ff4d4f; font-size:12.5px; font-weight:500; }
+.status-end      { color:#1677ff; font-size:12.5px; }
+.status-absent   { color:#faad14; font-size:12.5px; }
+
+.op-btns { display:flex; gap:5px; }
+.op-btn {
+  padding:3px 10px; border-radius:4px; font-size:12px; cursor:pointer;
+  border:none; font-weight:500;
+}
+.op-view    { background:#e6f4ff; color:#1677ff; }
+.op-verify  { background:#f6ffed; color:#52c41a; }
+.op-absent  { background:#fff7e6; color:#d46b08; }
+.op-cheat   { background:#fff1f0; color:#ff4d4f; }
+.op-cheat-dim  { background:#f5f5f5; color:#bbb; cursor:default; }
+.op-absent-dim { background:#f5f5f5; color:#bbb; cursor:default; }
+.op-view-dim   { background:#f5f5f5; color:#bbb; cursor:default; }
+.op-verify-dim { background:#f5f5f5; color:#bbb; cursor:default; }
+
+/* 面试完成后全部操作置灰 */
+#panel-4 .op-btn {
+  background:#f5f5f5 !important; color:#bbb !important; cursor:default !important;
+}
+
+/* ── Video conference page ── */
+.video-page {
+  display:none; position:absolute; top:0; left:0; right:0; bottom:0; z-index:50;
+  background:#000; flex-direction:column;
+}
+.video-page.active { display:flex; }
+.video-page-hd {
+  background:#111; color:#fff; padding:10px 20px;
+  display:flex; align-items:center; justify-content:space-between;
+  border-bottom:1px solid #222;
+}
+.video-page-hd .arr-name { font-size:14px; font-weight:500; }
+.video-page-hd .arr-time { font-size:12px; color:#aaa; margin-top:2px; }
+.video-main { flex:1; display:flex; align-items:center; justify-content:center; }
+.video-slot {
+  width:760px; max-width:90%; aspect-ratio:16/9;
+  background:#1a1a1a; border-radius:8px; position:relative;
+  display:flex; align-items:center; justify-content:center;
+}
+.video-avatar-wrap {
+  display:flex; flex-direction:column; align-items:center; gap:12px;
+}
+.video-avatar {
+  width:80px; height:80px; border-radius:50%; background:#fff;
+  display:flex; align-items:center; justify-content:center; overflow:hidden;
+}
+.video-avatar svg { width:60px; height:60px; }
+.video-bottom-bar {
+  position:absolute; bottom:12px; left:16px;
+  display:flex; align-items:center; gap:8px;
+}
+.video-user-tag {
+  background:rgba(255,120,40,0.9); color:#fff;
+  border-radius:20px; padding:4px 12px; font-size:12px;
+  display:flex; align-items:center; gap:6px;
+}
+.video-controls {
+  background:#222; padding:12px 20px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.video-ctrl-btns { display:flex; gap:10px; }
+.vcbtn {
+  padding:7px 18px; border-radius:6px; font-size:13px;
+  cursor:pointer; border:none; font-weight:500;
+}
+.vcbtn-timer { background:#fff; color:#333; }
+.vcbtn-back  { background:#1677ff; color:#fff; }
+
+/* ── 副视角监控 page ── */
+.seccam-page {
+  display:none; position:absolute; top:0; left:0; right:0; bottom:0; z-index:50;
+  background:#f0f2f5; flex-direction:column;
+}
+.seccam-page.active { display:flex; }
+.seccam-page-hd {
+  background:linear-gradient(90deg,#722ed1,#1677ff);
+  padding:12px 20px; display:flex; align-items:center; justify-content:space-between;
+}
+.seccam-title { color:#fff; font-size:15px; font-weight:600; letter-spacing:1px; }
+.seccam-body { flex:1; padding:24px; overflow-y:auto; }
+.seccam-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; max-width:1200px; margin:0 auto; }
+.seccam-item {
+  background:#1a1a1a; border-radius:10px; overflow:hidden;
+  aspect-ratio:16/9; position:relative;
+}
+.seccam-item.offline { background:#444; }
+.seccam-img {
+  width:100%; height:100%; object-fit:cover;
+  /* placeholder gradient */
+  background:linear-gradient(135deg,#2c3e72,#1a2940);
+  display:flex; align-items:center; justify-content:center;
+}
+.seccam-img.offline-bg { background:#555; }
+.seccam-num {
+  position:absolute; top:10px; left:10px;
+  background:#722ed1; color:#fff; font-size:12px; font-weight:700;
+  padding:2px 10px; border-radius:4px;
+}
+.seccam-dot {
+  position:absolute; top:12px; right:12px;
+  width:10px; height:10px; border-radius:50%; background:#52c41a;
+  box-shadow:0 0 0 2px rgba(82,196,26,0.3);
+}
+.seccam-dot.offline { background:#888; box-shadow:none; }
+.seccam-name {
+  position:absolute; bottom:0; left:0; right:0;
+  background:rgba(0,0,0,0.7); color:#fff;
+  font-size:12px; padding:5px 10px;
+}
+/* face placeholder SVG colors */
+.face-placeholder { width:60%; height:60%; opacity:0.3; }
+
+/* ── Record sidebar ── */
+.record-sidebar {
+  display:none; position:absolute; top:0; right:0; bottom:0;
+  width:340px; z-index:30; background:#fff;
+  box-shadow:-4px 0 16px rgba(0,0,0,0.1);
+  flex-direction:column;
+}
+.record-sidebar.open { display:flex; }
+.rec-hd {
+  padding:16px 20px; border-bottom:1px solid #f0f0f0;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.rec-title { font-size:15px; font-weight:600; }
+.rec-close { cursor:pointer; color:#888; font-size:18px; padding:2px 6px; border-radius:4px; }
+.rec-close:hover { background:#f5f5f5; }
+.rec-body { flex:1; overflow-y:auto; padding:16px 20px; }
+.rec-item { display:flex; gap:12px; margin-bottom:20px; }
+.rec-dot-wrap { display:flex; flex-direction:column; align-items:center; gap:0; }
+.rec-dot {
+  width:12px; height:12px; border-radius:50%; flex-shrink:0;
+  border:2px solid #1677ff; background:#fff; margin-top:3px;
+}
+.rec-dot.filled { background:#1677ff; }
+.rec-line { width:1px; flex:1; background:#e0e8f0; margin:4px auto 0; min-height:20px; }
+.rec-time { font-size:12px; color:#1677ff; font-weight:600; margin-bottom:4px; }
+.rec-card { background:#f8faff; border-radius:6px; padding:8px 12px; }
+.rec-card-icon { font-size:11px; color:#1677ff; margin-bottom:2px; }
+.rec-card-text { font-size:13px; color:#333; }
+.rec-card-sub { font-size:12px; color:#888; margin-top:2px; }
+
+/* ── Confirm modal ── */
+.modal-mask {
+  display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5);
+  z-index:200; align-items:center; justify-content:center;
+}
+.modal-mask.show { display:flex; }
+.modal {
+  background:#fff; border-radius:10px; padding:28px 32px; width:400px;
+  box-shadow:0 8px 40px rgba(0,0,0,0.2);
+}
+.modal-title { font-size:16px; font-weight:700; margin-bottom:12px; }
+.modal-body { font-size:14px; color:#555; line-height:1.8; margin-bottom:20px; }
+.modal-body strong { color:#1a1a2e; }
+.modal-btns { display:flex; gap:10px; justify-content:flex-end; }
+.mbtn {
+  padding:8px 20px; border-radius:6px; font-size:14px; cursor:pointer; border:none; font-weight:500;
+}
+.mbtn-cancel { background:#f5f5f5; color:#555; }
+.mbtn-cancel:hover { background:#e8e8e8; }
+.mbtn-confirm { background:#1677ff; color:#fff; }
+.mbtn-confirm:hover { background:#0958d9; }
+
+/* ── Tips floating black box ── */
+.tips-box {
+  position:fixed; bottom:20px; left:280px; z-index:500;
+  background:rgba(15,15,25,0.92); backdrop-filter:blur(8px);
+  color:#fff; border-radius:10px; padding:14px 16px;
+  font-size:12px; line-height:1.75;
+  box-shadow:0 6px 24px rgba(0,0,0,0.35);
+  width:420px; max-width:calc(100vw - 320px);
+  pointer-events:auto;
+  transition:opacity 0.2s;
+}
+.tips-box.hide { display:none; }
+.tips-box-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.tips-box-label { font-size:11px; font-weight:600; color:#888; text-transform:uppercase; letter-spacing:0.5px; }
+.tips-box-close { cursor:pointer; color:#555; font-size:15px; line-height:1; padding:0 3px; border-radius:3px; }
+.tips-box-close:hover { color:#ccc; background:rgba(255,255,255,0.1); }
+.tips-inline { display:flex; gap:16px; }
+.tips-section { flex:1; }
+.tips-section-title { font-weight:600; color:#69b1ff; margin-bottom:4px; font-size:12px; }
+.tips-section ol { padding-left:14px; color:#bbb; line-height:1.75; font-size:12px; }
+
+/* ── Dev badge ── */
+#dev-badge {
+  position:fixed; bottom:20px; right:20px; z-index:9999;
+  background:rgba(15,15,25,0.88); backdrop-filter:blur(6px);
+  color:#fff; border-radius:8px; padding:10px 14px;
+  font-size:12px; line-height:1.8; min-width:180px;
+  box-shadow:0 4px 16px rgba(0,0,0,0.3); pointer-events:none;
+}
+#dev-badge .db-label { font-size:10px; color:#888; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px; }
+#dev-badge .db-stage { color:#69b1ff; font-weight:600; }
+#dev-badge .db-note  { color:#aaa; font-size:11px; }
+</style>
+</head>
+<body>
+
+<!-- Top nav -->
+<div class="top-nav">
+  <div class="top-logo">
+    <div class="logo-icon"><span>易</span></div>
+    <div class="top-title">我的项目</div>
+  </div>
+  <div class="top-meta">
+    <span>文A 简体中文 ∨</span>
+    <span class="clock">⏱ <span id="clock">00:03</span></span>
+    <span class="user">👤 ysmsj1</span>
+    <button class="btn-exit">退出</button>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-hd">
+      <div class="sb-tab active" onclick="filterArrange('all')">全部</div>
+      <div class="sb-tab" onclick="filterArrange('notstart')">未开始</div>
+      <div class="sb-tab" onclick="filterArrange('ongoing')">进行中</div>
+      <div class="sb-tab" onclick="filterArrange('end')">已结束</div>
+    </div>
+    <div class="sidebar-body" id="sidebar-body">
+      <!-- ysmsap3: 未开始 → stage 1 -->
+      <div class="arrange-item" id="item-ysmsap3" data-id="ysmsap3" data-stage="1" onclick="selectArrange(this)">
+        <div class="arrange-name">ysmsap3 <span class="arrange-tag tag-notstart" id="tag-ysmsap3">未开始</span></div>
+        <div class="arrange-meta">
+          <span>⏱ 时间：23:00~01:00（UTC+8）</span>
+          <span>📋 未到开始时间</span>
+        </div>
+      </div>
+      <!-- ysmsap2: 面试进行中 → stage 3 -->
+      <div class="arrange-item active" id="item-ysmsap2" data-id="ysmsap2" data-stage="3" onclick="selectArrange(this)">
+        <div class="arrange-name">ysmsap2 <span class="arrange-tag tag-ongoing" id="tag-ysmsap2">面试进行中</span></div>
+        <div class="arrange-meta">
+          <span>⏱ 时间：21:00~23:00（UTC+8）</span>
+          <span>📋 已进行：1小时5分钟 &nbsp; 剩余：0分钟</span>
+        </div>
+      </div>
+      <!-- ysmsap1: 已结束 → stage 4 -->
+      <div class="arrange-item" id="item-ysmsap1" data-id="ysmsap1" data-stage="4" onclick="selectArrange(this)">
+        <div class="arrange-name">ysmsap1 <span class="arrange-tag tag-end" id="tag-ysmsap1">已结束</span></div>
+        <div class="arrange-meta">
+          <span>⏱ 时间：21:00~23:00（UTC+8）</span>
+          <span>📋 实际用时：4分钟</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main" style="position:relative;">
+
+    <!-- Stage tabs -->
+    <div class="stage-tabs">
+      <div class="stage-tab unlocked active" id="tab-1" onclick="goStage(1)">
+        <div class="tab-num">1</div> 面试未开始
+      </div>
+      <div class="stage-tab" id="tab-2" onclick="tryGoStage(2)">
+        <div class="tab-num">2</div> 视频侯考
+      </div>
+      <div class="stage-tab" id="tab-3" onclick="tryGoStage(3)">
+        <div class="tab-num">3</div> 正式面试
+      </div>
+      <div class="stage-tab" id="tab-4" onclick="tryGoStage(4)">
+        <div class="tab-num">4</div> 面试完成
+      </div>
+    </div>
+
+    <div class="panels" id="panels">
+
+      <!-- ══════ Panel 1: 面试未开始 ══════ -->
+      <div class="panel active" id="panel-1">
+        <div class="arr-hd">
+          <div>
+            <div class="arr-hd-title">{面试安排名称}</div>
+            <div class="arr-hd-judges">
+              <span class="judge-dot j-online"></span>评委1（***）— 已评分：0/2 <span class="j-online-text">在线</span>
+              &nbsp;&nbsp;
+              <span class="judge-dot j-offline"></span>评委2（***）— 已评分：0/2 <span class="j-offline-text">离线</span>
+            </div>
+          </div>
+          <div class="arr-btns">
+            <button class="arr-btn btn-outline" onclick="openSeccam()">查看副视角</button>
+            <button class="arr-btn btn-primary-fill" onclick="showConfirmVideo()">开启视频</button>
+          </div>
+        </div>
+
+        <div class="cand-hd">
+          <div class="cand-hd-left">
+            <div class="cand-hd-title">候选人列表</div>
+            <div class="cand-stat">已核验：0/3 &nbsp; 已评分：0/3</div>
+          </div>
+          <div class="search-box">🔍 姓名、身份证号</div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>序号</th><th>照片</th><th>姓名</th><th>编号</th>
+              <th>评分状态</th><th>考生端状态</th><th>平均分</th><th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td><div class="avatar-sm">👤</div></td>
+              <td><span class="name-mask">***</span></td>
+              <td><span class="name-mask">***</span></td>
+              <td><span class="score-badge score-notstart">未开始</span></td>
+              <td><span class="status-waiting">等待视频（已等候 10:23）</span></td>
+              <td>—</td>
+              <td><div class="op-btns">
+                <button class="op-btn op-view">查看试题</button>
+                <button class="op-btn op-verify">入场核验</button>
+                <button class="op-btn op-absent">缺席</button>
+                <button class="op-btn op-cheat">舞弊</button>
+              </div></td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td><div class="avatar-sm">👤</div></td>
+              <td><span class="name-mask">***</span></td>
+              <td><span class="name-mask">***</span></td>
+              <td><span class="score-badge score-notstart">未开始</span></td>
+              <td><span class="status-waiting">等待视频（已等候 10:23）</span></td>
+              <td>—</td>
+              <td><div class="op-btns">
+                <button class="op-btn op-view">查看试题</button>
+                <button class="op-btn op-verify">入场核验</button>
+                <button class="op-btn op-absent">缺席</button>
+                <button class="op-btn op-cheat">舞弊</button>
+              </div></td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td><div class="avatar-sm">👤</div></td>
+              <td><span class="name-mask">***</span></td>
+              <td><span class="name-mask">***</span></td>
+              <td><span class="score-badge score-notstart">未开始</span></td>
+              <td><span class="status-ready">备考中</span></td>
+              <td>—</td>
+              <td><div class="op-btns">
+                <button class="op-btn op-view">查看试题</button>
+                <button class="op-btn op-verify">入场核验</button>
+                <button class="op-btn op-absent">缺席</button>
+                <button class="op-btn op-cheat">舞弊</button>
+              </div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ══════ Panel 2: 视频侯考 ══════ -->
+      <div class="panel" id="panel-2" style="position:relative;">
+        <div class="arr-hd">
+          <div>
+            <div class="arr-hd-title">{面试安排名称}</div>
+            <div class="arr-hd-judges">
+              <span class="judge-dot j-online"></span>评委1（***）— 已评分：0/2 <span class="j-online-text">在线</span>
+              &nbsp;&nbsp;
+              <span class="judge-dot j-offline"></span>评委2（***）— 已评分：0/2 <span class="j-offline-text">离线</span>
+            </div>
+          </div>
+          <div class="arr-btns">
+            <button class="arr-btn btn-outline" onclick="openVideo()">进入视频</button>
+            <button class="arr-btn btn-outline" onclick="openSeccam()">查看副视角</button>
+            <button class="arr-btn btn-outline-gray" onclick="toggleRecord()">查看记录</button>
+            <button class="arr-btn btn-purple" onclick="showConfirmStart()">开启面试</button>
+          </div>
+        </div>
+
+        <!-- Tips box -->
+        <div class="tips-box" id="tips-2">
+          <div class="tips-box-header">
+            <span class="tips-box-label">💡 操作说明</span>
+            <span class="tips-box-close" onclick="document.getElementById('tips-2').classList.add('hide')">✕</span>
+          </div>
+          <div class="tips-inline">
+            <div class="tips-section">
+              <div class="tips-section-title">开启视频</div>
+              <ol><li>等候中的考生自动入会；</li><li>面试助理可在安排详情页手动入会。</li></ol>
+            </div>
+            <div class="tips-section">
+              <div class="tips-section-title">开启面试</div>
+              <ol><li>面试官手动入会后可开始评分；</li><li>如配置面试题，考生同步展示题目；</li><li>面试助理在视频设置中自动入会。</li></ol>
+            </div>
+            <div class="tips-section">
+              <div class="tips-section-title">结束面试</div>
+              <ol><li>面试官退出视频，但仍可继续完成评分。</li></ol>
+            </div>
+          </div>
+        </div>
+
+        <div class="cand-hd">
+          <div class="cand-hd-left">
+            <div class="cand-hd-title">候选人列表</div>
+            <div class="cand-stat">已核验：0/3 &nbsp; 已评分：0/3</div>
+          </div>
+          <div class="search-box">🔍 姓名、身份证号</div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>序号</th><th>照片</th><th>姓名</th><th>编号</th>
+              <th>评分状态</th><th>考生端状态</th><th>平均分</th><th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td><td><div class="avatar-sm">👤</div></td>
+              <td><span class="name-mask">***</span></td><td><span class="name-mask">***</span></td>
+              <td><span class="score-badge score-notstart">未开始</span></td>
+              <td><span class="status-waiting">待开面试</span></td>
+              <td>—</td>
+              <td><div class="op-btns">
+                <button class="op-btn op-view">查看试题</button>
+                <button class="op-btn op-verify">入场核验</button>
+                <button class="op-btn op-absent">缺席</button>
+                <button class="op-btn op-cheat">舞弊</button>
+              </div></td>
+            </tr>
+            <tr>
+              <td>2</td><td><div class="avatar-sm">👤</div></td>
+              <td><span class="name-mask">***</span></td><td><span class="name-mask">***</span></td>
+              <td><span class="score-badge score-notstart">未开始</span></td>
+              <td><span class="status-waiting">待开面试</span></td>
+              <td>—</td>
+              <td><div class="op-btns">
+                <button class="op-btn op-view">查看试题</button>
+                <button class="op-btn op-verify">入场核验</button>
+                <button class="op-btn op-absent">缺席</button>
+                <button class="op-btn op-cheat">舞弊</button>
+              </div></td>
+            </tr>
+            <tr>
+              <td>3</td><td><div class="avatar-sm">👤</div></td>
+              <td><span class="name-mask">***</span></td><td><span class="name-mask">***</span></td>
+              <td><span class="score-badge score-notstart">未开始</span></td>
+              <td><span class="status-waiting">待开面试</span></td>
+              <td>—</td>
+              <td><div class="op-btns">
+                <button class="op-btn op-view">查看试题</button>
+                <button class="op-btn op-verify">入场核验</button>
+                <button class="op-btn op-absent">缺席</button>
+                <button class="op-btn op-cheat">舞弊</button>
+              </div></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Record sidebar -->
+        <div class="record-sidebar" id="record-sidebar">
+          <div class="rec-hd">
+            <div class="rec-title">面试记录</div>
+            <div class="rec-close" onclick="toggleRecord()">✕</div>
+          </div>
+          <div class="rec-body">
+            <div class="rec-item">
+              <div class="rec-dot-wrap"><div class="rec-dot filled"></div><div class="rec-line"></div></div>
+              <div style="flex:1">
+                <div class="rec-time">13:00:00</div>
+                <div class="rec-card">
+                  <div class="rec-card-icon">🖥 面试间A</div>
+                  <div class="rec-card-text">开启视频</div>
+                </div>
+              </div>
+            </div>
+            <div class="rec-item">
+              <div class="rec-dot-wrap"><div class="rec-dot filled"></div><div class="rec-line"></div></div>
+              <div style="flex:1">
+                <div class="rec-time">13:01:00</div>
+                <div class="rec-card">
+                  <div class="rec-card-icon">👤 张四</div>
+                  <div class="rec-card-text">加入会议</div>
+                </div>
+              </div>
+            </div>
+            <div class="rec-item">
+              <div class="rec-dot-wrap"><div class="rec-dot filled"></div><div class="rec-line"></div></div>
+              <div style="flex:1">
+                <div class="rec-time">13:05:00</div>
+                <div class="rec-card">
+                  <div class="rec-card-icon">👤 张五</div>
+                  <div class="rec-card-text">加入会议</div>
+                </div>
+              </div>
+            </div>
+            <div class="rec-item">
+              <div class="rec-dot-wrap"><div class="rec-dot filled"></div><div class="rec-line"></div></div>
+              <div style="flex:1">
+                <div class="rec-time">13:06:00</div>
+                <div class="rec-card">
+                  <div class="rec-card-icon">🖥 面试间A</div>
+                  <div class="rec-card-text">开启面试</div>
+                </div>
+              </div>
+            </div>
+            <div class="rec-item">
+              <div class="rec-dot-wrap"><div class="rec-dot filled"></div><div class="rec-line"></div></div>
+              <div style="flex:1">
+                <div class="rec-time">13:07:00</div>
+                <div class="rec-card">
+                  <div class="rec-card-icon">💬 张一</div>
+                  <div class="rec-card-text">大家都进来了吗？</div>
+                </div>
+              </div>
+            </div>
+            <div class="rec-item">
+              <div class="rec-dot-wrap"><div class="rec-dot"></div></div>
+              <div style="flex:1">
+                <div class="rec-time">13:08:00</div>
+                <div class="rec-card">
+                  <div class="rec-card-icon">🎤 张三</div>
+                  <div class="rec-card-text">开始发言</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════ Panel 3: 正式面试 ══════ -->
+      <div class="panel" id="panel-3" style="position:relative;">
+        <div class="arr-hd">
+          <div>
+            <div class="arr-hd-title">{面试安排名称}</div>
+            <div class="arr-hd-judges">
+              <span class="judge-dot j-online"></span>评委1（***）— 已评分：0/2 <span class="j-online-text">在线</span>
+              &nbsp;&nbsp;
+              <span class="judge-dot j-offline"></span>评委2（***）— 已评分：0/2 <span class="j-offline-text">离线</span>
+            </div>
+          </div>
+          <div class="arr-btns">
+            <button class="arr-btn btn-outline" onclick="openVideo()">进入视频</button>
+            <button class="arr-btn btn-outline" onclick="openSeccam()">查看副视角</button>
+            <button class="arr-btn btn-outline-gray" onclick="toggleRecord()">查看记录</button>
+            <button class="arr-btn btn-outline-gray" id="timer-btn" onclick="toggleTimer(this)">计时器</button>
+            <button class="arr-btn btn-red" onclick="showConfirmEnd()">结束面试</button>
+          </div>
+        </div>
+
+        <!-- Tips box for end -->
+        <div class="tips-box" id="tips-3">
+          <div class="tips-box-header">
+            <span class="tips-box-label">💡 结束面试说明</span>
+            <span class="tips-box-close" onclick="document.getElementById('tips-3').classList.add('hide')">✕</span>
+          </div>
+          <div style="font-size:12px;color:#bbb;line-height:1.8;">
+            点击结束面试后，考官和考生将同时退出远程视频，考官仍可继续完成评分。
+          </div>
+        </div>
+
+        <div class="cand-hd">
+          <div class="cand-hd-left">
+            <div class="cand-hd-title">候选人列表</div>
+            <div class="cand-stat">已核验：0/3 &nbsp; 已评分：0/3</div>
+          </div>
+          <div class="search-box">🔍 姓名、身份证号</div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>序号</th><th>照片</th><th>姓名</th><th>编号</th>
+              <th>评分状态</th><th>考生端状态</th><th>平均分</th><th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td><td><div class="avatar-sm">👤</div></td>
+              <td><span class="name-mask">***</span></td><td><span class="name-mask">***</span></td>
+              <td><span class="score-badge score-notstart">未开始</span></td>
+              <td><span class="status-going">面试中</span></td>
+              <td>—</td>
+              <td><div class="op-btns">
+                <button class="op-btn op-view">查看试题</button>
+                <button class="op-btn op-verify">入场核验</button>
+                <button class="op-btn op-absent">缺席</button>
+                <button class="op-btn op-cheat">舞弊</button>
+              </div></td>
+            </tr>
+            <tr>
+              <td>2</td><td><div class="avatar-sm">👤</div></td>
+              <td><span class="name-mask">***</span></td><td><span class="name-mask">***</span></td>
+              <td><span class="score-badge score-notstart">未开始</span></td>
+              <td><span class="status-going">面试中</span></td>
+              <td>—</td>
+              <td><div class="op-btns">
+                <button class="op-btn op-view">查看试题</button>
+                <button class="op-btn op-verify">入场核验</button>
+                <button class="op-btn op-absent">缺席</button>
+                <button class="op-btn op-cheat">舞弊</button>
+              </div></td>
+            </tr>
+            <tr>
+              <td>3</td><td><div class="avatar-sm">👤</div></td>
+              <td><span class="name-mask">***</span></td><td><span class="name-mask">***</span></td>
+              <td><span class="score-badge score-notstart">未开始</span></td>
+              <td><span class="status-break">异常中断</span></td>
+              <td>—</td>
+              <td><div class="op-btns">
+                <button class="op-btn op-view">查看试题</button>
+                <button class="op-btn op-verify">入场核验</button>
+                <button class="op-btn op-absent">缺席</button>
+                <button class="op-btn op-cheat">舞弊</button>
+              </div></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Record sidebar (shared) -->
+        <div class="record-sidebar" id="record-sidebar-3">
+          <div class="rec-hd">
+            <div class="rec-title">面试记录</div>
+            <div class="rec-close" onclick="toggleRecord3()">✕</div>
+          </div>
+          <div class="rec-body">
+            <div class="rec-item">
+              <div class="rec-dot-wrap"><div class="rec-dot filled"></div><div class="rec-line"></div></div>
+              <div style="flex:1">
+                <div class="rec-time">13:00:00</div>
+                <div class="rec-card"><div class="rec-card-icon">🖥 面试间A</div><div class="rec-card-text">开启视频</div></div>
+              </div>
+            </div>
+            <div class="rec-item">
+              <div class="rec-dot-wrap"><div class="rec-dot filled"></div><div class="rec-line"></div></div>
+              <div style="flex:1">
+                <div class="rec-time">13:01:00</div>
+                <div class="rec-card"><div class="rec-card-icon">👤 张四</div><div class="rec-card-text">加入会议</div></div>
+              </div>
+            </div>
+            <div class="rec-item">
+              <div class="rec-dot-wrap"><div class="rec-dot filled"></div><div class="rec-line"></div></div>
+              <div style="flex:1">
+                <div class="rec-time">13:05:00</div>
+                <div class="rec-card"><div class="rec-card-icon">👤 张五</div><div class="rec-card-text">加入会议</div></div>
+              </div>
+            </div>
+            <div class="rec-item">
+              <div class="rec-dot-wrap"><div class="rec-dot filled"></div><div class="rec-line"></div></div>
+              <div style="flex:1">
+                <div class="rec-time">13:06:00</div>
+                <div class="rec-card"><div class="rec-card-icon">🖥 面试间A</div><div class="rec-card-text">开启面试</div></div>
+              </div>
+            </div>
+            <div class="rec-item">
+              <div class="rec-dot-wrap"><div class="rec-dot filled"></div><div class="rec-line"></div></div>
+              <div style="flex:1">
+                <div class="rec-time">13:07:00</div>
+                <div class="rec-card"><div class="rec-card-icon">💬 张一</div><div class="rec-card-text">大家都进来了吗？</div></div>
+              </div>
+            </div>
+            <div class="rec-item">
+              <div class="rec-dot-wrap"><div class="rec-dot"></div></div>
+              <div style="flex:1">
+                <div class="rec-time">13:08:00</div>
+                <div class="rec-card"><div class="rec-card-icon">🎤 张三</div><div class="rec-card-text">开始发言</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════ Panel 4: 面试完成 ══════ -->
+      <div class="panel" id="panel-4">
+        <div class="arr-hd">
+          <div>
+            <div class="arr-hd-title">{面试安排名称}</div>
+            <div class="arr-hd-judges">
+              <span class="judge-dot j-online"></span>评委1（***）— 已评分：0/2 <span class="j-online-text">在线</span>
+              &nbsp;&nbsp;
+              <span class="judge-dot j-offline"></span>评委2（***）— 已评分：0/2 <span class="j-offline-text">离线</span>
+            </div>
+          </div>
+          <div class="arr-btns">
+            <!-- no action buttons in completed state -->
+          </div>
+        </div>
+
+        <div class="cand-hd">
+          <div class="cand-hd-left">
+            <div class="cand-hd-title">候选人列表</div>
+            <div class="cand-stat">已核验：0/3 &nbsp; 已评分：0/3</div>
+          </div>
+          <div class="search-box">🔍 姓名、身份证号</div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>序号</th><th>照片</th><th>姓名</th><th>编号</th>
+              <th>评分状态</th><th>考生端状态</th><th>平均分</th><th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td><td><div class="avatar-sm">👤</div></td>
+              <td><span class="name-mask">***</span></td><td><span class="name-mask">***</span></td>
+              <td><span class="score-badge score-notstart">未开始</span></td>
+              <td><span class="status-end">面试结束</span></td>
+              <td>—</td>
+              <td><div class="op-btns">
+                <button class="op-btn op-view">查看试题</button>
+                <button class="op-btn op-verify">入场核验</button>
+                <button class="op-btn op-absent-dim">缺席</button>
+                <button class="op-btn op-cheat-dim">舞弊</button>
+              </div></td>
+            </tr>
+            <tr>
+              <td>2</td><td><div class="avatar-sm">👤</div></td>
+              <td><span class="name-mask">***</span></td><td><span class="name-mask">***</span></td>
+              <td><span class="score-badge score-notstart">未开始</span></td>
+              <td><span class="status-end">面试结束</span></td>
+              <td>—</td>
+              <td><div class="op-btns">
+                <button class="op-btn op-view">查看试题</button>
+                <button class="op-btn op-verify">入场核验</button>
+                <button class="op-btn op-absent-dim">缺席</button>
+                <button class="op-btn op-cheat-dim">舞弊</button>
+              </div></td>
+            </tr>
+            <tr>
+              <td>3</td><td><div class="avatar-sm">👤</div></td>
+              <td><span class="name-mask">***</span></td><td><span class="name-mask">***</span></td>
+              <td><span class="score-badge score-notstart">未开始</span></td>
+              <td><span class="status-end">面试结束</span></td>
+              <td>—</td>
+              <td><div class="op-btns">
+                <button class="op-btn op-view">查看试题</button>
+                <button class="op-btn op-verify">入场核验</button>
+                <button class="op-btn op-absent-dim">缺席</button>
+                <button class="op-btn op-cheat-dim">舞弊</button>
+              </div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div><!-- /panels -->
+
+
+
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<!-- ══ Confirm modal: open video ══ -->
+<div class="modal-mask" id="modal-video">
+  <div class="modal">
+    <div class="modal-title">确认开启视频</div>
+    <div class="modal-body">
+      您即将开始视频面试，考生将自动进入视频。<br><br>
+      <strong>请确认面试安排信息：</strong><br>
+      面试安排 &nbsp; ycmsap1<br>
+      面试时间：&nbsp; 15:00—17:00（UTC+8）
+    </div>
+    <div class="modal-btns">
+      <button class="mbtn mbtn-cancel" onclick="closeModal('modal-video')">取消</button>
+      <button class="mbtn mbtn-confirm" onclick="confirmVideo()">确认开启</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Confirm modal: start interview ══ -->
+<div class="modal-mask" id="modal-start">
+  <div class="modal">
+    <div class="modal-title">确认开启面试</div>
+    <div class="modal-body">
+      开启后，面试将正式开始，考生将同步进入答题页面。<br><br>
+      <strong>请确认面试安排信息：</strong><br>
+      面试安排 &nbsp; ycmsap1<br>
+      面试时间：&nbsp; 15:00—17:00（UTC+8）
+    </div>
+    <div class="modal-btns">
+      <button class="mbtn mbtn-cancel" onclick="closeModal('modal-start')">取消</button>
+      <button class="mbtn mbtn-confirm" onclick="confirmStart()">确认开启</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Confirm modal: end interview ══ -->
+<div class="modal-mask" id="modal-end">
+  <div class="modal">
+    <div class="modal-title">确认结束面试</div>
+    <div class="modal-body">
+      结束后，考官和考生将同时退出远程视频。考官仍可继续完成评分。<br><br>
+      <strong>请确认面试安排信息：</strong><br>
+      面试安排 &nbsp; ycmsap1<br>
+      面试时间：&nbsp; 15:00—17:00（UTC+8）
+    </div>
+    <div class="modal-btns">
+      <button class="mbtn mbtn-cancel" onclick="closeModal('modal-end')">取消</button>
+      <button class="mbtn" style="background:#ff4d4f;color:#fff;" onclick="confirmEnd()">确认结束</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Conflict modal ══ -->
+<div class="modal-mask" id="modal-conflict">
+  <div class="modal">
+    <div class="modal-title" style="color:#ff4d4f;">⚠️ 无法开启面试</div>
+    <div class="modal-body">
+      当前已有面试安排 <strong id="conflict-name"></strong> 正在进行中。<br><br>
+      一位助理同时只能有 <strong>1 个</strong>面试安排处于进行中，请先结束该安排的面试后再操作。
+    </div>
+    <div class="modal-btns">
+      <button class="mbtn mbtn-confirm" onclick="closeModal('modal-conflict')">我知道了</button>
+    </div>
+  </div>
+</div>
+
+<!-- Dev badge -->
+<div id="dev-badge">
+  <div class="db-label">助理端状态（Dev）</div>
+  <div class="db-stage" id="db-stage">面试未开始</div>
+  <div class="db-note" id="db-note">Tab 1 · 视频未开启</div>
+</div>
+
+<script>
+var currentStage = 1;
+var maxUnlocked = 1;
+var currentArrangeId = 'ysmsap2';  // currently selected arrange
+var timerOn = false;
+
+// Per-arrange progress store: { id → maxStage }
+var arrangeProgress = {
+  'ysmsap3': 1,
+  'ysmsap2': 3,
+  'ysmsap1': 4,
+};
+
+// Stage → sidebar tag mapping
+var STAGE_TAG = {
+  1: { cls:'tag-notstart', text:'未开始',    cat:'notstart' },
+  2: { cls:'tag-video',    text:'视频已开启', cat:'video'    },
+  3: { cls:'tag-ongoing',  text:'面试进行中', cat:'ongoing'  },
+  4: { cls:'tag-end',      text:'已结束',    cat:'end'      },
+};
+
+function updateSidebarTag(id, stage) {
+  var tagEl = document.getElementById('tag-'+id);
+  if(!tagEl) return;
+  var info = STAGE_TAG[stage];
+  tagEl.className = 'arrange-tag ' + info.cls;
+  tagEl.textContent = info.text;
+  // also update data-stage
+  var item = document.getElementById('item-'+id);
+  if(item) item.dataset.stage = stage;
+}
+
+// ── Navigation ──
+function tryGoStage(n) {
+  // only allow navigating to current stage; past stages are locked
+  if(n === maxUnlocked) goStage(n);
+}
+
+function goStage(n) {
+  if(n > maxUnlocked) maxUnlocked = n;
+  currentStage = n;
+  // save progress to current arrange
+  if(n > (arrangeProgress[currentArrangeId] || 1)) {
+    arrangeProgress[currentArrangeId] = n;
+    updateSidebarTag(currentArrangeId, n);
+  }
+  document.querySelectorAll('.stage-tab').forEach((t,i) => {
+    const s = i+1;
+    t.classList.remove('active','done','unlocked');
+    if(s === n) t.classList.add('unlocked','active');  // only current is clickable
+    if(s < n)  t.classList.add('done');                // past = done, not unlocked = not clickable
+  });
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-'+n).classList.add('active');
+  updateDevBadge(n);
+}
+
+function updateDevBadge(n) {
+  const map = {
+    1: { stage:'面试未开始', note:'Tab 1 · 视频未开启' },
+    2: { stage:'视频侯考',   note:'Tab 2 · 视频已开启，面试未开始' },
+    3: { stage:'正式面试',   note:'Tab 3 · 面试进行中' },
+    4: { stage:'面试完成',   note:'Tab 4 · 面试已结束' },
+  };
+  document.getElementById('db-stage').textContent = map[n].stage;
+  document.getElementById('db-note').textContent = map[n].note;
+}
+
+// ── Sidebar selection ──
+function selectArrange(el) {
+  currentArrangeId = el.dataset.id;
+  document.querySelectorAll('.arrange-item').forEach(a => a.classList.remove('active'));
+  el.classList.add('active');
+  // Restore this arrange's saved progress
+  var savedStage = arrangeProgress[currentArrangeId] || 1;
+  maxUnlocked = savedStage;
+  goStage(savedStage);
+}
+
+function filterArrange(type) {
+  document.querySelectorAll('.sidebar-hd .sb-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.querySelectorAll('.arrange-item').forEach(function(item) {
+    var stage = parseInt(item.dataset.stage) || 1;
+    // notstart bucket: stage 1 & 2; ongoing: stage 3; end: stage 4
+    var cat = stage <= 2 ? 'notstart' : stage === 3 ? 'ongoing' : 'end';
+    item.style.display = (type === 'all' || type === cat) ? '' : 'none';
+  });
+}
+
+// ── Modals ──
+function showConfirmVideo() {
+  document.getElementById('modal-video').classList.add('show');
+}
+function showConfirmStart() {
+  document.getElementById('modal-start').classList.add('show');
+}
+function showConfirmEnd() {
+  document.getElementById('modal-end').classList.add('show');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+function confirmVideo() {
+  closeModal('modal-video');
+  goStage(2);
+}
+function confirmStart() {
+  // 检查是否已有其他安排处于面试进行中（stage 3）
+  var conflict = Object.keys(arrangeProgress).find(function(id) {
+    return id !== currentArrangeId && arrangeProgress[id] === 3;
+  });
+  if(conflict) {
+    closeModal('modal-start');
+    showConflictAlert(conflict);
+    return;
+  }
+  closeModal('modal-start');
+  goStage(3);
+}
+function confirmEnd() {
+  closeModal('modal-end');
+  goStage(4);
+}
+
+function showConflictAlert(conflictId) {
+  document.getElementById('conflict-name').textContent = conflictId;
+  document.getElementById('modal-conflict').classList.add('show');
+}
+
+// ── Video page ──
+function openVideo() {
+  window.open('视频会议.html', '_blank');
+}
+
+// ── Seccam page ──
+function openSeccam() {
+  window.open('副视角监控.html', '_blank');
+}
+
+// ── Record sidebar ──
+function toggleRecord() {
+  var s = document.getElementById('record-sidebar');
+  s.classList.toggle('open');
+}
+function toggleRecord3() {
+  var s = document.getElementById('record-sidebar-3');
+  s.classList.toggle('open');
+}
+
+// ── Timer ──
+function toggleTimer(btn) {
+  timerOn = !timerOn;
+  btn.textContent = timerOn ? '⏱ 00:00' : '计时器';
+  if(timerOn) {
+    var sec = 0;
+    window._timerInt = setInterval(function(){
+      sec++;
+      var m = String(Math.floor(sec/60)).padStart(2,'0');
+      var s2 = String(sec%60).padStart(2,'0');
+      btn.textContent = '⏱ '+m+':'+s2;
+    }, 1000);
+  } else {
+    clearInterval(window._timerInt);
+  }
+}
+
+// ── Clock ──
+(function() {
+  var start = Date.now();
+  setInterval(function() {
+    var elapsed = Math.floor((Date.now()-start)/1000);
+    var m = String(Math.floor(elapsed/60)).padStart(2,'0');
+    var s = String(elapsed%60).padStart(2,'0');
+    document.getElementById('clock').textContent = m+':'+s;
+  }, 1000);
+})();
+
+// ── Init: default to ysmsap3 (未开始) ──
+(function init() {
+  // render all sidebar tags from progress store
+  Object.keys(arrangeProgress).forEach(function(id) {
+    updateSidebarTag(id, arrangeProgress[id]);
+  });
+  // select ysmsap3 as default active item
+  document.querySelectorAll('.arrange-item').forEach(a => a.classList.remove('active'));
+  document.getElementById('item-ysmsap3').classList.add('active');
+  currentArrangeId = 'ysmsap3';
+  maxUnlocked = arrangeProgress['ysmsap3'];
+  goStage(arrangeProgress['ysmsap3']);
+})();
+</script>
+</body>
+</html>
