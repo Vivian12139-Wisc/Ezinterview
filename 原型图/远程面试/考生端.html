@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>远程面试考生端流程</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system,'PingFang SC','Helvetica Neue',sans-serif;
+  background: linear-gradient(150deg,#1890ff 0%,#1677ff 40%,#36cfc9 100%);
+  min-height:100vh; display:flex; flex-direction:column;
+  align-items:center; justify-content:flex-start; padding:24px 16px;
+  position:relative; overflow-x:hidden;
+}
+/* bg blobs */
+body::before,body::after {
+  content:''; position:fixed; border-radius:50%; pointer-events:none;
+}
+body::before { width:500px;height:500px;background:rgba(255,255,255,0.12);top:-160px;left:-160px;border-radius:50%; }
+body::after  { width:360px;height:360px;background:rgba(255,255,255,0.10);bottom:-100px;right:-80px;border-radius:50%; }
+
+/* nav bar */
+.flow-nav {
+  position:fixed; top:0; left:0; right:0; z-index:200;
+  background:rgba(0,0,0,0.35); backdrop-filter:blur(8px);
+  display:flex; align-items:center; gap:5px;
+  padding:6px 12px;
+  overflow-x:auto; white-space:nowrap;
+  scrollbar-width:none;
+}
+.flow-nav::-webkit-scrollbar { display:none; }
+.flow-nav span { font-size:11px; color:rgba(255,255,255,0.5); margin-right:2px; flex-shrink:0; }
+.nav-btn {
+  padding:4px 9px; border-radius:4px; font-size:11px; cursor:pointer;
+  border:1px solid rgba(255,255,255,0.3); color:#fff; background:rgba(255,255,255,0.1);
+  white-space:nowrap; flex-shrink:0;
+}
+.nav-btn:hover { background:rgba(255,255,255,0.25); }
+.nav-btn.active { background:#fff; color:#1677ff; font-weight:600; border-color:#fff; }
+
+/* page wrapper */
+.pages { margin-top:44px; width:100%; display:flex; justify-content:center; }
+.page { display:none; width:100%; justify-content:center; }
+.page.active { display:flex; }
+
+/* ── Card ── */
+.card {
+  background:#fff; border-radius:12px;
+  box-shadow:0 8px 40px rgba(0,0,0,0.15);
+  overflow:hidden; position:relative;
+}
+/* Schedule list card */
+.card-list { width:680px; padding:0; }
+.card-hd {
+  padding:18px 28px; border-bottom:1px solid #f0f4fa;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.card-title { font-size:15px; font-weight:600; color:#1a1a2e; }
+.user-chip { display:flex;align-items:center;gap:8px; }
+.avatar { width:38px;height:38px;border-radius:6px;overflow:hidden;background:#dde3ef;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+.sec-badge { display:none;align-items:center;gap:5px;border:1px solid #b7eb8f;background:#f6ffed;color:#389e0d;border-radius:6px;padding:4px 12px;font-size:13px;flex-shrink:0; }
+.sec-badge .sec-dot { width:7px;height:7px;border-radius:50%;background:#52c41a; }
+body.seccam-on .sec-badge { display:flex; }
+.user-text { font-size:12.5px;color:#555;line-height:1.7;text-align:right; }
+.user-text strong { color:#1677ff; }
+
+/* Schedule items */
+.sched-list { padding:20px 28px 28px; display:flex;flex-direction:column;gap:16px; }
+.sched-item {
+  border:1px solid #e8edf3; border-radius:8px; padding:16px 20px;
+  display:flex; align-items:center; gap:16px;
+  transition:box-shadow 0.15s;
+}
+.sched-item:hover { box-shadow:0 2px 12px rgba(22,119,255,0.1); }
+.sched-icon {
+  width:48px;height:48px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.sched-icon.blue { background:#e6f4ff; }
+.sched-icon.purple { background:#f0eaff; }
+.sched-info { flex:1; }
+.sched-name { font-size:15px;font-weight:600;color:#1a1a2e;margin-bottom:4px; }
+.sched-time { font-size:12.5px;color:#888; }
+.sched-btn {
+  padding:7px 20px; border-radius:6px; font-size:13.5px; font-weight:500;
+  border:none; cursor:pointer; white-space:nowrap; position:relative;
+}
+.sched-btn.primary { background:#1677ff;color:#fff; }
+.sched-btn.primary:hover { background:#0958d9; }
+.sched-btn.ongoing { background:#f0eeff;color:#5b4de8;border:1px solid #c9bff8; }
+.sched-btn.ongoing::before { content:''; display:inline-block;width:7px;height:7px;border-radius:50%;background:#5b4de8;margin-right:6px;animation:blink2 1.2s ease-in-out infinite; }
+@keyframes blink2 { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.sched-btn.disabled { background:#f5f5f5;color:#bbb;cursor:default;border:1px solid #e8e8e8; }
+.sched-btn.not-open { background:#fff7e6;color:#d48806;border:1px solid #ffe58f;cursor:default; }
+
+/* Tooltip */
+.tip-wrap { position:relative;display:inline-block; }
+.tip-box {
+  display:none;
+  position:absolute; right:0; bottom:calc(100% + 8px);
+  background:rgba(20,20,30,0.92); color:#fff;
+  font-size:12px; line-height:1.7; white-space:nowrap;
+  padding:10px 14px; border-radius:6px;
+  box-shadow:0 4px 16px rgba(0,0,0,0.25);
+  z-index:999; min-width:220px; white-space:normal; width:240px;
+}
+.tip-box::after {
+  content:''; position:absolute; right:18px; top:100%;
+  border:6px solid transparent; border-top-color:rgba(20,20,30,0.92);
+}
+.tip-wrap:hover .tip-box { display:block; }
+.tip-title { font-weight:600; font-size:12.5px; margin-bottom:4px; color:#ffe58f; }
+.tip-row { display:flex;gap:6px;align-items:flex-start;margin-bottom:2px; }
+.tip-dot { flex-shrink:0;margin-top:5px;width:5px;height:5px;border-radius:50%;background:#4fc3f7; }
+.sched-type-tag {
+  display:inline-block; font-size:11px; padding:1px 7px; border-radius:4px;
+  margin-left:6px; vertical-align:middle; font-weight:500;
+}
+.tag-remote { background:#e6f4ff;color:#1677ff; }
+.tag-ai { background:#f0eaff;color:#7c3ce1; }
+
+/* ── Step card ── */
+.card-step { width:860px; min-height:480px; display:flex;flex-direction:column; }
+.card-step .card-hd { flex-shrink:0; }
+.card-step-body { flex:1;display:flex; }
+
+/* Step sidebar */
+.step-side {
+  width:160px;flex-shrink:0;
+  padding:32px 20px;
+  border-right:1px solid #f0f4fa;
+  display:flex;flex-direction:column;gap:0;
+}
+.step-item {
+  display:flex;align-items:flex-start;gap:10px;
+  padding:10px 0; position:relative;
+}
+.step-item:not(:last-child)::after {
+  content:'';position:absolute;left:13px;top:36px;bottom:-8px;
+  width:1px;background:#e0e0e8;
+}
+.step-num {
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:600;flex-shrink:0;
+  border:1.5px solid #c8cfe8;color:#bbb;background:#fff;
+}
+.step-num.active { border-color:#5b4de8;color:#5b4de8;background:#f0eeff; }
+.step-num.done { border-color:#5b4de8;background:#5b4de8;color:#fff;font-size:0; }
+.step-num.done::after { content:'✓';font-size:13px; }
+.step-label { font-size:13px;color:#bbb;padding-top:5px;line-height:1.3; }
+.step-label.active { color:#333;font-weight:500; }
+.step-label.done { color:#5b4de8; }
+
+/* Step content */
+.step-content {
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:28px 36px;
+}
+.step-content-title { font-size:16px;font-weight:600;color:#1a1a2e;margin-bottom:20px;align-self:flex-start; }
+
+/* Notice */
+.notice-box {
+  width:100%;border:1px solid #e8edf3;border-radius:6px;
+  padding:18px 20px;font-size:14px;color:#555;line-height:1.8;
+  min-height:180px;
+}
+.confirm-btn {
+  margin-top:24px;padding:9px 32px;border-radius:20px;
+  border:none;font-size:14px;font-weight:500;cursor:pointer;
+  background:#a8c8fd;color:#fff;
+}
+.confirm-btn.ready { background:#1677ff;cursor:pointer; }
+.confirm-btn.ready:hover { background:#0958d9; }
+
+/* Arrangement item */
+.arrange-item {
+  width:100%;border:1px solid #e8edf3;border-radius:8px;
+  padding:16px 20px;display:flex;align-items:center;gap:16px;
+  cursor:pointer; transition:box-shadow 0.15s;
+}
+.arrange-item:hover { box-shadow:0 2px 12px rgba(22,119,255,0.12); }
+.arr-icon { width:40px;height:40px;border-radius:50%;background:#1677ff;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+.arr-name { flex:1;font-size:15px;font-weight:600;color:#1a1a2e; }
+.arr-time { font-size:12.5px;color:#888; }
+.arr-btn { padding:7px 18px;border-radius:6px;background:#1677ff;color:#fff;border:none;font-size:13.5px;font-weight:500;cursor:pointer; }
+.arr-btn:hover { background:#0958d9; }
+
+/* Camera for checkin */
+.cam-box {
+  width:340px;height:420px;background:#111;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  color:rgba(255,255,255,0.2);font-size:13px;position:relative;
+  overflow:hidden;flex-shrink:0;
+}
+.cam-box.with-photo {
+  background:#2a1a14;
+}
+.cam-crop-overlay {
+  position:absolute;inset:20px;
+  border:2px solid #5b9fff;border-radius:2px;
+}
+.cam-crop-dot {
+  width:8px;height:8px;border-radius:50%;background:#5b9fff;
+  position:absolute;
+}
+.size-label { position:absolute;top:24px;left:24px;font-size:12px;color:#5b9fff; }
+.cam-actions { display:flex;gap:12px;margin-top:18px; }
+.cam-btn-primary { padding:9px 28px;border-radius:6px;background:#1677ff;color:#fff;border:none;font-size:14px;font-weight:500;cursor:pointer; }
+.cam-btn-primary:hover { background:#0958d9; }
+.cam-btn-default { padding:9px 28px;border-radius:6px;background:#fff;color:#555;border:1px solid #d9d9d9;font-size:14px;cursor:pointer; }
+.cam-btn-default:hover { border-color:#1677ff;color:#1677ff; }
+
+/* Verify info */
+.verify-wrap { display:flex;gap:32px;align-items:flex-start; }
+.verify-photo { width:200px;height:260px;background:#2a1a14;border-radius:8px;border:1px solid #e0e0e0;flex-shrink:0; }
+.verify-info { flex:1; }
+.verify-section-title {
+  font-size:15px;font-weight:600;color:#1a1a2e;margin-bottom:16px;
+  padding-left:10px;border-left:3px solid #1677ff;
+}
+.verify-row { font-size:14px;color:#333;margin-bottom:14px; }
+.verify-row span { color:#555;margin-right:8px; }
+.verify-submit { margin-top:32px;padding:9px 32px;border-radius:6px;background:#1677ff;color:#fff;border:none;font-size:14px;font-weight:500;cursor:pointer; }
+.verify-submit:hover { background:#0958d9; }
+
+/* Secondary cam setup */
+.sec-cam-wrap { display:flex;gap:32px;width:100%; }
+.monitor-card {
+  flex:1;border:1px solid #e8edf3;border-radius:8px;
+  padding:20px;
+}
+.monitor-title { font-size:14px;font-weight:600;color:#1a1a2e;margin-bottom:16px; }
+.monitor-illus {
+  width:100%;height:140px;background:linear-gradient(135deg,#e8f8f0,#d0f0e0);
+  border-radius:8px;display:flex;align-items:center;justify-content:center;
+  margin-bottom:14px;
+}
+.monitor-text { font-size:13px;color:#555;line-height:1.8; }
+.sec-qr-side { width:200px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:10px; }
+.sec-qr-title { font-size:13px;color:#333;text-align:center;line-height:1.5; }
+.sec-qr-img { width:160px;height:160px; }
+.sec-link { color:#1677ff;font-size:13px;cursor:pointer; }
+.sec-link:hover { text-decoration:underline; }
+.sec-next-btn { margin-top:auto;padding:9px 32px;border-radius:20px;background:#a8c8fd;color:#fff;border:none;font-size:14px;cursor:default; }
+.sec-next-btn.ready { background:#1677ff;cursor:pointer; }
+.sec-next-btn.ready:hover { background:#0958d9; }
+
+/* Secondary cam disconnected */
+.sec-cam-placeholder {
+  width:100%;height:260px;background:#111;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  color:rgba(255,255,255,0.2);font-size:13px;
+}
+.rescan-link { color:#1677ff;font-size:13px;cursor:pointer;margin-top:8px; }
+.rescan-link:hover { text-decoration:underline; }
+
+/* Lottery */
+.lottery-wrap { display:flex;flex-direction:column;align-items:center;gap:20px;padding:20px 0; }
+.dice-svg { width:120px;height:120px;animation:float 2s ease-in-out infinite; }
+@keyframes float { 0%,100%{transform:translateY(0) rotate(-5deg)} 50%{transform:translateY(-12px) rotate(5deg)} }
+.lottery-bar-bg { width:280px;height:8px;background:#e8edf3;border-radius:4px;overflow:hidden;position:relative; }
+.lottery-bar-fill { position:absolute;top:0;left:-60%;width:50%;height:100%;background:linear-gradient(90deg,transparent 0%,#1677ff 40%,#69b1ff 60%,transparent 100%);border-radius:4px;animation:shimmer 1.6s ease-in-out infinite; }
+@keyframes shimmer { 0%{left:-60%} 100%{left:110%} }
+@keyframes fill { 0%{width:0} 80%{width:85%} 100%{width:100%} }
+.lottery-text { font-size:14px;color:#1677ff;font-weight:500; }
+
+/* Video confirm / waiting */
+.dual-cam { display:flex;gap:20px;width:100%; }
+.cam-panel { flex:1;border-radius:8px;overflow:hidden;position:relative; }
+.cam-bg { width:100%;height:280px;background:#111;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.2);font-size:13px; }
+.cam-tag {
+  position:absolute;top:10px;left:10px;
+  background:#5b4de8;color:#fff;font-size:12px;font-weight:600;
+  padding:3px 10px;border-radius:4px;
+}
+.cam-controls {
+  background:#333;padding:8px 12px;
+  display:flex;align-items:center;gap:16px;
+}
+.cam-select { background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:4px;color:#fff;font-size:12px;padding:4px 24px 4px 8px;cursor:pointer; }
+.cam-controls label { font-size:12px;color:#bbb; }
+.wait-text { margin-top:16px;font-size:14px;color:#1677ff;font-weight:600; }
+.confirm-cam-btn { margin-top:20px;padding:10px 36px;border-radius:20px;background:#5b4de8;color:#fff;border:none;font-size:14px;font-weight:500;cursor:pointer; }
+.confirm-cam-btn:hover { background:#4436c5; }
+
+/* Interview full screen */
+.card-interview { width:900px;border-radius:12px;overflow:hidden; }
+.interview-hd {
+  background:#fff;padding:0 24px;height:56px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid #e8edf3;
+}
+.interview-title { font-size:14px;font-weight:600;color:#1a1a2e; }
+.interview-timer {
+  background:#1a1a2e;color:#fff;font-size:15px;font-weight:600;
+  padding:6px 18px;border-radius:6px;letter-spacing:2px;
+  font-family:monospace;
+}
+.interview-right { display:flex;align-items:center;gap:12px; }
+.sec-cam-btn {
+  display:flex;align-items:center;gap:6px;
+  border:1px solid #b7eb8f;background:#f6ffed;color:#389e0d;
+  border-radius:6px;padding:5px 14px;font-size:13px;font-weight:500;
+}
+.sec-cam-btn .dot-g { width:7px;height:7px;border-radius:50%;background:#52c41a; }
+.interview-user { font-size:12.5px;color:#555;line-height:1.7;text-align:right; }
+.interview-user strong { color:#1677ff; }
+.interview-vid {
+  background:linear-gradient(180deg,#2a3550,#1a2238);
+  height:460px;position:relative;
+  display:flex;align-items:center;justify-content:center;
+}
+.interview-avatar {
+  width:80px;height:80px;border-radius:50%;background:#555;
+  display:flex;align-items:center;justify-content:center;
+}
+.mic-label {
+  position:absolute;bottom:16px;left:16px;
+  background:rgba(0,0,0,0.55);border-radius:20px;
+  padding:5px 14px 5px 10px;display:flex;align-items:center;gap:7px;
+  color:#fff;font-size:13px;
+}
+
+/* End page */
+.card-end { width:680px;padding:0; }
+.end-wrap {
+  display:flex;align-items:center;min-height:420px;
+}
+.end-left { flex:1;padding:60px 48px; }
+.end-logo { display:flex;align-items:center;gap:10px;margin-bottom:40px; }
+.end-logo-text { font-size:17px;font-weight:700;color:#1677ff; }
+.end-logo-sub { font-size:11px;color:#aaa;letter-spacing:1px; }
+.end-title { font-size:28px;font-weight:700;color:#1677ff;margin-bottom:14px; }
+.end-desc { font-size:14px;color:#888;line-height:1.7;margin-bottom:32px; }
+.end-btn { padding:9px 28px;border-radius:6px;border:1px solid #d9d9d9;background:#fff;color:#555;font-size:14px;cursor:pointer; }
+.end-btn:hover { border-color:#1677ff;color:#1677ff; }
+.end-illus {
+  width:300px;flex-shrink:0;
+  background:linear-gradient(135deg,#f0f8ff,#e6f7ff);
+  min-height:420px;display:flex;align-items:center;justify-content:center;
+}
+/* ── AI面试专用样式 ── */
+.ai-page-wrap {
+  width:100%;max-width:1100px;background:#fff;border-radius:12px;
+  box-shadow:0 8px 40px rgba(0,0,0,0.15);
+  overflow:hidden;display:flex;flex-direction:column;
+  min-height:560px;
+}
+.ai-page-hd {
+  padding:14px 24px;border-bottom:1px solid #f0f4fa;
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+}
+.ai-page-body { flex:1;display:flex;min-height:0; }
+.ai-sidebar {
+  width:160px;flex-shrink:0;padding:32px 20px;
+  border-right:1px solid #f0f4fa;display:flex;flex-direction:column;gap:0;
+}
+/* reuse step-item/step-num/step-label from existing */
+
+/* ── 考生端状态悬浮角标 ── */
+#dev-status-badge {
+  position:fixed; bottom:20px; right:20px; z-index:9999;
+  background:rgba(15,15,25,0.90); backdrop-filter:blur(6px);
+  color:#fff; border-radius:8px; padding:10px 14px;
+  font-size:12px; line-height:1.7; min-width:180px;
+  box-shadow:0 4px 16px rgba(0,0,0,0.3);
+  pointer-events:none;
+}
+#dev-status-badge .dsb-label { color:rgba(255,255,255,0.45); font-size:11px; margin-bottom:2px; }
+#dev-status-badge .dsb-status { font-size:13px; font-weight:600; color:#ffe58f; }
+#dev-status-badge .dsb-step { color:rgba(255,255,255,0.6); font-size:11.5px; margin-top:1px; }
+#dev-status-badge .dsb-note { color:rgba(255,255,255,0.4); font-size:11px; margin-top:4px; border-top:1px solid rgba(255,255,255,0.1); padding-top:4px; line-height:1.5; }
+.ai-content { flex:1;display:flex;gap:20px;padding:24px 28px;min-height:0; }
+
+/* AI等候：左摄像区 */
+.ai-cam-col { flex:1;display:flex;flex-direction:column;min-width:0; }
+.ai-cam-wrap {
+  flex:1;background:#111;border-radius:8px;overflow:hidden;
+  position:relative;min-height:260px;
+}
+.ai-cam-inner {
+  width:100%;height:100%;
+  background:linear-gradient(180deg,#2a3550,#1a2238);
+  display:flex;align-items:center;justify-content:center;
+  color:rgba(255,255,255,0.2);font-size:13px;
+}
+.ai-cam-label {
+  position:absolute;top:10px;left:10px;
+  background:#5b4de8;color:#fff;font-size:12px;
+  padding:3px 10px;border-radius:3px;font-weight:500;
+}
+.ai-cam-controls {
+  position:absolute;bottom:0;left:0;right:0;
+  background:rgba(30,30,30,0.7);padding:8px 14px;
+  display:flex;align-items:center;gap:20px;
+}
+.ai-ctrl { display:flex;align-items:center;gap:6px;font-size:12.5px; }
+.ai-ctrl-label { color:#aaa; }
+.ai-select {
+  background:transparent;border:1px solid #555;
+  color:#ddd;padding:3px 8px;border-radius:4px;font-size:12px;
+}
+.ai-mic-row {
+  display:flex;align-items:center;gap:10px;
+  margin-top:10px;font-size:13px;color:#555;flex-shrink:0;
+}
+.ai-mic-bar-bg { flex:1;height:6px;background:#e8edf3;border-radius:4px;overflow:hidden; }
+.ai-mic-bar-fill { height:100%;width:45%;background:#52c41a;border-radius:4px; }
+.ai-confirm-btn-wrap { display:flex;justify-content:center;margin-top:16px;flex-shrink:0; }
+.ai-confirm-btn {
+  background:#5b4de8;color:#fff;border:none;
+  border-radius:20px;padding:11px 44px;
+  font-size:14px;font-weight:600;cursor:pointer;
+  box-shadow:0 4px 14px rgba(91,77,232,0.3);
+  transition:background 0.18s;
+}
+.ai-confirm-btn:hover { background:#4338ca; }
+
+/* AI等候：右QR区 */
+.ai-qr-col { width:200px;flex-shrink:0;display:flex;flex-direction:column;gap:10px;padding-top:4px; }
+.ai-qr-tip { font-size:13px;color:#333;line-height:1.6; }
+.ai-monitor-box {
+  background:#f5f7fa;border-radius:6px;
+  padding:10px 12px;font-size:12.5px;color:#666;line-height:1.7;
+}
+.ai-qr-img { width:160px;height:160px;align-self:center; }
+.ai-link-btn {
+  color:#1677ff;font-size:13px;cursor:pointer;
+  background:none;border:none;padding:0;text-align:center;align-self:center;
+}
+.ai-link-btn:hover { text-decoration:underline; }
+
+/* AI Buffer页 */
+.ai-buffer-wrap {
+  width:100%;max-width:1100px;background:#fff;border-radius:12px;
+  box-shadow:0 8px 40px rgba(0,0,0,0.15);
+  overflow:hidden;display:flex;flex-direction:column;min-height:560px;
+}
+.ai-buffer-body { flex:1;display:flex;min-height:0; }
+.ai-buffer-main {
+  flex:1;display:flex;align-items:center;justify-content:center;padding:32px;
+}
+.ai-buffer-card {
+  background:#f8faff;border-radius:16px;
+  padding:36px 48px 40px;text-align:center;width:400px;
+  border:1px solid #e8edf3;
+}
+.ai-buffer-title { font-size:24px;font-weight:700;color:#1a1a2e;margin-bottom:6px; }
+.ai-buffer-meta { font-size:13px;color:#9aa3b2;margin-bottom:28px; }
+.ai-buffer-meta span { color:#1677ff;font-weight:600; }
+.ai-avatar-frame { width:160px;margin:0 auto 18px; }
+.ai-avatar-img {
+  width:160px;height:190px;border-radius:12px;
+  background:linear-gradient(155deg,#e8f0fe 0%,#c3d4f7 50%,#b8cef5 100%);
+  overflow:hidden;position:relative;
+}
+.ai-live-badge {
+  position:absolute;top:10px;left:10px;
+  background:rgba(255,77,79,0.9);border-radius:4px;
+  padding:2px 7px;font-size:11px;color:#fff;font-weight:600;
+  display:flex;align-items:center;gap:4px;z-index:2;
+}
+.ai-live-dot { width:6px;height:6px;border-radius:50%;background:#fff;animation:blink2 1.4s ease-in-out infinite; }
+.ai-online-status {
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:13px;color:#666;margin-bottom:24px;
+}
+.ai-online-pulse { width:8px;height:8px;border-radius:50%;background:#ff4d4f;animation:blink2 1.4s ease-in-out infinite; }
+.ai-online-timer { color:#ff4d4f;font-weight:600; }
+.ai-enter-btn {
+  width:100%;height:46px;background:#5b4de8;color:#fff;
+  border:none;border-radius:10px;
+  font-size:15px;font-weight:600;cursor:pointer;
+  box-shadow:0 4px 14px rgba(91,77,232,0.3);
+  transition:background 0.18s;
+}
+.ai-enter-btn:hover { background:#4338ca; }
+
+/* AI面试页 */
+.ai-interview-wrap {
+  width:100%;max-width:1100px;background:#fff;border-radius:12px;
+  box-shadow:0 8px 40px rgba(0,0,0,0.15);
+  overflow:hidden;display:flex;flex-direction:column;min-height:560px;
+}
+.ai-interview-body { flex:1;display:flex;min-height:0; }
+.ai-video-section {
+  flex:1;background:#fff;border-right:1px solid #e8edf3;
+  display:flex;flex-direction:column;padding:16px 20px 20px;
+}
+.ai-video-wrap {
+  flex:1;background:#111;border-radius:10px;overflow:hidden;
+  position:relative;min-height:0;
+}
+.ai-video-bg {
+  width:100%;height:100%;
+  background:linear-gradient(180deg,#2a3550,#1a2238);
+  display:flex;align-items:center;justify-content:center;
+  color:rgba(255,255,255,0.2);font-size:13px;
+}
+.ai-candidate-label {
+  position:absolute;bottom:12px;left:12px;
+  background:rgba(0,0,0,0.55);border-radius:20px;
+  padding:4px 12px 4px 8px;
+  display:flex;align-items:center;gap:6px;
+  color:#fff;font-size:12.5px;
+}
+.ai-pip {
+  position:absolute;bottom:12px;right:12px;
+  width:160px;height:180px;border-radius:10px;overflow:hidden;
+  background:linear-gradient(160deg,#e8f0fe,#b8cef5);
+  box-shadow:0 4px 16px rgba(0,0,0,0.3);
+}
+.ai-pip-label {
+  position:absolute;bottom:8px;left:50%;transform:translateX(-50%);
+  background:rgba(30,30,30,0.65);border-radius:12px;
+  padding:2px 10px;font-size:12px;color:#fff;white-space:nowrap;
+}
+.ai-timer-row {
+  display:flex;align-items:center;gap:12px;
+  margin-top:12px;font-size:13px;color:#555;
+}
+.ai-timer-bar-bg { flex:1;height:7px;background:#e8edf3;border-radius:4px;overflow:hidden; }
+.ai-timer-bar-fill { height:100%;width:100%;background:#5b4de8;border-radius:4px;transition:width 1s linear; }
+.ai-timer-val { font-size:13px;color:#333;font-weight:500;min-width:36px;text-align:right; }
+.ai-end-btn-wrap { display:flex;justify-content:center;margin-top:14px; }
+.ai-end-btn {
+  background:#ff7875;color:#fff;border:none;
+  border-radius:8px;padding:9px 32px;
+  font-size:14px;font-weight:600;cursor:pointer;
+  display:flex;align-items:center;gap:8px;transition:background 0.18s;
+}
+.ai-end-btn:hover { background:#ff4d4f; }
+.ai-chat-section {
+  width:300px;flex-shrink:0;display:flex;flex-direction:column;background:#fff;
+}
+.ai-chat-header { padding:14px 18px 10px;border-bottom:1px solid #f0f4fa;font-size:13px;color:#999; }
+.ai-chat-body { flex:1;padding:16px 14px;overflow-y:auto; }
+.ai-chat-msg { display:flex;flex-direction:column;gap:5px; }
+.ai-chat-sender { font-size:11.5px;color:#aaa; }
+.ai-chat-bubble {
+  background:#f0f4fa;border-radius:0 10px 10px 10px;
+  padding:12px 14px;font-size:13.5px;color:#222;line-height:1.65;max-width:240px;
+}
+.ai-cursor { display:inline-block;width:2px;height:14px;background:#5b4de8;margin-left:2px;vertical-align:middle;animation:blink2 0.9s step-end infinite; }
+@keyframes blink2 { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* 确认弹窗 */
+.confirm-mask {
+  display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45);
+  z-index:500; align-items:center; justify-content:center;
+}
+.confirm-mask.show { display:flex; }
+.confirm-dialog {
+  background:#fff; border-radius:10px; padding:28px 28px 22px;
+  width:380px; box-shadow:0 12px 40px rgba(0,0,0,0.2); position:relative;
+}
+.confirm-dialog-title { font-size:15px; font-weight:600; color:#1a1a2e; margin-bottom:14px; }
+.confirm-dialog-body { font-size:14px; color:#555; line-height:1.7; margin-bottom:24px; }
+.confirm-dialog-body strong { color:#1a1a2e; }
+.confirm-dialog-close {
+  position:absolute; top:14px; right:18px;
+  font-size:20px; color:#aaa; cursor:pointer; line-height:1;
+}
+.confirm-dialog-close:hover { color:#555; }
+.confirm-dialog-footer { display:flex; justify-content:flex-end; gap:10px; }
+.confirm-cancel { padding:8px 20px; border-radius:6px; border:1px solid #d9d9d9; background:#fff; color:#555; font-size:14px; cursor:pointer; }
+.confirm-cancel:hover { border-color:#1677ff; color:#1677ff; }
+.confirm-ok { padding:8px 20px; border-radius:6px; border:none; background:#5b4de8; color:#fff; font-size:14px; cursor:pointer; font-weight:500; }
+.confirm-ok:hover { background:#4338ca; }
+</style>
+</head>
+<body>
+
+<!-- 确认进入日程弹窗 -->
+<!-- 考生端状态角标（仅供开发参考） -->
+<div id="dev-status-badge">
+  <div class="dsb-label">考生端状态（Dev）</div>
+  <div class="dsb-status" id="dsb-status">未签到</div>
+  <div class="dsb-step" id="dsb-step">步骤1·面试签到</div>
+  <div class="dsb-note" id="dsb-note">考生尚未完成签到</div>
+</div>
+
+<div class="confirm-mask" id="confirmMask">
+  <div class="confirm-dialog">
+    <div class="confirm-dialog-title">确认进入日程</div>
+    <span class="confirm-dialog-close" onclick="closeConfirm()">×</span>
+    <div class="confirm-dialog-body">
+      您即将进入 <strong id="confirmSchedName"></strong>，请确认无误后继续。
+    </div>
+    <div class="confirm-dialog-footer">
+      <button class="confirm-cancel" onclick="closeConfirm()">再想想</button>
+      <button class="confirm-ok" id="confirmOkBtn">确认，进入日程</button>
+    </div>
+  </div>
+</div>
+
+<!-- Nav -->
+<div class="flow-nav">
+  <span style="font-size:11px;color:rgba(255,255,255,0.4);">远程流程：</span>
+  <button class="nav-btn active" data-flow="remote" data-page="p-list" onclick="goFlow('p-list','remote')">日程列表</button>
+  <button class="nav-btn" data-flow="remote" data-page="p-notice" onclick="goFlow('p-notice','remote')">须知</button>
+  <button class="nav-btn" data-flow="remote" data-page="p-photo" onclick="goFlow('p-photo','remote')">签到拍照</button>
+  <button class="nav-btn" data-flow="remote" data-page="p-confirm" onclick="goFlow('p-confirm','remote')">确认图片</button>
+  <button class="nav-btn" data-flow="remote" data-page="p-verify" onclick="goFlow('p-verify','remote')">核对信息</button>
+  <button class="nav-btn" data-flow="remote" data-page="p-seccam" onclick="goFlow('p-seccam','remote')">副视角设置</button>
+  <button class="nav-btn" data-flow="remote" data-page="p-secdisc" onclick="goFlow('p-secdisc','remote')">副视角断联</button>
+  <button class="nav-btn" data-flow="remote" data-page="p-lottery" onclick="goFlow('p-lottery','remote')">抽签分组（可选）</button>
+  <button class="nav-btn" data-flow="remote" data-page="p-arrange" onclick="goFlow('p-arrange','remote')">查看安排</button>
+  <button class="nav-btn" data-flow="remote" data-page="p-vidcheck" onclick="goFlow('p-vidcheck','remote')">画面确认</button>
+  <button class="nav-btn" data-flow="remote" data-page="p-wait" onclick="goFlow('p-wait','remote')">等候面试</button>
+  <button class="nav-btn" data-flow="remote" data-page="p-interview" onclick="goFlow('p-interview','remote')">面试中</button>
+  <button class="nav-btn" data-flow="remote" data-page="p-end" onclick="goFlow('p-end','remote')">面试结束</button>
+  <span style="color:rgba(255,255,255,0.3);margin:0 4px;">|</span>
+  <span style="font-size:11px;color:rgba(255,255,255,0.4);">AI流程：</span>
+  <button class="nav-btn" data-flow="ai" data-page="p-notice" onclick="goFlow('p-notice','ai')">须知</button>
+  <button class="nav-btn" data-flow="ai" data-page="p-photo" onclick="goFlow('p-photo','ai')">签到拍照</button>
+  <button class="nav-btn" data-flow="ai" data-page="p-confirm" onclick="goFlow('p-confirm','ai')">确认图片</button>
+  <button class="nav-btn" data-flow="ai" data-page="p-verify" onclick="goFlow('p-verify','ai')">核对信息</button>
+  <button class="nav-btn" data-flow="ai" data-page="p-seccam" onclick="goFlow('p-seccam','ai')">副视角设置</button>
+  <button class="nav-btn" data-flow="ai" data-page="p-secdisc" onclick="goFlow('p-secdisc','ai')">副视角断联</button>
+  <button class="nav-btn" data-flow="ai" data-page="p-arrange" onclick="goFlow('p-arrange','ai')">查看安排</button>
+  <button class="nav-btn" data-flow="ai" data-page="p-ai-wait" onclick="goFlow('p-ai-wait','ai')">AI·画面确认</button>
+  <button class="nav-btn" data-flow="ai" data-page="p-ai-buffer" onclick="goFlow('p-ai-buffer','ai')">AI·面试即将开始</button>
+  <button class="nav-btn" data-flow="ai" data-page="p-ai-interview" onclick="goFlow('p-ai-interview','ai')">AI·面试中</button>
+  <button class="nav-btn" data-flow="ai" data-page="p-end" onclick="goFlow('p-end','ai')">面试结束</button>
+</div>
+
+<div class="pages">
+
+<!-- ── 1. 日程列表 ── -->
+<div class="page active" id="p-list">
+  <div style="display:flex;gap:20px;align-items:flex-start;width:100%;max-width:1100px;">
+
+    <!-- 左：日程列表卡片 -->
+    <div class="card card-list" style="flex:1;min-width:0;">
+      <div class="card-hd">
+        <div class="card-title">易面-使用手册</div>
+        <div class="user-chip">
+          <div class="user-text"><div>姓名：<strong>A同学</strong></div><div>身份证号：<strong>1</strong></div></div>
+          <div class="avatar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="#8a9ab8"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#8a9ab8" stroke-width="2" stroke-linecap="round"/></svg></div>
+        </div>
+      </div>
+      <div class="sched-list">
+
+        <!-- 远程：未开放 -->
+        <div class="sched-item">
+          <div class="sched-icon blue"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="#1677ff" stroke-width="1.8"/><path d="M3 9h18" stroke="#1677ff" stroke-width="1.8"/><rect x="7" y="2" width="2" height="4" rx="1" fill="#1677ff"/><rect x="15" y="2" width="2" height="4" rx="1" fill="#1677ff"/></svg></div>
+          <div class="sched-info">
+            <div class="sched-name">远程日程A（未开放）<span class="sched-type-tag tag-remote">远程</span></div>
+            <div class="sched-time">面试日期：2026/07/10 · 开放时间：08:00</div>
+          </div>
+          <button class="sched-btn not-open">未开放</button>
+        </div>
+
+        <!-- 远程：可进入 -->
+        <div class="sched-item">
+          <div class="sched-icon blue"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="#1677ff" stroke-width="1.8"/><path d="M3 9h18" stroke="#1677ff" stroke-width="1.8"/><rect x="7" y="2" width="2" height="4" rx="1" fill="#1677ff"/><rect x="15" y="2" width="2" height="4" rx="1" fill="#1677ff"/></svg></div>
+          <div class="sched-info">
+            <div class="sched-name">远程日程B（进入面试）<span class="sched-type-tag tag-remote">远程</span></div>
+            <div class="sched-time">面试日期：2026/07/08</div>
+          </div>
+          <button class="sched-btn primary" onclick="showConfirm('远程日程B（进入面试）', 'p-notice')">▷ 进入面试</button>
+        </div>
+
+        <!-- 远程：进行中 -->
+        <div class="sched-item">
+          <div class="sched-icon blue"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="#1677ff" stroke-width="1.8"/><path d="M3 9h18" stroke="#1677ff" stroke-width="1.8"/><rect x="7" y="2" width="2" height="4" rx="1" fill="#1677ff"/><rect x="15" y="2" width="2" height="4" rx="1" fill="#1677ff"/></svg></div>
+          <div class="sched-info">
+            <div class="sched-name">远程日程C（面试进行中）<span class="sched-type-tag tag-remote">远程</span></div>
+            <div class="sched-time">面试日期：2026/07/08</div>
+          </div>
+          <button class="sched-btn ongoing" onclick="showConfirm('远程日程C（面试进行中）', 'p-notice')">面试进行中</button>
+        </div>
+
+        <!-- 远程：已结束 -->
+        <div class="sched-item">
+          <div class="sched-icon blue"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="#1677ff" stroke-width="1.8"/><path d="M3 9h18" stroke="#1677ff" stroke-width="1.8"/><rect x="7" y="2" width="2" height="4" rx="1" fill="#1677ff"/><rect x="15" y="2" width="2" height="4" rx="1" fill="#1677ff"/></svg></div>
+          <div class="sched-info">
+            <div class="sched-name">远程日程D（已结束）<span class="sched-type-tag tag-remote">远程</span></div>
+            <div class="sched-time">面试日期：2026/06/24</div>
+          </div>
+          <button class="sched-btn disabled">面试已结束</button>
+        </div>
+
+        <div style="border-top:1px dashed #e8edf3;margin:4px 0"></div>
+
+        <!-- AI：未到时间 -->
+        <div class="sched-item">
+          <div class="sched-icon purple"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="#7c3ce1" stroke-width="1.8"/><path d="M9 9h6M9 12h4" stroke="#7c3ce1" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+          <div class="sched-info">
+            <div class="sched-name">AI日程A（未开放）<span class="sched-type-tag tag-ai">AI</span></div>
+            <div class="sched-time">面试日期：2026/07/08 &nbsp;·&nbsp; 安排时间 10:30–11:00</div>
+          </div>
+          <button class="sched-btn not-open">未开放</button>
+        </div>
+
+        <!-- AI：可进入 -->
+        <div class="sched-item">
+          <div class="sched-icon purple"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="#7c3ce1" stroke-width="1.8"/><path d="M9 9h6M9 12h4" stroke="#7c3ce1" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+          <div class="sched-info">
+            <div class="sched-name">AI日程B（进入面试）<span class="sched-type-tag tag-ai">AI</span></div>
+            <div class="sched-time">面试日期：2026/07/08 &nbsp;·&nbsp; 安排时间 09:00–09:30</div>
+          </div>
+          <button class="sched-btn primary" onclick="showConfirm('AI日程B（进入面试）', 'p-notice', 'ai')">▷ 进入面试</button>
+        </div>
+
+        <!-- AI：进行中 -->
+        <div class="sched-item">
+          <div class="sched-icon purple"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="#7c3ce1" stroke-width="1.8"/><path d="M9 9h6M9 12h4" stroke="#7c3ce1" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+          <div class="sched-info">
+            <div class="sched-name">AI日程C（面试进行中）<span class="sched-type-tag tag-ai">AI</span></div>
+            <div class="sched-time">面试日期：2026/07/08 &nbsp;·&nbsp; 安排时间 08:30–09:00</div>
+          </div>
+          <button class="sched-btn ongoing" onclick="showConfirm('AI日程C（面试进行中）', 'p-notice', 'ai')">面试进行中</button>
+        </div>
+
+        <!-- AI：已结束 -->
+        <div class="sched-item">
+          <div class="sched-icon purple"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="#7c3ce1" stroke-width="1.8"/><path d="M9 9h6M9 12h4" stroke="#7c3ce1" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+          <div class="sched-info">
+            <div class="sched-name">AI日程D（已结束）<span class="sched-type-tag tag-ai">AI</span></div>
+            <div class="sched-time">面试日期：2026/07/07 &nbsp;·&nbsp; 安排时间 14:00–14:30</div>
+          </div>
+          <button class="sched-btn disabled">面试已结束</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 右：两个静态黑框说明 -->
+    <div style="width:280px;flex-shrink:0;display:flex;flex-direction:column;gap:14px;padding-top:4px;">
+
+      <!-- 远程说明框 -->
+      <div style="background:rgba(15,15,25,0.88);border-radius:8px;padding:16px 18px;color:#fff;font-size:12.5px;line-height:1.75;">
+        <div style="font-size:13px;font-weight:600;color:#4fc3f7;margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+          <span class="sched-type-tag tag-remote" style="background:#1677ff20;color:#4fc3f7;border:1px solid #4fc3f760;">远程</span>
+          进入逻辑
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;gap:8px;"><span style="color:#ffd666;flex-shrink:0;">🔒</span><span><strong style="color:#ffd666;">未开放</strong> — 未到面试日期，或当天未到开放时间（即日程设置中面试时间的开始时间），禁用</span></div>
+          <div style="display:flex;gap:8px;"><span style="color:#95de64;flex-shrink:0;">▷</span><span><strong style="color:#95de64;">进入面试</strong> — 已到开放时间，且未分配安排或已分配但未开始</span></div>
+          <div style="display:flex;gap:8px;"><span style="color:#b39ddb;flex-shrink:0;">●</span><span><strong style="color:#b39ddb;">面试进行中</strong> — 面试官已开始，可点击重入（断线重连）</span></div>
+          <div style="display:flex;gap:8px;"><span style="color:#888;flex-shrink:0;">✕</span><span><strong style="color:#aaa;">已结束</strong> — 面试安排已结束，禁用</span></div>
+        </div>
+      </div>
+
+      <!-- AI说明框 -->
+      <div style="background:rgba(15,15,25,0.88);border-radius:8px;padding:16px 18px;color:#fff;font-size:12.5px;line-height:1.75;">
+        <div style="font-size:13px;font-weight:600;color:#ce93d8;margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+          <span class="sched-type-tag tag-ai" style="background:#7c3ce120;color:#ce93d8;border:1px solid #ce93d860;">AI</span>
+          进入逻辑
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;gap:8px;"><span style="color:#ffd666;flex-shrink:0;">🔒</span><span><strong style="color:#ffd666;">未开放</strong> — 未到面试日期，或当天未到开放时间（即面试安排的开始时间），禁用</span></div>
+          <div style="display:flex;gap:8px;"><span style="color:#95de64;flex-shrink:0;">▷</span><span><strong style="color:#95de64;">进入面试</strong> — 当前在开放窗口内，可进入</span></div>
+          <div style="display:flex;gap:8px;"><span style="color:#b39ddb;flex-shrink:0;">●</span><span><strong style="color:#b39ddb;">面试进行中</strong> — 已进入AI面试，可点击重入（断线重连）</span></div>
+          <div style="display:flex;gap:8px;"><span style="color:#888;flex-shrink:0;">✕</span><span><strong style="color:#aaa;">已结束</strong> — AI面试已结束，或超过面试安排结束时间及岗位面试时长，禁用</span></div>
+        </div>
+        <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.1);color:#aaa;font-size:11.5px;">
+          💡 AI日程展示具体面试安排时间（如 09:00–09:30）；远程日程仅在「未开放」时展示日程开放时间（即日程设置里面试时间的开始时间）。两者含义不同，请注意区别。
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ── 2. 面试须知 ── -->
+<div class="page" id="p-notice">
+  <div class="card card-step">
+    <div class="card-hd">
+      <div class="card-title">易面-使用手册</div>
+      <div class="user-chip">
+        <div class="user-text"><div>姓名：<strong>A同学</strong></div><div>身份证号：<strong>1</strong></div></div>
+        <div class="avatar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="#8a9ab8"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#8a9ab8" stroke-width="2" stroke-linecap="round"/></svg></div>
+      </div>
+    </div>
+    <div class="card-step-body">
+      <div class="step-side">
+        <div class="step-item">
+          <div class="step-num active">1</div>
+          <div class="step-label active">面试签到</div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-label">查看安排</div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-label">等候面试</div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-label">进入面试</div>
+        </div>
+      </div>
+      <div class="step-content">
+        <div class="step-content-title">面试须知</div>
+        <div class="notice-box">
+          请提前检查并调试摄像头、麦克风及网络环境，按要求时间进入会议。面试过程中保持安静、画面清晰，服从工作人员指引，确保面试顺利进行。
+        </div>
+        <button class="confirm-btn ready" id="noticeBtn" onclick="go('p-photo')">我已认真阅读</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── 查看安排 ── -->
+<div class="page" id="p-arrange">
+  <div class="card card-step" style="width:860px">
+    <div class="card-hd">
+      <div class="card-title">{日程名称}</div>
+      <div class="user-chip">
+        <div class="sec-badge"><div class="sec-dot"></div>副视角</div>
+        <div class="user-text"><div>Candidate: <strong>A同学</strong></div><div>Admission Number: <strong>236363</strong></div></div>
+        <div class="avatar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="#8a9ab8"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#8a9ab8" stroke-width="2" stroke-linecap="round"/></svg></div>
+      </div>
+    </div>
+    <div class="card-step-body">
+      <div class="step-side">
+        <div class="step-item"><div class="step-num done"></div><div class="step-label done">面试签到</div></div>
+        <div class="step-item"><div class="step-num active">2</div><div class="step-label active">查看安排</div></div>
+        <div class="step-item"><div class="step-num">3</div><div class="step-label">等候面试</div></div>
+        <div class="step-item"><div class="step-num">4</div><div class="step-label">进入面试</div></div>
+      </div>
+      <div class="step-content">
+        <div class="step-content-title">查看安排</div>
+        <div style="width:100%;background:#f8faff;border:1px solid #e0e8f8;border-radius:10px;padding:28px 32px;display:flex;flex-direction:column;gap:0;">
+          <!-- 安排标题 -->
+          <div style="display:flex;align-items:center;gap:10px;padding-bottom:20px;border-bottom:1px solid #eef2fb;margin-bottom:20px;">
+            <div style="width:38px;height:38px;border-radius:8px;background:#e6f4ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="17" rx="2" stroke="#1677ff" stroke-width="1.8"/><path d="M8 2v4M16 2v4M3 10h18" stroke="#1677ff" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </div>
+            <div style="font-size:17px;font-weight:600;color:#1a1a2e;">面试安排1</div>
+          </div>
+          <!-- 信息行 -->
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div style="display:flex;align-items:center;gap:8px;font-size:14px;">
+              <span style="color:#888;width:80px;flex-shrink:0;">面试时间</span>
+              <span style="color:#1677ff;font-weight:600;font-size:15px;">10:30 — 11:00</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:14px;">
+              <span style="color:#888;width:80px;flex-shrink:0;">所属日程</span>
+              <span style="color:#333;" id="arrangeSchedName">演示-远程日程</span>
+            </div>
+          </div>
+        </div>
+        <button class="cam-btn-primary" style="margin-top:28px;border-radius:20px;padding:10px 48px;" onclick="nextAfterArrange()">确认，下一步</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── 4. 签到-拍照 ── -->
+<div class="page" id="p-photo">
+  <div class="card card-step" style="width:860px">
+    <div class="card-hd">
+      <div class="card-title">{日程名称}</div>
+      <div class="user-chip">
+        <div class="sec-badge"><div class="sec-dot"></div>副视角</div>
+        <div class="user-text"><div>Candidate: <strong>A同学</strong></div><div>Admission Number: <strong>236363</strong></div></div>
+        <div class="avatar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="#8a9ab8"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#8a9ab8" stroke-width="2" stroke-linecap="round"/></svg></div>
+      </div>
+    </div>
+    <div class="card-step-body">
+      <div class="step-side">
+        <div class="step-item"><div class="step-num active">1</div><div class="step-label active">面试签到</div></div>
+        <div class="step-item"><div class="step-num">2</div><div class="step-label">查看安排</div></div>
+        <div class="step-item"><div class="step-num">3</div><div class="step-label">等候面试</div></div>
+        <div class="step-item"><div class="step-num">4</div><div class="step-label">进入面试</div></div>
+      </div>
+      <div class="step-content">
+        <div class="cam-box">摄像头画面</div>
+        <div class="cam-actions">
+          <button class="cam-btn-primary" onclick="go('p-confirm')">开始拍照</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── 5. 确认图片 ── -->
+<div class="page" id="p-confirm">
+  <div class="card card-step" style="width:860px">
+    <div class="card-hd">
+      <div class="card-title">{日程名称}</div>
+      <div class="user-chip">
+        <div class="sec-badge"><div class="sec-dot"></div>副视角</div>
+        <div class="user-text"><div>Candidate: <strong>A同学</strong></div><div>Admission Number: <strong>236363</strong></div></div>
+        <div class="avatar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="#8a9ab8"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#8a9ab8" stroke-width="2" stroke-linecap="round"/></svg></div>
+      </div>
+    </div>
+    <div class="card-step-body">
+      <div class="step-side">
+        <div class="step-item"><div class="step-num active">1</div><div class="step-label active">面试签到</div></div>
+        <div class="step-item"><div class="step-num">2</div><div class="step-label">查看安排</div></div>
+        <div class="step-item"><div class="step-num">3</div><div class="step-label">等候面试</div></div>
+        <div class="step-item"><div class="step-num">4</div><div class="step-label">进入面试</div></div>
+      </div>
+      <div class="step-content">
+        <div class="cam-box with-photo">
+          <div class="cam-crop-overlay">
+            <div class="cam-crop-dot" style="top:-4px;left:-4px"></div>
+            <div class="cam-crop-dot" style="top:-4px;right:-4px"></div>
+            <div class="cam-crop-dot" style="bottom:-4px;left:-4px"></div>
+            <div class="cam-crop-dot" style="bottom:-4px;right:-4px"></div>
+            <div class="cam-crop-dot" style="top:calc(50% - 4px);left:-4px"></div>
+            <div class="cam-crop-dot" style="top:calc(50% - 4px);right:-4px"></div>
+            <div class="cam-crop-dot" style="top:-4px;left:calc(50% - 4px)"></div>
+            <div class="cam-crop-dot" style="bottom:-4px;left:calc(50% - 4px)"></div>
+          </div>
+          <div class="size-label">470 × 659</div>
+        </div>
+        <div class="cam-actions">
+          <button class="cam-btn-default" onclick="go('p-photo')">重新拍照</button>
+          <button class="cam-btn-primary" onclick="go('p-verify')">确认图片</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── 6. 核对信息 ── -->
+<div class="page" id="p-verify">
+  <div class="card card-step" style="width:860px">
+    <div class="card-hd">
+      <div class="card-title">{日程名称}</div>
+      <div class="user-chip">
+        <div class="sec-badge"><div class="sec-dot"></div>副视角</div>
+        <div class="user-text"><div>Candidate: <strong>A同学</strong></div><div>Admission Number: <strong>236363</strong></div></div>
+        <div class="avatar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="#8a9ab8"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#8a9ab8" stroke-width="2" stroke-linecap="round"/></svg></div>
+      </div>
+    </div>
+    <div class="card-step-body">
+      <div class="step-side">
+        <div class="step-item"><div class="step-num active">1</div><div class="step-label active">面试签到</div></div>
+        <div class="step-item"><div class="step-num">2</div><div class="step-label">查看安排</div></div>
+        <div class="step-item"><div class="step-num">3</div><div class="step-label">等候面试</div></div>
+        <div class="step-item"><div class="step-num">4</div><div class="step-label">进入面试</div></div>
+      </div>
+      <div class="step-content">
+        <div class="verify-wrap">
+          <div class="verify-photo"></div>
+          <div class="verify-info">
+            <div class="verify-section-title">核对信息</div>
+            <div class="verify-row"><span>姓名：</span>A同学</div>
+            <div class="verify-row"><span>准考证号：</span>236363</div>
+            <button class="verify-submit" onclick="go('p-seccam')">完成签到，下一步</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── 7. 副视角设置 ── -->
+<div class="page" id="p-seccam">
+  <div class="card card-step" style="width:960px">
+    <div class="card-hd">
+      <div class="card-title">{日程名称}</div>
+      <div class="user-chip">
+        <div class="sec-badge"><div class="sec-dot"></div>副视角</div>
+        <div class="user-text"><div>Candidate: <strong>A同学</strong></div><div>Admission Number: <strong>236363</strong></div></div>
+        <div class="avatar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="#8a9ab8"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#8a9ab8" stroke-width="2" stroke-linecap="round"/></svg></div>
+      </div>
+    </div>
+    <div class="card-step-body">
+      <div class="step-side">
+        <div class="step-item"><div class="step-num active">1</div><div class="step-label active">面试签到</div></div>
+        <div class="step-item"><div class="step-num">2</div><div class="step-label">查看安排</div></div>
+        <div class="step-item"><div class="step-num">3</div><div class="step-label">等候面试</div></div>
+        <div class="step-item"><div class="step-num">4</div><div class="step-label">进入面试</div></div>
+      </div>
+      <div class="step-content">
+        <div class="step-content-title">副视角设置</div>
+        <div class="sec-cam-wrap">
+          <div class="monitor-card">
+            <div class="monitor-title">监控要求</div>
+            <div class="monitor-illus">
+              <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+                <circle cx="40" cy="40" r="36" fill="#c8f0d8"/>
+                <rect x="20" y="30" width="40" height="28" rx="3" fill="#555" stroke="#333" stroke-width="1"/>
+                <rect x="28" y="20" width="24" height="16" rx="2" fill="#7ecfa0"/>
+                <circle cx="40" cy="56" r="3" fill="#888"/>
+                <circle cx="52" cy="58" r="6" fill="#52c41a"/>
+              </svg>
+            </div>
+            <div class="monitor-text">考试过程中，请将手机放置在侧后方，距离您至少1.5米，确保摄像头全程覆盖您的面试屏幕、上半身及手部。考试期间，请将监控设备全程静音，以免影响考试环境。</div>
+          </div>
+          <div class="sec-qr-side">
+            <div class="sec-qr-title">请扫描下方二维码，根据提示开启副视角</div>
+            <svg class="sec-qr-img" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+              <rect width="160" height="160" fill="white"/>
+              <rect x="8" y="8" width="44" height="44" fill="black"/><rect x="12" y="12" width="36" height="36" fill="white"/><rect x="16" y="16" width="28" height="28" fill="black"/>
+              <rect x="108" y="8" width="44" height="44" fill="black"/><rect x="112" y="12" width="36" height="36" fill="white"/><rect x="116" y="16" width="28" height="28" fill="black"/>
+              <rect x="8" y="108" width="44" height="44" fill="black"/><rect x="12" y="112" width="36" height="36" fill="white"/><rect x="16" y="116" width="28" height="28" fill="black"/>
+              <rect x="56" y="8" width="8" height="8" fill="black"/><rect x="72" y="8" width="8" height="8" fill="black"/><rect x="88" y="8" width="8" height="8" fill="black"/>
+              <rect x="64" y="16" width="8" height="8" fill="black"/><rect x="80" y="16" width="8" height="8" fill="black"/>
+              <rect x="56" y="24" width="8" height="8" fill="black"/><rect x="80" y="24" width="8" height="8" fill="black"/>
+              <rect x="8" y="56" width="8" height="8" fill="black"/><rect x="24" y="56" width="8" height="8" fill="black"/><rect x="56" y="56" width="8" height="8" fill="black"/><rect x="72" y="56" width="8" height="8" fill="black"/><rect x="88" y="56" width="8" height="8" fill="black"/><rect x="120" y="56" width="8" height="8" fill="black"/>
+              <rect x="16" y="64" width="8" height="8" fill="black"/><rect x="40" y="64" width="8" height="8" fill="black"/><rect x="64" y="64" width="8" height="8" fill="black"/><rect x="96" y="64" width="8" height="8" fill="black"/>
+              <rect x="8" y="72" width="8" height="8" fill="black"/><rect x="32" y="72" width="8" height="8" fill="black"/><rect x="56" y="72" width="8" height="8" fill="black"/><rect x="80" y="72" width="8" height="8" fill="black"/>
+              <rect x="56" y="96" width="8" height="8" fill="black"/><rect x="80" y="96" width="8" height="8" fill="black"/><rect x="96" y="96" width="8" height="8" fill="black"/>
+              <rect x="64" y="112" width="8" height="8" fill="black"/><rect x="80" y="112" width="8" height="8" fill="black"/><rect x="112" y="112" width="8" height="8" fill="black"/>
+              <rect x="56" y="120" width="8" height="8" fill="black"/><rect x="96" y="120" width="8" height="8" fill="black"/>
+              <rect x="72" y="128" width="8" height="8" fill="black"/><rect x="96" y="128" width="8" height="8" fill="black"/>
+            </svg>
+            <div class="sec-link">查看链接地址</div>
+            <button class="sec-next-btn ready" onclick="nextAfterSeccam()" style="margin-top:16px">确认，下一步</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── 8. 副视角断联 ── -->
+<div class="page" id="p-secdisc">
+  <div class="card card-step" style="width:960px">
+    <div class="card-hd">
+      <div class="card-title">{日程名称}</div>
+      <div class="user-chip">
+        <div class="sec-badge"><div class="sec-dot"></div>副视角</div>
+        <div class="user-text"><div>Candidate: <strong>A同学</strong></div><div>Admission Number: <strong>236363</strong></div></div>
+        <div class="avatar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="#8a9ab8"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#8a9ab8" stroke-width="2" stroke-linecap="round"/></svg></div>
+      </div>
+    </div>
+    <div class="card-step-body">
+      <div class="step-side">
+        <div class="step-item"><div class="step-num active">1</div><div class="step-label active">面试签到</div></div>
+        <div class="step-item"><div class="step-num">2</div><div class="step-label">查看安排</div></div>
+        <div class="step-item"><div class="step-num">3</div><div class="step-label">等候面试</div></div>
+        <div class="step-item"><div class="step-num">4</div><div class="step-label">进入面试</div></div>
+      </div>
+      <div class="step-content">
+        <div class="step-content-title">副视角设置</div>
+        <div class="sec-cam-wrap">
+          <div class="monitor-card">
+            <div class="monitor-title">监控要求</div>
+            <div class="monitor-illus">
+              <svg width="80" height="80" viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="36" fill="#c8f0d8"/><rect x="20" y="30" width="40" height="28" rx="3" fill="#555" stroke="#333" stroke-width="1"/><rect x="28" y="20" width="24" height="16" rx="2" fill="#7ecfa0"/><circle cx="40" cy="56" r="3" fill="#888"/><circle cx="52" cy="58" r="6" fill="#52c41a"/></svg>
+            </div>
+            <div class="monitor-text">考试过程中，请将手机放置在侧后方，距离您至少1.5米，确保摄像头全程覆盖您的面试屏幕、上半身及手部。</div>
+          </div>
+          <div class="sec-qr-side">
+            <div class="sec-cam-placeholder" style="width:100%;height:200px">副视角画面（已断联）</div>
+            <div class="rescan-link">重新扫码连接</div>
+            <button class="sec-next-btn" style="margin-top:16px;opacity:0.5;cursor:not-allowed" disabled>确认，下一步</button>
+            <div style="font-size:12px;color:#aaa;text-align:center;margin-top:6px;">重新连接副视角后可继续</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── 9. 抽签分组 ── -->
+<div class="page" id="p-lottery">
+  <div class="card card-step" style="width:860px">
+    <div class="card-hd">
+      <div class="card-title">{日程名称}</div>
+      <div class="user-chip">
+        <div class="sec-badge"><div class="sec-dot"></div>副视角</div>
+        <div class="user-text"><div>Candidate: <strong>A同学</strong></div><div>Admission Number: <strong>236363</strong></div></div>
+        <div class="avatar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="#8a9ab8"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#8a9ab8" stroke-width="2" stroke-linecap="round"/></svg></div>
+      </div>
+    </div>
+    <div class="card-step-body">
+      <div class="step-side">
+        <div class="step-item"><div class="step-num done"></div><div class="step-label done">面试签到</div></div>
+        <div class="step-item"><div class="step-num active">2</div><div class="step-label active">查看安排</div></div>
+        <div class="step-item"><div class="step-num">3</div><div class="step-label">等候面试</div></div>
+        <div class="step-item"><div class="step-num">4</div><div class="step-label">进入面试</div></div>
+      </div>
+      <div class="step-content">
+        <div class="lottery-wrap">
+          <svg class="dice-svg" viewBox="0 0 120 120" fill="none">
+            <defs><linearGradient id="dg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#b37feb"/><stop offset="100%" stop-color="#9254de"/></linearGradient></defs>
+            <rect x="15" y="15" width="90" height="90" rx="18" fill="url(#dg)" transform="rotate(-10 60 60)"/>
+            <circle cx="40" cy="40" r="7" fill="rgba(255,255,255,0.7)" transform="rotate(-10 60 60)"/>
+            <circle cx="80" cy="40" r="7" fill="rgba(255,255,255,0.7)" transform="rotate(-10 60 60)"/>
+            <circle cx="60" cy="60" r="7" fill="rgba(255,255,255,0.7)" transform="rotate(-10 60 60)"/>
+            <circle cx="40" cy="80" r="7" fill="rgba(255,255,255,0.7)" transform="rotate(-10 60 60)"/>
+            <circle cx="80" cy="80" r="7" fill="rgba(255,255,255,0.7)" transform="rotate(-10 60 60)"/>
+            <ellipse cx="60" cy="108" rx="36" ry="6" fill="rgba(100,50,200,0.3)"/>
+          </svg>
+          <div class="lottery-bar-bg"><div class="lottery-bar-fill" id="lotteryBar"></div></div>
+          <div class="lottery-text">正在为您安排面试，请稍候...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── 10. 画面确认 ── -->
+<div class="page" id="p-vidcheck">
+  <div class="card card-step" style="width:960px">
+    <div class="card-hd">
+      <div class="card-title">{安排名称}</div>
+      <div class="user-chip">
+        <div class="sec-badge"><div class="sec-dot"></div>副视角</div>
+        <div class="user-text"><div>Candidate: <strong>A同学</strong></div><div>Admission Number: <strong>236363</strong></div></div>
+        <div class="avatar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="#8a9ab8"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#8a9ab8" stroke-width="2" stroke-linecap="round"/></svg></div>
+      </div>
+    </div>
+    <div class="card-step-body">
+      <div class="step-side">
+        <div class="step-item"><div class="step-num done"></div><div class="step-label done">面试签到</div></div>
+        <div class="step-item"><div class="step-num done"></div><div class="step-label done">查看安排</div></div>
+        <div class="step-item"><div class="step-num active">3</div><div class="step-label active">等候面试</div></div>
+        <div class="step-item"><div class="step-num">4</div><div class="step-label">进入面试</div></div>
+      </div>
+      <div class="step-content">
+        <div class="step-content-title">画面确认</div>
+        <div class="dual-cam">
+          <div class="cam-panel">
+            <div class="cam-tag">主视角</div>
+            <div class="cam-bg">摄像头画面</div>
+            <div class="cam-controls">
+              <label>摄像头：</label>
+              <select class="cam-select"><option>FaceTime HD 摄像头 ▾</option></select>
+              <label>麦克风：</label>
+              <select class="cam-select"><option>FaceTime HD 摄像头 ▾</option></select>
+            </div>
+          </div>
+          <div class="cam-panel">
+            <div class="cam-tag">副视角</div>
+            <div class="cam-bg">副视角画面</div>
+          </div>
+        </div>
+        <button class="confirm-cam-btn" onclick="go('p-wait')">确认画面，等待面试</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 考前准备页暂不加 -->
+<div class="page" id="p-question" style="display:none!important">
+  <div class="card card-step" style="width:860px">
+    <div class="card-hd">
+      <div class="card-title">{安排名称}</div>
+      <div class="user-chip">
+        <div class="avatar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="#8a9ab8"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#8a9ab8" stroke-width="2" stroke-linecap="round"/></svg></div>
+      </div>
+    </div>
+    <div class="card-step-body">
+      <div class="step-side">
+        <div class="step-item"><div class="step-num done"></div><div class="step-label done">面试签到</div></div>
+        <div class="step-item"><div class="step-num active">2</div><div class="step-label active">查看安排</div></div>
+        <div class="step-item"><div class="step-num">3</div><div class="step-label">等候面试</div></div>
+        <div class="step-item"><div class="step-num">4</div><div class="step-label">进入面试</div></div>
+      </div>
+      <div class="step-content">
+        <div class="step-content-title">选择试题</div>
+        <div style="width:100%;display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:13.5px;">
+            <span style="color:#555">请选择试题：</span>
+            <span style="color:#ff4d4f;font-weight:500;">还剩25秒</span>
+          </div>
+          <div style="color:#1677ff;font-size:13.5px;margin-bottom:4px;">{单元名称}</div>
+          <div style="border:1px solid #e8edf3;border-radius:6px;padding:16px 20px;text-align:center;font-size:14px;color:#333;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.borderColor='#1677ff';this.style.background='#f0f7ff'" onmouseout="this.style.borderColor='#e8edf3';this.style.background=''">{大题名称}</div>
+          <div style="border:1px solid #e8edf3;border-radius:6px;padding:16px 20px;text-align:center;font-size:14px;color:#333;cursor:pointer;transition:all 0.15s;background:#e6f4ff;border-color:#1677ff;" >{大题名称}（已选）</div>
+          <div style="border:1px solid #e8edf3;border-radius:6px;padding:16px 20px;text-align:center;font-size:14px;color:#333;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.borderColor='#1677ff';this.style.background='#f0f7ff'" onmouseout="this.style.borderColor='#e8edf3';this.style.background=''">{大题名称}</div>
+          <button class="cam-btn-primary" style="margin-top:8px;border-radius:20px;padding:10px 0;width:100%;max-width:280px;align-self:center;" onclick="go('p-wait')">确定选择</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── 11. 等候面试 ── -->
+<div class="page" id="p-wait">
+  <div class="card card-step" style="width:960px">
+    <div class="card-hd">
+      <div class="card-title">{安排名称}</div>
+      <div class="user-chip">
+        <div class="sec-badge"><div class="sec-dot"></div>副视角</div>
+        <div class="user-text"><div>Candidate: <strong>A同学</strong></div><div>Admission Number: <strong>236363</strong></div></div>
+        <div class="avatar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="#8a9ab8"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#8a9ab8" stroke-width="2" stroke-linecap="round"/></svg></div>
+      </div>
+    </div>
+    <div class="card-step-body">
+      <div class="step-side">
+        <div class="step-item"><div class="step-num done"></div><div class="step-label done">面试签到</div></div>
+        <div class="step-item"><div class="step-num done"></div><div class="step-label done">查看安排</div></div>
+        <div class="step-item"><div class="step-num active">3</div><div class="step-label active">等候面试</div></div>
+        <div class="step-item"><div class="step-num">4</div><div class="step-label">进入面试</div></div>
+      </div>
+      <div class="step-content">
+        <div class="step-content-title">等候面试</div>
+        <div class="dual-cam">
+          <div class="cam-panel">
+            <div class="cam-tag">主视角</div>
+            <div class="cam-bg">摄像头画面</div>
+            <div class="cam-controls">
+              <label>摄像头：</label>
+              <select class="cam-select"><option>FaceTime HD 摄像头 ▾</option></select>
+              <label>麦克风：</label>
+              <select class="cam-select"><option>FaceTime HD 摄像头 ▾</option></select>
+            </div>
+          </div>
+          <div class="cam-panel">
+            <div class="cam-tag">副视角</div>
+            <div class="cam-bg">副视角画面</div>
+          </div>
+        </div>
+        <div class="wait-text">请耐心等候主持人开启面试视频...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── 12. 面试中 ── -->
+<div class="page" id="p-interview">
+  <div class="card card-interview">
+    <div class="interview-hd">
+      <div class="interview-title">{安排名称}</div>
+      <div class="interview-timer">00:00:00</div>
+      <div class="interview-right">
+        <div class="sec-cam-btn"><div class="dot-g"></div>副视角</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="avatar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="#8a9ab8"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#8a9ab8" stroke-width="2" stroke-linecap="round"/></svg></div>
+          <div class="interview-user"><div>姓名：<strong>A同学</strong></div><div>准考证号：<strong>236363</strong></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="interview-vid">
+      <div class="interview-avatar">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="5" fill="#aaa"/><path d="M4 20c0-5 3.6-8 8-8s8 3 8 8" fill="#aaa"/></svg>
+      </div>
+      <div class="mic-label">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="9" y="2" width="6" height="11" rx="3" fill="white"/><path d="M5 11a7 7 0 0014 0" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+        A同学
+      </div>
+    </div>
+    <div style="padding:12px 20px;background:#fff;display:flex;justify-content:center;">
+      <button class="cam-btn-primary" style="border-radius:20px" onclick="go('p-end')">（模拟）结束面试 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── 13. 面试结束 ── -->
+<div class="page" id="p-end">
+  <div class="card card-end">
+    <div class="end-wrap">
+      <div class="end-left">
+        <div class="end-logo">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><rect width="36" height="36" rx="8" fill="#e6f4ff"/><text x="6" y="26" font-size="20" font-weight="800" fill="#1677ff">易</text></svg>
+          <div>
+            <div class="end-logo-text">易面</div>
+            <div class="end-logo-sub">EASY INTERVIEW</div>
+          </div>
+        </div>
+        <div class="end-title">面试结束</div>
+        <div class="end-desc">感谢您的参与，本次面试顺利结束，请耐心等待成绩公布。</div>
+      </div>
+      <div class="end-illus">
+        <svg width="200" height="220" viewBox="0 0 200 220" fill="none">
+          <rect x="30" y="20" width="140" height="100" rx="8" fill="#e6f0ff" stroke="#c0d4f5" stroke-width="1.5"/>
+          <rect x="40" y="30" width="120" height="80" rx="4" fill="#f5f8ff"/>
+          <rect x="55" y="45" width="30" height="20" rx="3" fill="#bdd4f5"/>
+          <rect x="95" y="45" width="30" height="20" rx="3" fill="#bdd4f5"/>
+          <path d="M30 130 L30 160 L80 180 L170 160 L170 130Z" fill="#1677ff" opacity="0.12"/>
+          <path d="M30 140 L100 155 L170 140" stroke="#1677ff" stroke-width="1.5" opacity="0.3"/>
+          <circle cx="80" cy="185" r="8" fill="#ff9a4c"/>
+          <rect x="74" y="185" width="12" height="18" rx="2" fill="#555"/>
+          <path d="M65 190 Q80 183 95 190" stroke="#555" stroke-width="2" stroke-linecap="round" fill="none"/>
+          <polyline points="95,50 105,62 120,42" stroke="#52c41a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── AI·画面确认 ── -->
+<div class="page" id="p-ai-wait">
+  <div class="ai-page-wrap">
+    <div class="ai-page-hd">
+      <div class="card-title">{安排名称}</div>
+      <div class="user-chip">
+        <div class="sec-badge"><div class="sec-dot"></div>副视角</div>
+        <div class="user-text"><div>Candidate: <strong>A同学</strong></div><div>Admission Number: <strong>236363</strong></div></div>
+        <div class="avatar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="#8a9ab8"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#8a9ab8" stroke-width="2" stroke-linecap="round"/></svg></div>
+      </div>
+    </div>
+    <div class="ai-page-body">
+      <!-- 步骤条 -->
+      <div class="step-side" style="width:160px;padding:32px 20px;">
+        <div class="step-item"><div class="step-num done"></div><div class="step-label done">面试签到</div></div>
+        <div class="step-item"><div class="step-num done"></div><div class="step-label done">查看安排</div></div>
+        <div class="step-item"><div class="step-num active">3</div><div class="step-label active">等候面试</div></div>
+        <div class="step-item"><div class="step-num">4</div><div class="step-label">进入面试</div></div>
+      </div>
+      <!-- 内容 -->
+      <div class="ai-content">
+        <!-- 左：摄像头 -->
+        <div class="ai-cam-col">
+          <div class="ai-cam-wrap">
+            <div class="ai-cam-inner">摄像头画面</div>
+            <div class="ai-cam-label">主视角</div>
+            <div class="ai-cam-controls">
+              <div class="ai-ctrl"><span class="ai-ctrl-label">摄像头：</span><select class="ai-select"><option>FaceTime HD Camera</option></select></div>
+              <div class="ai-ctrl"><span class="ai-ctrl-label">麦克风：</span><select class="ai-select"><option>MacBook Air Microphone</option></select></div>
+            </div>
+          </div>
+          <div class="ai-mic-row">
+            <span>麦克风音量</span>
+            <div class="ai-mic-bar-bg"><div class="ai-mic-bar-fill"></div></div>
+          </div>
+          <div class="ai-confirm-btn-wrap">
+            <button class="ai-confirm-btn" onclick="go('p-ai-buffer')">确认画面，进入面试</button>
+          </div>
+        </div>
+        <!-- 右：QR -->
+        <div class="ai-qr-col">
+          <div class="ai-qr-tip">请扫描下方二维码，根据提示开启副视角</div>
+          <div class="ai-monitor-box">监控要求：请将手机放置在侧后方，距离至少1.5米，确保摄像头全程覆盖您的面试屏幕、上半身及手部。考试期间请静音。</div>
+          <svg class="ai-qr-img" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+            <rect width="160" height="160" fill="white"/>
+            <rect x="8" y="8" width="44" height="44" fill="black"/><rect x="12" y="12" width="36" height="36" fill="white"/><rect x="16" y="16" width="28" height="28" fill="black"/>
+            <rect x="108" y="8" width="44" height="44" fill="black"/><rect x="112" y="12" width="36" height="36" fill="white"/><rect x="116" y="16" width="28" height="28" fill="black"/>
+            <rect x="8" y="108" width="44" height="44" fill="black"/><rect x="12" y="112" width="36" height="36" fill="white"/><rect x="16" y="116" width="28" height="28" fill="black"/>
+            <rect x="56" y="8" width="8" height="8" fill="black"/><rect x="72" y="8" width="8" height="8" fill="black"/><rect x="88" y="8" width="8" height="8" fill="black"/>
+            <rect x="64" y="16" width="8" height="8" fill="black"/><rect x="80" y="16" width="8" height="8" fill="black"/>
+            <rect x="56" y="24" width="8" height="8" fill="black"/><rect x="80" y="24" width="8" height="8" fill="black"/>
+            <rect x="8" y="56" width="8" height="8" fill="black"/><rect x="24" y="56" width="8" height="8" fill="black"/><rect x="56" y="56" width="8" height="8" fill="black"/><rect x="72" y="56" width="8" height="8" fill="black"/><rect x="88" y="56" width="8" height="8" fill="black"/><rect x="120" y="56" width="8" height="8" fill="black"/>
+            <rect x="16" y="64" width="8" height="8" fill="black"/><rect x="40" y="64" width="8" height="8" fill="black"/><rect x="64" y="64" width="8" height="8" fill="black"/><rect x="96" y="64" width="8" height="8" fill="black"/>
+            <rect x="8" y="72" width="8" height="8" fill="black"/><rect x="32" y="72" width="8" height="8" fill="black"/><rect x="56" y="72" width="8" height="8" fill="black"/><rect x="80" y="72" width="8" height="8" fill="black"/>
+            <rect x="56" y="96" width="8" height="8" fill="black"/><rect x="80" y="96" width="8" height="8" fill="black"/><rect x="96" y="96" width="8" height="8" fill="black"/>
+            <rect x="64" y="112" width="8" height="8" fill="black"/><rect x="80" y="112" width="8" height="8" fill="black"/><rect x="112" y="112" width="8" height="8" fill="black"/>
+            <rect x="56" y="120" width="8" height="8" fill="black"/><rect x="96" y="120" width="8" height="8" fill="black"/>
+            <rect x="72" y="128" width="8" height="8" fill="black"/><rect x="96" y="128" width="8" height="8" fill="black"/>
+          </svg>
+          <button class="ai-link-btn">查看链接地址</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── AI·面试即将开始 ── -->
+<div class="page" id="p-ai-buffer">
+  <div class="ai-buffer-wrap">
+    <div class="ai-page-hd">
+      <div class="card-title">{安排名称}</div>
+      <div class="user-chip">
+        <div class="sec-badge"><div class="sec-dot"></div>副视角</div>
+        <div class="user-text"><div>Candidate: <strong>A同学</strong></div><div>Admission Number: <strong>236363</strong></div></div>
+        <div class="avatar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="#8a9ab8"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#8a9ab8" stroke-width="2" stroke-linecap="round"/></svg></div>
+      </div>
+    </div>
+    <div class="ai-buffer-body">
+      <!-- 步骤条 -->
+      <div class="step-side" style="width:160px;padding:32px 20px;border-right:1px solid #f0f4fa;">
+        <div class="step-item"><div class="step-num done"></div><div class="step-label done">面试签到</div></div>
+        <div class="step-item"><div class="step-num done"></div><div class="step-label done">查看安排</div></div>
+        <div class="step-item"><div class="step-num done"></div><div class="step-label done">等候面试</div></div>
+        <div class="step-item"><div class="step-num active">4</div><div class="step-label active">进入面试</div></div>
+      </div>
+      <div class="ai-buffer-main">
+        <div class="ai-buffer-card">
+          <div class="ai-buffer-title">面试即将开始</div>
+          <div class="ai-buffer-meta">面试时长：<span>10</span> 分钟</div>
+          <div class="ai-avatar-frame">
+            <div class="ai-avatar-img">
+              <div class="ai-live-badge"><div class="ai-live-dot"></div>LIVE</div>
+              <svg width="130" height="165" viewBox="0 0 140 175" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;bottom:0;">
+                <path d="M10 175 C10 130 35 115 70 110 C105 115 130 130 130 175Z" fill="#a8bfe0"/>
+                <ellipse cx="70" cy="70" rx="28" ry="32" fill="#c8a882"/>
+                <path d="M42 65 C42 42 55 36 70 36 C85 36 98 42 98 65 C98 56 93 46 70 46 C47 46 42 56 42 65Z" fill="#3a2d1e"/>
+                <ellipse cx="60" cy="68" rx="4" ry="4.5" fill="#fff"/><ellipse cx="80" cy="68" rx="4" ry="4.5" fill="#fff"/>
+                <circle cx="61" cy="68.5" r="2.5" fill="#3a2d1e"/><circle cx="81" cy="68.5" r="2.5" fill="#3a2d1e"/>
+                <path d="M62 83 Q70 89 78 83" stroke="#b08060" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+                <ellipse cx="42" cy="72" rx="5" ry="7" fill="#c8a882"/><ellipse cx="98" cy="72" rx="5" ry="7" fill="#c8a882"/>
+              </svg>
+            </div>
+          </div>
+          <div class="ai-online-status">
+            <div class="ai-online-pulse"></div>
+            AI面试官已在线等待
+            <span class="ai-online-timer" id="aiTimer">00:03</span>
+          </div>
+          <button class="ai-enter-btn" onclick="go('p-ai-interview')">进入面试</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── AI·面试中 ── -->
+<div class="page" id="p-ai-interview">
+  <div class="ai-interview-wrap">
+    <div class="ai-page-hd">
+      <div class="card-title">{安排名称}</div>
+      <div class="header-right" style="display:flex;align-items:center;gap:10px;">
+        <button style="border:1px solid #d0d9e8;border-radius:6px;padding:5px 14px;font-size:13px;color:#555;background:#fff;cursor:pointer;">副视角</button>
+        <div class="sec-badge"><div class="sec-dot"></div>副视角</div>
+        <div class="user-text"><div>Candidate: <strong>A同学</strong></div><div>Admission Number: <strong>236363</strong></div></div>
+        <div class="avatar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="#8a9ab8"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#8a9ab8" stroke-width="2" stroke-linecap="round"/></svg></div>
+      </div>
+    </div>
+    <div class="ai-interview-body">
+      <div class="ai-video-section">
+        <div class="ai-video-wrap">
+          <div class="ai-video-bg">摄像头画面</div>
+          <div class="ai-candidate-label">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="9" y="2" width="6" height="11" rx="3" fill="white"/><path d="M5 11a7 7 0 0014 0" stroke="white" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="18" x2="12" y2="22" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+            A同学
+          </div>
+          <div class="ai-pip">
+            <svg width="160" height="180" viewBox="0 0 140 175" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M10 175 C10 130 35 115 70 110 C105 115 130 130 130 175Z" fill="#a8bfe0"/>
+              <ellipse cx="70" cy="70" rx="28" ry="32" fill="#c8a882"/>
+              <path d="M42 65 C42 42 55 36 70 36 C85 36 98 42 98 65 C98 56 93 46 70 46 C47 46 42 56 42 65Z" fill="#3a2d1e"/>
+              <ellipse cx="60" cy="68" rx="4" ry="4.5" fill="#fff"/><ellipse cx="80" cy="68" rx="4" ry="4.5" fill="#fff"/>
+              <circle cx="61" cy="68.5" r="2.5" fill="#3a2d1e"/><circle cx="81" cy="68.5" r="2.5" fill="#3a2d1e"/>
+              <path d="M62 83 Q70 89 78 83" stroke="#b08060" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+              <ellipse cx="42" cy="72" rx="5" ry="7" fill="#c8a882"/><ellipse cx="98" cy="72" rx="5" ry="7" fill="#c8a882"/>
+            </svg>
+            <div class="ai-pip-label">AI面试官</div>
+          </div>
+        </div>
+        <div class="ai-timer-row">
+          <span style="white-space:nowrap;font-weight:500;">答题时间：</span>
+          <div class="ai-timer-bar-bg"><div class="ai-timer-bar-fill" id="aiTimerBar"></div></div>
+          <span class="ai-timer-val" id="aiTimerVal">02:00</span>
+        </div>
+        <div class="ai-end-btn-wrap">
+          <button class="ai-end-btn" onclick="go('p-end')">⏻ 结束面试</button>
+        </div>
+      </div>
+      <div class="ai-chat-section">
+        <div class="ai-chat-header">AI面试官</div>
+        <div class="ai-chat-body">
+          <div class="ai-chat-msg">
+            <div class="ai-chat-sender">AI面试官</div>
+            <div class="ai-chat-bubble" id="aiChatBubble">A同学你好，欢迎参加导游岗位面试，请先做个自我介绍吧。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /pages -->
+
+<script>
+var currentFlow = 'remote';
+
+function showConfirm(name, dest, flow) {
+  if(flow) currentFlow = flow;
+  document.getElementById('confirmSchedName').textContent = name;
+  document.getElementById('confirmOkBtn').onclick = function() {
+    closeConfirm();
+    go(dest);
+  };
+  document.getElementById('confirmMask').classList.add('show');
+}
+function closeConfirm() {
+  document.getElementById('confirmMask').classList.remove('show');
+}
+function nextAfterSeccam() {
+  document.body.classList.add('seccam-on');
+  go(currentFlow === 'ai' ? 'p-arrange' : 'p-lottery');
+}
+function nextAfterArrange() {
+  go(currentFlow === 'ai' ? 'p-ai-wait' : 'p-vidcheck');
+}
+
+function goFlow(id, flow) {
+  if(flow) currentFlow = flow;
+  go(id);
+}
+
+const POST_SECCAM_PAGES = new Set(['p-secdisc','p-lottery','p-arrange','p-vidcheck','p-wait','p-interview','p-end','p-ai-wait','p-ai-buffer','p-ai-interview']);
+
+function go(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(POST_SECCAM_PAGES.has(id)) document.body.classList.add('seccam-on');
+  if(id === 'p-lottery') {
+    clearTimeout(window._lotteryTimer);
+    window._lotteryTimer = setTimeout(function(){ go('p-arrange'); }, 3000);
+  }
+  if(id === 'p-wait') {
+    clearTimeout(window._waitTimer);
+    window._waitTimer = setTimeout(function(){ go('p-interview'); }, 3000);
+  }
+  // highlight only the button matching both page and current flow
+  document.querySelectorAll('.nav-btn[data-page]').forEach(b => {
+    if(b.dataset.page === id && b.dataset.flow === currentFlow) b.classList.add('active');
+  });
+  // p-list is shared entry point — highlight regardless of flow
+  if(id === 'p-list') {
+    document.querySelectorAll('.nav-btn[data-page="p-list"]').forEach(b => b.classList.add('active'));
+  }
+  // update 所属日程 on p-arrange
+  const schedName = document.getElementById('arrangeSchedName');
+  if(schedName) schedName.textContent = currentFlow === 'ai' ? '演示-AI日程' : '演示-远程日程';
+
+  // 更新考生端状态角标
+  const STATUS_MAP = {
+    remote: {
+      'p-list':      { s:'—',        step:'日程列表页', note:'考生端状态归属于面试安排，此页暂无' },
+      'p-notice':    { s:'未签到',   step:'步骤1·面试签到', note:'考生尚未完成签到' },
+      'p-photo':     { s:'未签到',   step:'步骤1·面试签到', note:'考生拍照签到中' },
+      'p-confirm':   { s:'未签到',   step:'步骤1·面试签到', note:'考生确认签到照片中' },
+      'p-verify':    { s:'未签到',   step:'步骤1·面试签到', note:'考生核对信息中' },
+      'p-seccam':    { s:'已签到',   step:'步骤2·查看安排', note:'考生设置副视角中' },
+      'p-secdisc':   { s:'已签到',   step:'步骤2·查看安排', note:'副视角断联，等待重连' },
+      'p-lottery':   { s:'已签到',   step:'步骤2·查看安排', note:'考生等待抽签分组结果' },
+      'p-arrange':   { s:'已签到',   step:'步骤2·查看安排', note:'考生查看面试安排' },
+      'p-vidcheck':  { s:'备考中',   step:'步骤3·考前准备', note:'考生确认摄像头画面' },
+      'p-wait':      { s:'等待视频', step:'步骤4·等候面试', note:'已完成备考，等待助理开启视频' },
+      'p-interview': { s:'面试中',   step:'步骤5·进入面试', note:'面试正式进行中' },
+      'p-end':       { s:'面试结束', step:'步骤5·进入面试', note:'考生已完成面试，等待流程结束' },
+    },
+    ai: {
+      'p-list':        { s:'—',       step:'日程列表页', note:'考生端状态归属于面试安排，此页暂无' },
+      'p-notice':      { s:'未签到',  step:'步骤1·面试签到', note:'考生尚未完成签到' },
+      'p-photo':       { s:'未签到',  step:'步骤1·面试签到', note:'考生拍照签到中' },
+      'p-confirm':     { s:'未签到',  step:'步骤1·面试签到', note:'考生确认签到照片中' },
+      'p-verify':      { s:'未签到',  step:'步骤1·面试签到', note:'考生核对信息中' },
+      'p-seccam':      { s:'已签到',  step:'步骤2·查看安排', note:'考生设置副视角中' },
+      'p-secdisc':     { s:'已签到',  step:'步骤2·查看安排', note:'副视角断联，等待重连' },
+      'p-arrange':     { s:'已签到',  step:'步骤2·查看安排', note:'考生查看面试安排' },
+      'p-ai-wait':     { s:'备考中',  step:'步骤3·考前准备', note:'考生确认画面（设置视角）' },
+      'p-ai-buffer':   { s:'备考中',  step:'步骤3·考前准备', note:'AI面试即将开始，等待进入' },
+      'p-ai-interview':{ s:'面试中',  step:'步骤4·进入面试', note:'AI面试正式进行中' },
+      'p-end':         { s:'面试结束',step:'步骤4·进入面试', note:'考生已完成面试' },
+    }
+  };
+  const flowMap = STATUS_MAP[currentFlow] || STATUS_MAP.remote;
+  const info = flowMap[id] || { s:'—', step:'—', note:'' };
+  document.getElementById('dsb-status').textContent = info.s;
+  document.getElementById('dsb-step').textContent = info.step;
+  document.getElementById('dsb-note').textContent = info.note;
+}
+</script>
+</body>
+</html>
