@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>易面系统需求反馈汇总</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f4f6fb; color: #222; font-size: 14px; }
+
+  .header { background: linear-gradient(135deg, #1a3c6e 0%, #2b5ba8 100%); color: #fff; padding: 36px 48px 28px; }
+  .header h1 { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+  .header p { font-size: 13px; opacity: .75; margin-top: 4px; }
+
+  .pipeline { display: flex; align-items: center; padding: 18px 48px 4px; overflow-x: auto; gap: 0; }
+  .pipe-label { padding: 7px 16px; border-radius: 6px; font-size: 12px; font-weight: 700; color: #fff; white-space: nowrap; }
+  .pipe-arrow { color: #aaa; font-size: 18px; padding: 0 5px; }
+  .p0{background:#00695c} .p1{background:#795548} .p2{background:#0d7b4b}
+  .p3{background:#1565c0} .p4{background:#6a1b9a} .p5{background:#757575}
+
+  .overview { display: flex; gap: 12px; padding: 14px 48px 16px; flex-wrap: wrap; }
+  .stat-card { background: #fff; border-radius: 10px; padding: 12px 18px; flex: 1; min-width: 100px;
+    box-shadow: 0 1px 6px rgba(0,0,0,.07); border-top: 4px solid #ccc; }
+  .stat-card .num { font-size: 26px; font-weight: 700; }
+  .stat-card .label { font-size: 11px; color: #888; margin-top: 1px; }
+  .sc-total{border-color:#2b5ba8} .sc-0{border-color:#00695c} .sc-1{border-color:#795548}
+  .sc-2{border-color:#0d7b4b} .sc-3{border-color:#1565c0} .sc-4{border-color:#6a1b9a} .sc-5{border-color:#757575}
+
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+  .badge.fn  { background: #e8f0fe; color: #1565c0; }
+  .badge.ui  { background: #fff3e0; color: #e65100; }
+  .badge.bug { background: #fce4ec; color: #c62828; }
+  .badge.mod { background: #f0f0f0; color: #444; }
+
+  .legend { padding: 0 48px 16px; display: flex; gap: 16px; flex-wrap: wrap; align-items: center; font-size: 12px; color: #666; }
+
+  /* status select */
+  .status-select {
+    appearance: none; -webkit-appearance: none;
+    border: none; outline: none; cursor: pointer;
+    font-size: 11px; font-weight: 700; font-family: inherit;
+    padding: 4px 22px 4px 8px;
+    border-radius: 4px; width: 80px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23666'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 6px center;
+    background-size: 8px;
+    transition: opacity .15s;
+  }
+  .status-select:hover { opacity: .85; }
+  .status-select.s-pending  { background-color: #fff9c4; color: #795548; }
+  .status-select.s-dev      { background-color: #e3f2fd; color: #1565c0; }
+  .status-select.s-design   { background-color: #f3e5f5; color: #6a1b9a; }
+  .status-select.s-inprogress{ background-color: #fff3e0; color: #e65100; }
+  .status-select.s-investigate{ background-color: #e8eaf6; color: #283593; }
+  .status-select.s-rejected { background-color: #fce4ec; color: #c62828; }
+  .status-select.s-done     { background-color: #e8f5e9; color: #2e7d32; }
+
+  /* note textarea */
+  .note-cell {
+    width: 100%;
+    min-height: 36px;
+    font-size: 12px;
+    font-family: inherit;
+    color: #444;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    padding: 5px 7px;
+    resize: none;
+    background: transparent;
+    line-height: 1.5;
+    transition: border-color .15s, background .15s;
+    overflow: hidden;
+  }
+  .note-cell:hover { border-color: #ddd; background: #fafafa; }
+  .note-cell:focus { outline: none; border-color: #a0b4d6; background: #fff; box-shadow: 0 0 0 2px rgba(43,91,168,.1); }
+  .note-cell::placeholder { color: #bbb; }
+  td.note { padding: 6px 10px; vertical-align: top; min-width: 130px; }
+
+  /* toast */
+  #toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: #323232; color: #fff; padding: 10px 20px;
+    border-radius: 8px; font-size: 13px; font-weight: 600;
+    opacity: 0; pointer-events: none; transition: opacity .3s;
+    z-index: 999;
+  }
+  #toast.show { opacity: 1; }
+
+  /* toolbar */
+  .toolbar { padding: 0 48px 10px; display: flex; justify-content: flex-end; gap: 8px; }
+  .btn-reset, .btn-export {
+    border: 1px solid #ddd; padding: 6px 14px; border-radius: 6px; font-size: 12px; cursor: pointer;
+    font-family: inherit; background: #fff;
+  }
+  .btn-reset { color: #888; }
+  .btn-reset:hover { background: #fce4ec; color: #c62828; border-color: #f48fb1; }
+  .btn-export { color: #1565c0; }
+  .btn-export:hover { background: #e3f2fd; border-color: #90caf9; }
+
+  /* stages */
+  .stages { padding: 0 48px 48px; display: flex; flex-direction: column; gap: 28px; }
+  .stage-block { border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,.08); }
+  .stage-header { padding: 15px 22px; display: flex; align-items: center; gap: 12px; color: #fff; }
+  .stage-icon { font-size: 22px; }
+  .stage-title { font-size: 18px; font-weight: 700; }
+  .stage-desc { font-size: 12px; opacity: .85; margin-top: 2px; }
+  .stage-count { margin-left: auto; font-size: 13px; font-weight: 600; opacity: .9; white-space: nowrap; }
+
+  .b0 .stage-header{background:#00695c} .b1 .stage-header{background:#4e342e}
+  .b2 .stage-header{background:#0d7b4b} .b3 .stage-header{background:#1565c0}
+  .b4 .stage-header{background:#6a1b9a} .b5 .stage-header{background:#555}
+
+  .stage-block table { width: 100%; border-collapse: collapse; background: #fff; }
+  .stage-block th { font-size: 12px; font-weight: 600; padding: 9px 13px; text-align: left; color: #fff; }
+  .b0 th{background:#00897b} .b1 th{background:#6d4c41} .b2 th{background:#2e7d32}
+  .b3 th{background:#1976d2} .b4 th{background:#7b1fa2} .b5 th{background:#757575}
+
+  .stage-block td { padding: 9px 13px; font-size: 13px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; line-height: 1.5; }
+  .stage-block tr:last-child td { border-bottom: none; }
+  .stage-block tr:hover td { background: #fafbff; }
+  .stage-block tr:hover td.note .note-cell:not(:focus) { border-color: #e0e0e0; background: #f5f5f5; }
+  td.src { font-size: 12px; color: #777; }
+  td.lnk { text-align: center; }
+  td.lnk a { display: inline-block; padding: 3px 9px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 600; color: #fff; }
+  .b0 td.lnk a{background:#00695c} .b1 td.lnk a{background:#795548} .b2 td.lnk a{background:#0d7b4b}
+  .b3 td.lnk a{background:#1565c0} .b4 td.lnk a{background:#6a1b9a} .b5 td.lnk a{background:#757575}
+  td.lnk a:hover { opacity:.8; }
+  td.lnk span { color:#bbb; font-size:12px; }
+
+  @media (max-width:800px){
+    .header,.pipeline,.overview,.legend,.stages,.toolbar{padding-left:14px;padding-right:14px;}
+    th,td{padding:7px 9px;font-size:12px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>易面系统需求反馈汇总</h1>
+  <p>大学招聘考试项目（大招涵盖：南科大、西交利物浦、兰州大学、中山大学、华工等）&nbsp;&nbsp;|&nbsp;&nbsp;整理日期：2026-07</p>
+  <p style="margin-top:5px;opacity:.75;font-size:12px;">注：南科大需求可单独识别来源；其他院校需求暂统一归类为"其他大招"&nbsp;&nbsp;|&nbsp;&nbsp;来源文件：易面-大招问题汇总.docx + 易面-南科大需求清单.xlsx</p>
+</div>
+
+<div class="pipeline">
+  <span class="pipe-label p0">⬜ 考前数据准备</span><span class="pipe-arrow">→</span>
+  <span class="pipe-label p1">🟤 封场</span><span class="pipe-arrow">→</span>
+  <span class="pipe-label p2">🟢 面试前（签到）</span><span class="pipe-arrow">→</span>
+  <span class="pipe-label p3">🔵 面试中</span><span class="pipe-arrow">→</span>
+  <span class="pipe-label p4">🟣 面试结束</span><span class="pipe-arrow">→</span>
+  <span class="pipe-label p5">⚪ 通用</span>
+</div>
+
+<div class="overview">
+  <div class="stat-card sc-total"><div class="num">33</div><div class="label">需求合计</div></div>
+  <div class="stat-card sc-0"><div class="num" style="color:#00695c">4</div><div class="label">⬜ 考前数据准备</div></div>
+  <div class="stat-card sc-1"><div class="num" style="color:#4e342e">3</div><div class="label">🟤 封场</div></div>
+  <div class="stat-card sc-2"><div class="num" style="color:#0d7b4b">13</div><div class="label">🟢 面试前（签到）</div></div>
+  <div class="stat-card sc-3"><div class="num" style="color:#1565c0">11</div><div class="label">🔵 面试中</div></div>
+  <div class="stat-card sc-4"><div class="num" style="color:#6a1b9a">4</div><div class="label">🟣 面试结束</div></div>
+  <div class="stat-card sc-5"><div class="num" style="color:#555">2</div><div class="label">⚪ 通用</div></div>
+</div>
+
+<div class="legend">
+  <span style="font-weight:600">类型：</span>
+  <span class="badge fn">功能优化</span> 新增或改进业务功能 &nbsp;
+  <span class="badge ui">UI优化</span> 交互/文案/视觉 &nbsp;
+  <span class="badge bug">Bug修复</span> 现有功能异常
+</div>
+
+<div class="toolbar">
+  <button class="btn-export" onclick="exportNotes()">📋 导出备注</button>
+  <button class="btn-reset" onclick="resetAll()">↺ 重置所有状态</button>
+</div>
+
+<div class="stages">
+
+  <!-- 考前数据准备 -->
+  <div class="stage-block b0">
+    <div class="stage-header">
+      <div class="stage-icon">⬜</div>
+      <div><div class="stage-title">考前数据准备</div><div class="stage-desc">考前导入候选人、面试官等数据</div></div>
+      <div class="stage-count">4 项</div>
+    </div>
+    <table>
+      <tr><th style="width:33%">需求描述</th><th style="width:7%">类型</th><th style="width:9%">模块</th><th style="width:12%">来源</th><th style="width:20%">备注</th><th style="width:9%">状态</th><th style="width:5%">链接</th></tr>
+      <tr>
+        <td>日程候选人导入：明确编号规则（纯数字、位数限制），优化错误提示文案</td>
+        <td><span class="badge ui">UI优化</span></td><td><span class="badge mod">管理后台</span></td>
+        <td class="src">其他大招（客户）</td>
+        <td class="note"><textarea class="note-cell" data-id="n01" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r01" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><a href="https://trello.com/c/dtBfLQt9/684" target="_blank">Trello</a></td>
+      </tr>
+      <tr>
+        <td>导入重复数据时，提示具体原因"数据重复"，而非笼统"有问题"</td>
+        <td><span class="badge ui">UI优化</span></td><td><span class="badge mod">管理后台</span></td>
+        <td class="src">华工</td>
+        <td class="note"><textarea class="note-cell" data-id="n02" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r02" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><a href="https://trello.com/c/mhCBoucF/690" target="_blank">Trello</a></td>
+      </tr>
+      <tr>
+        <td>面试官分组编辑页面，组长无法复制</td>
+        <td><span class="badge bug">Bug修复</span></td><td><span class="badge mod">管理后台</span></td>
+        <td class="src">华工</td>
+        <td class="note"><textarea class="note-cell" data-id="n08" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r08" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><a href="https://trello.com/c/CePS3dQy/687" target="_blank">Trello</a></td>
+      </tr>
+      <tr>
+        <td>账号管理：支持租户下账号独立，导入失败时提示"账号已存在"（当前跨租户账号唯一，导致冲突且无明确报错）</td>
+        <td><span class="badge fn">功能优化</span></td><td><span class="badge mod">管理后台</span></td>
+        <td class="src">南科大 + 其他大招</td>
+        <td class="note"><textarea class="note-cell" data-id="n05" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r05" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><a href="https://trello.com/c/l6O83jvj/685" target="_blank">Trello</a></td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- 封场 -->
+  <div class="stage-block b1">
+    <div class="stage-header">
+      <div class="stage-icon">🟤</div>
+      <div><div class="stage-title">封场</div><div class="stage-desc">系统部署、账号配置、系统测试、考前培训等工作</div></div>
+      <div class="stage-count">3 项</div>
+    </div>
+    <table>
+      <tr><th style="width:33%">需求描述</th><th style="width:7%">类型</th><th style="width:9%">模块</th><th style="width:12%">来源</th><th style="width:20%">备注</th><th style="width:9%">状态</th><th style="width:5%">链接</th></tr>
+      <tr>
+        <td>本地部署问题（详见 Trello）</td>
+        <td><span class="badge bug">Bug修复</span></td><td><span class="badge mod">管理后台</span></td>
+        <td class="src">其他大招</td>
+        <td class="note"><textarea class="note-cell" data-id="n04" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r04" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><a href="https://trello.com/c/Uf3J8jEt/728" target="_blank">Trello</a></td>
+      </tr>
+      <tr>
+        <td>域名参数优化：隐藏 URL 中的 oid=XX 参数，降低用户手动输入出错概率</td>
+        <td><span class="badge fn">功能优化</span></td><td><span class="badge mod">通用</span></td>
+        <td class="src">南科大（外聘督考）</td>
+        <td class="note"><textarea class="note-cell" data-id="n36" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r36" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><span>—</span></td>
+      </tr>
+      <tr>
+        <td>新增面试官端演示教程（Demo 引导页），帮助新用户快速了解操作流程，降低培训成本</td>
+        <td><span class="badge fn">功能优化</span></td><td><span class="badge mod">考官端</span></td>
+        <td class="src">南科大（外聘督考）</td>
+        <td class="note"><textarea class="note-cell" data-id="n34" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r34" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><span>—</span></td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- 面试前·签到 -->
+  <div class="stage-block b2">
+    <div class="stage-header">
+      <div class="stage-icon">🟢</div>
+      <div><div class="stage-title">面试前（签到入场阶段）</div><div class="stage-desc">考试当天早上：面试官抽签分组、考生签到入场、考生抽题、候考区管理、等候屏引导</div></div>
+      <div class="stage-count">13 项</div>
+    </div>
+    <table>
+      <tr><th style="width:33%">需求描述</th><th style="width:7%">类型</th><th style="width:9%">模块</th><th style="width:12%">来源</th><th style="width:20%">备注</th><th style="width:9%">状态</th><th style="width:5%">链接</th></tr>
+      <tr>
+        <td>点击"开始分组"前增加二次确认弹窗，防止误触（笔记本设备易误操作）</td>
+        <td><span class="badge ui">UI优化</span></td><td><span class="badge mod">抽签端</span></td>
+        <td class="src">南科大（运营）</td>
+        <td class="note"><textarea class="note-cell" data-id="n09" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r09" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><span>—</span></td>
+      </tr>
+      <tr>
+        <td>面试官抽签管理支持模糊查找；筛选后切换界面保留筛选结果，避免误解</td>
+        <td><span class="badge fn">功能优化</span></td><td><span class="badge mod">抽签端</span></td>
+        <td class="src">华工</td>
+        <td class="note"><textarea class="note-cell" data-id="n10" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r10" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><a href="https://trello.com/c/6mZfS0wr/686" target="_blank">Trello</a></td>
+      </tr>
+      <tr>
+        <td>候考区管理系统，管理模块默认进入"签到管理"而非"安排管理"</td>
+        <td><span class="badge ui">UI优化</span></td><td><span class="badge mod">候考区</span></td>
+        <td class="src">华工</td>
+        <td class="note"><textarea class="note-cell" data-id="n11" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r11" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><a href="https://trello.com/c/aMqJLWFL/693" target="_blank">Trello</a></td>
+      </tr>
+      <tr>
+        <td>候选人信息字段显示控制（眼睛图标关闭）不应影响签到业务功能的正常使用</td>
+        <td><span class="badge bug">Bug修复</span></td><td><span class="badge mod">候考区</span></td>
+        <td class="src">其他大招</td>
+        <td class="note"><textarea class="note-cell" data-id="n12" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r12" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><a href="https://trello.com/c/OIMsTBJf/729" target="_blank">Trello</a></td>
+      </tr>
+      <tr>
+        <td>候考区统计：增加候考区维度数据（签到人数、待评分 / 评分中 / 已评分人数）</td>
+        <td><span class="badge fn">功能优化</span></td><td><span class="badge mod">候考区</span></td>
+        <td class="src">南科大（内部）+ 其他大招</td>
+        <td class="note"><textarea class="note-cell" data-id="n13" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r13" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><a href="https://trello.com/c/bFOgsfVD/710" target="_blank">Trello</a></td>
+      </tr>
+      <tr>
+        <td>防止候选人地区与候考区不符导致错误批量签到（增加地区校验提示）</td>
+        <td><span class="badge fn">功能优化</span></td><td><span class="badge mod">候考区</span></td>
+        <td class="src">南科大</td>
+        <td class="note"><textarea class="note-cell" data-id="n14" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r14" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><span>—</span></td>
+      </tr>
+      <tr>
+        <td>等候屏增加按考场快速查询功能，无需逐页翻找</td>
+        <td><span class="badge fn">功能优化</span></td><td><span class="badge mod">候考室</span></td>
+        <td class="src">南科大（外聘督考）</td>
+        <td class="note"><textarea class="note-cell" data-id="n15" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r15" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><span>—</span></td>
+      </tr>
+      <tr>
+        <td>等候屏字体调大</td>
+        <td><span class="badge ui">UI优化</span></td><td><span class="badge mod">候考室</span></td>
+        <td class="src">南科大（外聘督考）</td>
+        <td class="note"><textarea class="note-cell" data-id="n16" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r16" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><span>—</span></td>
+      </tr>
+      <tr>
+        <td>等候屏显示支持隐藏签到号</td>
+        <td><span class="badge fn">功能优化</span></td><td><span class="badge mod">候考室</span></td>
+        <td class="src">南科大（外聘督考）</td>
+        <td class="note"><textarea class="note-cell" data-id="n17" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r17" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><span>—</span></td>
+      </tr>
+      <tr>
+        <td>学生未进场 / 考试未开始时，禁止触发抽题操作（避免产生无效抽题记录）</td>
+        <td><span class="badge bug">Bug修复</span></td><td><span class="badge mod">面试间</span></td>
+        <td class="src">南科大</td>
+        <td class="note"><textarea class="note-cell" data-id="n18" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r18" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><span>—</span></td>
+      </tr>
+      <tr>
+        <td>已抽题安排支持临时添加考生并抽题</td>
+        <td><span class="badge fn">功能优化</span></td><td><span class="badge mod">管理后台</span></td>
+        <td class="src">南科大</td>
+        <td class="note"><textarea class="note-cell" data-id="n03" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r03" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><span>—</span></td>
+      </tr>
+      <tr>
+        <td>增加"重置抽题"按钮；支持安排级 / 单个候选人两种抽题模式</td>
+        <td><span class="badge fn">功能优化</span></td><td><span class="badge mod">管理后台</span></td>
+        <td class="src">南科大 + 其他大招（客户）</td>
+        <td class="note"><textarea class="note-cell" data-id="n06" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r06" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><a href="https://trello.com/c/1A0DY2Xp/717" target="_blank">Trello</a></td>
+      </tr>
+      <tr>
+        <td>按地区候考区抽签未校验面试安排的上限</td>
+        <td><span class="badge bug">Bug修复</span></td><td><span class="badge mod">管理后台</span></td>
+        <td class="src">南科大</td>
+        <td class="note"><textarea class="note-cell" data-id="n37" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r37" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><span>—</span></td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- 面试中 -->
+  <div class="stage-block b3">
+    <div class="stage-header">
+      <div class="stage-icon">🔵</div>
+      <div><div class="stage-title">面试中</div><div class="stage-desc">面试正在进行时：音视频稳定性、实时监控管理、考官操作体验</div></div>
+      <div class="stage-count">11 项</div>
+    </div>
+    <table>
+      <tr><th style="width:33%">需求描述</th><th style="width:7%">类型</th><th style="width:9%">模块</th><th style="width:12%">来源</th><th style="width:20%">备注</th><th style="width:9%">状态</th><th style="width:5%">链接</th></tr>
+      <tr>
+        <td>麦克风中途掉线：优化音视频传输方案（参考厦门验证案例）</td>
+        <td><span class="badge fn">功能优化</span></td><td><span class="badge mod">视频会议</span></td>
+        <td class="src">南科大（外聘督考）/ 其他大招</td>
+        <td class="note"><textarea class="note-cell" data-id="n19" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r19" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><a href="https://trello.com/c/xuAj962D/713" target="_blank">Trello</a></td>
+      </tr>
+      <tr>
+        <td>双视角后置设备入会产生啸叫：支持软件控制后视角设备默认静音</td>
+        <td><span class="badge fn">功能优化</span></td><td><span class="badge mod">视频会议</span></td>
+        <td class="src">南科大 + 其他大招（内部）</td>
+        <td class="note"><textarea class="note-cell" data-id="n20" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r20" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><a href="https://trello.com/c/Y9IolKOb/712" target="_blank">Trello</a></td>
+      </tr>
+      <tr>
+        <td>修复 Bug：下午场次"踢出房间"提示文案显示为英文，需统一为中文</td>
+        <td><span class="badge bug">Bug修复</span></td><td><span class="badge mod">视频会议</span></td>
+        <td class="src">南科大（外聘督考）</td>
+        <td class="note"><textarea class="note-cell" data-id="n21" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r21" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><span>—</span></td>
+      </tr>
+      <tr>
+        <td>新增"面试巡视"功能：督考 / 管理人员对进行中场次实时巡查</td>
+        <td><span class="badge fn">功能优化</span></td><td><span class="badge mod">管理后台</span></td>
+        <td class="src">南科大（客户）</td>
+        <td class="note"><textarea class="note-cell" data-id="n22" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r22" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><span>—</span></td>
+      </tr>
+      <tr>
+        <td>面试安排支持展示"实际开始时间"、"实际结束时间"、"已进行时长"</td>
+        <td><span class="badge fn">功能优化</span></td><td><span class="badge mod">管理后台</span></td>
+        <td class="src">南科大（客户）</td>
+        <td class="note"><textarea class="note-cell" data-id="n23" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r23" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><span>—</span></td>
+      </tr>
+      <tr>
+        <td>监控大屏增加"地区 / 城市"维度分类筛选功能</td>
+        <td><span class="badge fn">功能优化</span></td><td><span class="badge mod">管理后台</span></td>
+        <td class="src">南科大（销售）</td>
+        <td class="note"><textarea class="note-cell" data-id="n24" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r24" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><span>—</span></td>
+      </tr>
+      <tr>
+        <td>监控页面展示各面试间实时连接状态（上行 / 下行速率）</td>
+        <td><span class="badge fn">功能优化</span></td><td><span class="badge mod">管理后台</span></td>
+        <td class="src">南科大（外聘督考）</td>
+        <td class="note"><textarea class="note-cell" data-id="n25" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r25" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><span>—</span></td>
+      </tr>
+      <tr>
+        <td>在"面试安排"及"监控统计-面试官"页面，增加"面试官组"文本框筛选项</td>
+        <td><span class="badge fn">功能优化</span></td><td><span class="badge mod">管理后台</span></td>
+        <td class="src">南科大（内部）</td>
+        <td class="note"><textarea class="note-cell" data-id="n26" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r26" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><span>—</span></td>
+      </tr>
+      <tr>
+        <td>缺席标记后，助理端"已评人数"统计未增加（数据不准确）</td>
+        <td><span class="badge bug">Bug修复</span></td><td><span class="badge mod">考官端</span></td>
+        <td class="src">华工</td>
+        <td class="note"><textarea class="note-cell" data-id="n27" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r27" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><a href="https://trello.com/c/7plOLfPF/691" target="_blank">Trello</a></td>
+      </tr>
+      <tr>
+        <td>未选择场次时操作受限问题（当前仅支持"撤销离场"，不支持"撤销签字"）</td>
+        <td><span class="badge bug">Bug修复</span></td><td><span class="badge mod">管理后台</span></td>
+        <td class="src">南科大（内部）</td>
+        <td class="note"><textarea class="note-cell" data-id="n33" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r33" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><span>—</span></td>
+      </tr>
+      <tr>
+        <td>抽题控制按场次独立设置</td>
+        <td><span class="badge fn">功能优化</span></td><td><span class="badge mod">管理后台</span></td>
+        <td class="src">南科大（客户）</td>
+        <td class="note"><textarea class="note-cell" data-id="n07" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r07" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><span>—</span></td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- 面试结束 -->
+  <div class="stage-block b4">
+    <div class="stage-header">
+      <div class="stage-icon">🟣</div>
+      <div><div class="stage-title">面试结束</div><div class="stage-desc">考后统计、结果导出与打印、考官离场等收尾工作</div></div>
+      <div class="stage-count">4 项</div>
+    </div>
+    <table>
+      <tr><th style="width:33%">需求描述</th><th style="width:7%">类型</th><th style="width:9%">模块</th><th style="width:12%">来源</th><th style="width:20%">备注</th><th style="width:9%">状态</th><th style="width:5%">链接</th></tr>
+      <tr>
+        <td>打印候选人结果无需等全部安排结束，候选人评分状态已结束即可打印</td>
+        <td><span class="badge fn">功能优化</span></td><td><span class="badge mod">管理后台</span></td>
+        <td class="src">其他大招（客户）</td>
+        <td class="note"><textarea class="note-cell" data-id="n28" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r28" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><a href="https://trello.com/c/1hsp0ClA/714" target="_blank">Trello</a></td>
+      </tr>
+      <tr>
+        <td>打印：支持多套 HTML 打印模板，支持预览及直接按 HTML 格式打印，提升排版效果</td>
+        <td><span class="badge fn">功能优化</span></td><td><span class="badge mod">管理后台</span></td>
+        <td class="src">南科大（外聘督考）</td>
+        <td class="note"><textarea class="note-cell" data-id="n29" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r29" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><span>—</span></td>
+      </tr>
+      <tr>
+        <td>候选人结果导出优化：每位面试官列前增加面试官类型列</td>
+        <td><span class="badge fn">功能优化</span></td><td><span class="badge mod">管理后台</span></td>
+        <td class="src">其他大招（客户）</td>
+        <td class="note"><textarea class="note-cell" data-id="n30" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r30" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><a href="https://trello.com/c/CmGv0jT1/721" target="_blank">Trello</a></td>
+      </tr>
+      <tr>
+        <td>面试全部结束后，考官端展示提示："您所在的面试已全部结束，请签字，请离场"</td>
+        <td><span class="badge ui">UI优化</span></td><td><span class="badge mod">考官端</span></td>
+        <td class="src">南科大（客户）</td>
+        <td class="note"><textarea class="note-cell" data-id="n31" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r31" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><span>—</span></td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- 通用 -->
+  <div class="stage-block b5">
+    <div class="stage-header">
+      <div class="stage-icon">⚪</div>
+      <div><div class="stage-title">通用 / 与阶段无关</div><div class="stage-desc">全局交互体验、跨阶段 Bug 等</div></div>
+      <div class="stage-count">2 项</div>
+    </div>
+    <table>
+      <tr><th style="width:33%">需求描述</th><th style="width:7%">类型</th><th style="width:9%">模块</th><th style="width:12%">来源</th><th style="width:20%">备注</th><th style="width:9%">状态</th><th style="width:5%">链接</th></tr>
+      <tr>
+        <td>日程左侧导航栏支持展开 / 收起，提升操作便捷性</td>
+        <td><span class="badge ui">UI优化</span></td><td><span class="badge mod">管理后台</span></td>
+        <td class="src">南科大（销售）</td>
+        <td class="note"><textarea class="note-cell" data-id="n32" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r32" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><span>—</span></td>
+      </tr>
+      <tr>
+        <td>下拉筛选框鼠标点击下拉操作异常（点击无响应或触发问题）</td>
+        <td><span class="badge bug">Bug修复</span></td><td><span class="badge mod">通用</span></td>
+        <td class="src">华工</td>
+        <td class="note"><textarea class="note-cell" data-id="n35" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r35" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><a href="https://trello.com/c/LtTfYPNp/689" target="_blank">Trello</a></td>
+      </tr>
+    </table>
+  </div>
+
+</div>
+
+<div id="toast">✅ 已保存</div>
+
+<script>
+const STATUS_KEY = 'req_status_v1';
+const NOTE_KEY   = 'req_note_v1';
+const CLASS_MAP  = { pending:'s-pending', design:'s-design', dev:'s-dev', inprogress:'s-inprogress', investigate:'s-investigate', rejected:'s-rejected', done:'s-done' };
+
+/* ── status ── */
+function applyStyle(sel) {
+  sel.className = 'status-select ' + (CLASS_MAP[sel.value] || 's-pending');
+}
+function saveStatus(sel) {
+  const saved = JSON.parse(localStorage.getItem(STATUS_KEY) || '{}');
+  saved[sel.dataset.id] = sel.value;
+  localStorage.setItem(STATUS_KEY, JSON.stringify(saved));
+  applyStyle(sel);
+  showToast('✅ 状态已保存');
+}
+
+/* ── notes ── */
+let noteTimer;
+function saveNote(ta) {
+  clearTimeout(noteTimer);
+  noteTimer = setTimeout(() => {
+    const saved = JSON.parse(localStorage.getItem(NOTE_KEY) || '{}');
+    saved[ta.dataset.id] = ta.value;
+    localStorage.setItem(NOTE_KEY, JSON.stringify(saved));
+    showToast('📝 备注已保存');
+  }, 600);
+}
+function autoResize(ta) {
+  ta.style.height = 'auto';
+  ta.style.height = ta.scrollHeight + 'px';
+}
+
+/* ── reset ── */
+function resetAll() {
+  if (!confirm('确认重置所有需求状态为「待评估」？备注不受影响。')) return;
+  localStorage.removeItem(STATUS_KEY);
+  document.querySelectorAll('.status-select').forEach(sel => { sel.value = 'pending'; applyStyle(sel); });
+  showToast('🔄 状态已重置');
+}
+
+/* ── export ── */
+function exportNotes() {
+  const statuses = JSON.parse(localStorage.getItem(STATUS_KEY) || '{}');
+  const notes    = JSON.parse(localStorage.getItem(NOTE_KEY)   || '{}');
+  const statusLabel = { pending:'待评估', design:'待设计', dev:'待开发', inprogress:'开发中', investigate:'待排查', rejected:'已拒绝', done:'已完成' };
+  let lines = ['需求备注导出 — ' + new Date().toLocaleString('zh-CN'), ''];
+  document.querySelectorAll('.stage-block').forEach(block => {
+    const title = block.querySelector('.stage-title').textContent;
+    lines.push('== ' + title + ' ==');
+    block.querySelectorAll('tbody tr').forEach(row => {
+      const desc   = row.cells[0]?.textContent.trim();
+      const nid    = row.querySelector('.note-cell')?.dataset.id;
+      const rid    = row.querySelector('.status-select')?.dataset.id;
+      const note   = nid && notes[nid] ? notes[nid].trim() : '';
+      const status = rid ? (statusLabel[statuses[rid]] || '待评估') : '';
+      if (desc) {
+        lines.push('【' + status + '】' + desc);
+        if (note) lines.push('  备注：' + note);
+      }
+    });
+    lines.push('');
+  });
+  const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '需求备注导出_' + new Date().toISOString().slice(0,10) + '.txt';
+  a.click();
+}
+
+/* ── toast ── */
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+/* ── init ── */
+(function init() {
+  const statuses = JSON.parse(localStorage.getItem(STATUS_KEY) || '{}');
+  const notes    = JSON.parse(localStorage.getItem(NOTE_KEY)   || '{}');
+
+  // defaults for completed items
+  if (!statuses['r08']) statuses['r08'] = 'done';
+  if (!statuses['r18']) statuses['r18'] = 'done';
+  if (!statuses['r37']) statuses['r37'] = 'done';
+  localStorage.setItem(STATUS_KEY, JSON.stringify(statuses));
+
+  document.querySelectorAll('.status-select').forEach(sel => {
+    if (statuses[sel.dataset.id]) sel.value = statuses[sel.dataset.id];
+    applyStyle(sel);
+  });
+  document.querySelectorAll('.note-cell').forEach(ta => {
+    if (notes[ta.dataset.id]) {
+      ta.value = notes[ta.dataset.id];
+      autoResize(ta);
+    }
+  });
+})();
+</script>
+</body>
+</html>
