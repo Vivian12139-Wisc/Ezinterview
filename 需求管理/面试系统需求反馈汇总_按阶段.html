@@ -97,6 +97,19 @@
   .btn-reset:hover { background: #fce4ec; color: #c62828; border-color: #f48fb1; }
   .btn-export { color: #1565c0; }
   .btn-export:hover { background: #e3f2fd; border-color: #90caf9; }
+  .btn-share { color: #2e7d32; }
+  .btn-share:hover { background: #e8f5e9; border-color: #a5d6a7; }
+  .btn-link { color: #6a1b9a; }
+  .btn-link:hover { background: #f3e5f5; border-color: #ce93d8; }
+  .btn-link.linked { color: #fff; background: #2e7d32; border-color: #2e7d32; font-weight: 600; }
+
+  /* 影响范围 & 重要程度 */
+  td.scope { font-size: 12px; color: #555; white-space: nowrap; }
+  td.prio-cell { text-align: center; white-space: nowrap; }
+  .prio-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+  .prio-h { background: #fde8e8; color: #c62828; }
+  .prio-m { background: #fff9c4; color: #795548; }
+  .prio-l { background: #f5f5f5; color: #9e9e9e; }
 
   /* stages */
   .stages { padding: 0 48px 48px; display: flex; flex-direction: column; gap: 28px; }
@@ -169,7 +182,9 @@
 </div>
 
 <div class="toolbar">
+  <button id="btn-link" class="btn-link" onclick="linkFile()">🔗 连接文件（修改自动写入）</button>
   <button class="btn-export" onclick="exportNotes()">📋 导出备注</button>
+  <button class="btn-share" onclick="exportShare()">📤 导出分享版</button>
   <button class="btn-reset" onclick="resetAll()">↺ 重置所有状态</button>
 </div>
 
@@ -183,7 +198,7 @@
       <div class="stage-count">4 项</div>
     </div>
     <table>
-      <tr><th style="width:33%">需求描述</th><th style="width:7%">类型</th><th style="width:9%">模块</th><th style="width:12%">来源</th><th style="width:20%">备注</th><th style="width:9%">状态</th><th style="width:5%">链接</th></tr>
+      <tr><th style="width:27%">需求描述</th><th style="width:7%">类型</th><th style="width:8%">模块</th><th style="width:10%">来源</th><th style="width:7%">重要依据</th><th style="width:5%">重要</th><th style="width:14%">备注</th><th style="width:9%">状态</th><th style="width:5%">链接</th></tr>
       <tr>
         <td>日程候选人导入：明确编号规则（纯数字、位数限制），优化错误提示文案</td>
         <td><span class="badge ui">UI优化</span></td><td><span class="badge mod">管理后台</span></td>
@@ -227,7 +242,7 @@
       <div class="stage-count">3 项</div>
     </div>
     <table>
-      <tr><th style="width:33%">需求描述</th><th style="width:7%">类型</th><th style="width:9%">模块</th><th style="width:12%">来源</th><th style="width:20%">备注</th><th style="width:9%">状态</th><th style="width:5%">链接</th></tr>
+      <tr><th style="width:27%">需求描述</th><th style="width:7%">类型</th><th style="width:8%">模块</th><th style="width:10%">来源</th><th style="width:7%">重要依据</th><th style="width:5%">重要</th><th style="width:14%">备注</th><th style="width:9%">状态</th><th style="width:5%">链接</th></tr>
       <tr>
         <td>本地部署问题（详见 Trello）</td>
         <td><span class="badge bug">Bug修复</span></td><td><span class="badge mod">管理后台</span></td>
@@ -259,11 +274,11 @@
   <div class="stage-block b2">
     <div class="stage-header">
       <div class="stage-icon">🟢</div>
-      <div><div class="stage-title">面试前（签到入场阶段）</div><div class="stage-desc">考试当天早上：面试官抽签分组、考生签到入场、考生抽题、候考区管理、等候屏引导</div></div>
-      <div class="stage-count">13 项</div>
+      <div><div class="stage-title">面试前（签到入场阶段）</div><div class="stage-desc">考试当天早上：面试官抽签分组、考生签到入场、候考区管理、等候屏引导</div></div>
+      <div class="stage-count">10 项</div>
     </div>
     <table>
-      <tr><th style="width:33%">需求描述</th><th style="width:7%">类型</th><th style="width:9%">模块</th><th style="width:12%">来源</th><th style="width:20%">备注</th><th style="width:9%">状态</th><th style="width:5%">链接</th></tr>
+      <tr><th style="width:27%">需求描述</th><th style="width:7%">类型</th><th style="width:8%">模块</th><th style="width:10%">来源</th><th style="width:7%">重要依据</th><th style="width:5%">重要</th><th style="width:14%">备注</th><th style="width:9%">状态</th><th style="width:5%">链接</th></tr>
       <tr>
         <td>点击"开始分组"前增加二次确认弹窗，防止误触（笔记本设备易误操作）</td>
         <td><span class="badge ui">UI优化</span></td><td><span class="badge mod">抽签端</span></td>
@@ -291,7 +306,7 @@
       <tr>
         <td>候选人信息字段显示控制（眼睛图标关闭）不应影响签到业务功能的正常使用</td>
         <td><span class="badge bug">Bug修复</span></td><td><span class="badge mod">候考区</span></td>
-        <td class="src">其他大招</td>
+        <td class="src">中山大学</td>
         <td class="note"><textarea class="note-cell" data-id="n12" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
         <td><select class="status-select" data-id="r12" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
         <td class="lnk"><a href="https://trello.com/c/OIMsTBJf/729" target="_blank">Trello</a></td>
@@ -337,6 +352,26 @@
         <td class="lnk"><span>—</span></td>
       </tr>
       <tr>
+        <td>按地区候考区抽签未校验面试安排的上限</td>
+        <td><span class="badge bug">Bug修复</span></td><td><span class="badge mod">管理后台</span></td>
+        <td class="src">南科大</td>
+        <td class="note"><textarea class="note-cell" data-id="n37" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
+        <td><select class="status-select" data-id="r37" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
+        <td class="lnk"><span>—</span></td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- 面试中 -->
+  <div class="stage-block b3">
+    <div class="stage-header">
+      <div class="stage-icon">🔵</div>
+      <div><div class="stage-title">面试中</div><div class="stage-desc">面试正在进行时：抽题管理、音视频稳定性、实时监控管理、考官操作体验</div></div>
+      <div class="stage-count">14 项</div>
+    </div>
+    <table>
+      <tr><th style="width:27%">需求描述</th><th style="width:7%">类型</th><th style="width:8%">模块</th><th style="width:10%">来源</th><th style="width:7%">重要依据</th><th style="width:5%">重要</th><th style="width:14%">备注</th><th style="width:9%">状态</th><th style="width:5%">链接</th></tr>
+      <tr>
         <td>学生未进场 / 考试未开始时，禁止触发抽题操作（避免产生无效抽题记录）</td>
         <td><span class="badge bug">Bug修复</span></td><td><span class="badge mod">面试间</span></td>
         <td class="src">南科大</td>
@@ -360,26 +395,6 @@
         <td><select class="status-select" data-id="r06" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
         <td class="lnk"><a href="https://trello.com/c/1A0DY2Xp/717" target="_blank">Trello</a></td>
       </tr>
-      <tr>
-        <td>按地区候考区抽签未校验面试安排的上限</td>
-        <td><span class="badge bug">Bug修复</span></td><td><span class="badge mod">管理后台</span></td>
-        <td class="src">南科大</td>
-        <td class="note"><textarea class="note-cell" data-id="n37" placeholder="添加备注…" oninput="autoResize(this);saveNote(this)"></textarea></td>
-        <td><select class="status-select" data-id="r37" onchange="saveStatus(this)"><option value="pending">待评估</option><option value="design">待设计</option><option value="dev">待开发</option><option value="inprogress">开发中</option><option value="investigate">待排查</option><option value="rejected">已拒绝</option><option value="done">已完成</option></select></td>
-        <td class="lnk"><span>—</span></td>
-      </tr>
-    </table>
-  </div>
-
-  <!-- 面试中 -->
-  <div class="stage-block b3">
-    <div class="stage-header">
-      <div class="stage-icon">🔵</div>
-      <div><div class="stage-title">面试中</div><div class="stage-desc">面试正在进行时：音视频稳定性、实时监控管理、考官操作体验</div></div>
-      <div class="stage-count">11 项</div>
-    </div>
-    <table>
-      <tr><th style="width:33%">需求描述</th><th style="width:7%">类型</th><th style="width:9%">模块</th><th style="width:12%">来源</th><th style="width:20%">备注</th><th style="width:9%">状态</th><th style="width:5%">链接</th></tr>
       <tr>
         <td>麦克风中途掉线：优化音视频传输方案（参考厦门验证案例）</td>
         <td><span class="badge fn">功能优化</span></td><td><span class="badge mod">视频会议</span></td>
@@ -479,7 +494,7 @@
       <div class="stage-count">4 项</div>
     </div>
     <table>
-      <tr><th style="width:33%">需求描述</th><th style="width:7%">类型</th><th style="width:9%">模块</th><th style="width:12%">来源</th><th style="width:20%">备注</th><th style="width:9%">状态</th><th style="width:5%">链接</th></tr>
+      <tr><th style="width:27%">需求描述</th><th style="width:7%">类型</th><th style="width:8%">模块</th><th style="width:10%">来源</th><th style="width:7%">重要依据</th><th style="width:5%">重要</th><th style="width:14%">备注</th><th style="width:9%">状态</th><th style="width:5%">链接</th></tr>
       <tr>
         <td>打印候选人结果无需等全部安排结束，候选人评分状态已结束即可打印</td>
         <td><span class="badge fn">功能优化</span></td><td><span class="badge mod">管理后台</span></td>
@@ -523,7 +538,7 @@
       <div class="stage-count">2 项</div>
     </div>
     <table>
-      <tr><th style="width:33%">需求描述</th><th style="width:7%">类型</th><th style="width:9%">模块</th><th style="width:12%">来源</th><th style="width:20%">备注</th><th style="width:9%">状态</th><th style="width:5%">链接</th></tr>
+      <tr><th style="width:27%">需求描述</th><th style="width:7%">类型</th><th style="width:8%">模块</th><th style="width:10%">来源</th><th style="width:7%">重要依据</th><th style="width:5%">重要</th><th style="width:14%">备注</th><th style="width:9%">状态</th><th style="width:5%">链接</th></tr>
       <tr>
         <td>日程左侧导航栏支持展开 / 收起，提升操作便捷性</td>
         <td><span class="badge ui">UI优化</span></td><td><span class="badge mod">管理后台</span></td>
@@ -552,6 +567,55 @@ const STATUS_KEY = 'req_status_v1';
 const NOTE_KEY   = 'req_note_v1';
 const CLASS_MAP  = { pending:'s-pending', design:'s-design', dev:'s-dev', inprogress:'s-inprogress', investigate:'s-investigate', rejected:'s-rejected', done:'s-done' };
 
+/* ── 影响范围 & 重要程度 元数据 ── */
+// prio: 高=客户反馈/Bug/多校/核心流程  中=运营效率/单校客户  低=体验优化/内部/外聘督考小需求
+const META = {
+  // 考前数据准备
+  r01:{ scope:'单校客户',    prio:'中' },
+  r02:{ scope:'单校运营',    prio:'中' },
+  r08:{ scope:'Bug/已完成',  prio:'中' },
+  r05:{ scope:'多校+Bug',    prio:'高' },
+  // 封场
+  r04:{ scope:'Bug/部署',    prio:'高' },
+  r36:{ scope:'外聘督考',    prio:'低' },
+  r34:{ scope:'外聘督考',    prio:'低' },
+  // 面试前（签到入场）
+  r09:{ scope:'现场刚需',    prio:'高' },
+  r10:{ scope:'单校运营',    prio:'中' },
+  r11:{ scope:'单校运营',    prio:'低' },
+  r12:{ scope:'Bug/核心流程',prio:'高' },
+  r13:{ scope:'多校提出',    prio:'中' },
+  r14:{ scope:'Bug/核心流程',prio:'高' },
+  r15:{ scope:'外聘督考',    prio:'低' },
+  r16:{ scope:'外聘督考',    prio:'低' },
+  r17:{ scope:'外聘督考',    prio:'低' },
+  r37:{ scope:'Bug/核心流程',prio:'高' },
+  // 面试中（抽题）
+  r18:{ scope:'Bug/核心流程',prio:'高' },
+  r03:{ scope:'现场刚需',    prio:'高' },
+  r06:{ scope:'多校客户',    prio:'高' },
+  r07:{ scope:'客户/刚需',   prio:'高' },
+  // 面试中（其他）
+  r19:{ scope:'多校反馈',    prio:'高' },
+  r20:{ scope:'多校反馈',    prio:'高' },
+  r21:{ scope:'外聘督考',    prio:'低' },
+  r22:{ scope:'单校客户',    prio:'中' },
+  r23:{ scope:'单校客户',    prio:'中' },
+  r24:{ scope:'销售提出',    prio:'低' },
+  r25:{ scope:'外聘督考',    prio:'低' },
+  r26:{ scope:'内部需求',    prio:'低' },
+  r27:{ scope:'Bug/数据准确',prio:'高' },
+  r33:{ scope:'内部+Bug',    prio:'中' },
+  // 面试结束
+  r28:{ scope:'多校客户',    prio:'高' },
+  r29:{ scope:'外聘督考',    prio:'中' },
+  r30:{ scope:'多校客户',    prio:'中' },
+  r31:{ scope:'单校客户',    prio:'低' },
+  // 通用
+  r32:{ scope:'销售提出',    prio:'低' },
+  r35:{ scope:'Bug/核心流程',prio:'高' },
+};
+
 /* ── status ── */
 function applyStyle(sel) {
   sel.className = 'status-select ' + (CLASS_MAP[sel.value] || 's-pending');
@@ -562,6 +626,7 @@ function saveStatus(sel) {
   localStorage.setItem(STATUS_KEY, JSON.stringify(saved));
   applyStyle(sel);
   showToast('✅ 状态已保存');
+  writeToFile();
 }
 
 /* ── notes ── */
@@ -573,6 +638,7 @@ function saveNote(ta) {
     saved[ta.dataset.id] = ta.value;
     localStorage.setItem(NOTE_KEY, JSON.stringify(saved));
     showToast('📝 备注已保存');
+    writeToFile();
   }, 600);
 }
 function autoResize(ta) {
@@ -617,6 +683,92 @@ function exportNotes() {
   a.click();
 }
 
+/* ── generate shareable html ── */
+function generateShareHTML() {
+  const statuses = JSON.parse(localStorage.getItem(STATUS_KEY) || '{}');
+  const notes    = JSON.parse(localStorage.getItem(NOTE_KEY)   || '{}');
+
+  let html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+
+  // 移除旧的 seed
+  html = html.replace(/<script id="__seed__">[\s\S]*?<\/script>\n?/g, '');
+
+  // 把备注直接写进 textarea 标签内容里（outerHTML 不反映 .value，必须手动注入）
+  Object.entries(notes).forEach(([id, val]) => {
+    if (!val) return;
+    const escaped = val
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\$/g, '$$$$');
+    html = html.replace(
+      new RegExp('(<textarea[^>]*data-id="' + id + '"[^>]*>)[\\s\\S]*?(</textarea>)'),
+      '$1' + escaped + '$2'
+    );
+  });
+
+  // 同时嵌入 seed 脚本，收件人打开后 localStorage 也会同步，方便继续编辑
+  const seedData = JSON.stringify({ s: statuses, n: notes }).replace(/<\/script>/gi, '<\\/script>');
+  const seedScript = '<script id="__seed__">(function(){var d=' + seedData +
+    ';localStorage.setItem(\'req_status_v1\',JSON.stringify(d.s));' +
+    'localStorage.setItem(\'req_note_v1\',JSON.stringify(d.n));})();<\/script>\n';
+  html = html.replace('<head>', '<head>\n' + seedScript);
+
+  return html;
+}
+
+/* ── export share ── */
+function exportShare() {
+  const html = generateShareHTML();
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '易面系统需求反馈汇总_分享版_' + new Date().toISOString().slice(0,10) + '.html';
+  a.click();
+  showToast('✅ 分享版已导出');
+}
+
+/* ── link file & auto-save ── */
+let _fileHandle = null;
+
+async function linkFile() {
+  if (!window.showOpenFilePicker) {
+    showToast('❌ 当前浏览器不支持，请用 Chrome');
+    return;
+  }
+  try {
+    const [handle] = await window.showOpenFilePicker({
+      types: [{ description: 'HTML 文件', accept: { 'text/html': ['.html'] } }]
+    });
+    const perm = await handle.requestPermission({ mode: 'readwrite' });
+    if (perm !== 'granted') { showToast('❌ 未获得写入权限'); return; }
+    _fileHandle = handle;
+    await writeToFile();
+    const btn = document.getElementById('btn-link');
+    btn.textContent = '✅ 已连接文件，修改自动写入';
+    btn.classList.add('linked');
+    showToast('✅ 已连接！之后每次修改都会直接写入文件');
+  } catch(e) {
+    if (e.name !== 'AbortError') showToast('❌ 连接失败：' + e.message);
+  }
+}
+
+async function writeToFile() {
+  if (!_fileHandle) return;
+  try {
+    const writable = await _fileHandle.createWritable();
+    await writable.write(generateShareHTML());
+    await writable.close();
+  } catch(e) {
+    console.warn('写入文件失败', e);
+    _fileHandle = null;
+    const btn = document.getElementById('btn-link');
+    btn.textContent = '🔗 连接文件（修改自动写入）';
+    btn.classList.remove('linked');
+    showToast('⚠️ 文件写入失败，请重新连接');
+  }
+}
+
 /* ── toast ── */
 let toastTimer;
 function showToast(msg) {
@@ -647,6 +799,26 @@ function showToast(msg) {
       ta.value = notes[ta.dataset.id];
       autoResize(ta);
     }
+  });
+
+  // 注入影响范围 & 重要程度列
+  const PRIO_CLS = { '高':'prio-h', '中':'prio-m', '低':'prio-l' };
+  document.querySelectorAll('.stage-block tbody tr').forEach(row => {
+    const sel = row.querySelector('.status-select');
+    if (!sel) return;
+    const m = META[sel.dataset.id];
+    if (!m) return;
+    const src = row.querySelector('td.src');
+    if (!src) return;
+    if (src.nextElementSibling && src.nextElementSibling.classList.contains('scope')) return; // 已注入
+    const sc = document.createElement('td');
+    sc.className = 'scope';
+    sc.textContent = m.scope;
+    const pc = document.createElement('td');
+    pc.className = 'prio-cell';
+    pc.innerHTML = '<span class="prio-badge ' + (PRIO_CLS[m.prio] || 'prio-l') + '">' + m.prio + '</span>';
+    src.after(sc);
+    sc.after(pc);
   });
 })();
 </script>
