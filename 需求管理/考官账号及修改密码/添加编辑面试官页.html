@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>添加/编辑面试官</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 14px; color: #333; background: #f5f7fa; }
+
+  .nav { background: #1677ff; height: 48px; display: flex; align-items: center; padding: 0 20px; gap: 32px; }
+  .nav-logo { color: #fff; font-size: 18px; font-weight: 600; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
+  .nav-logo span { font-size: 11px; font-weight: 400; opacity: .7; }
+  .nav-item { color: rgba(255,255,255,.8); font-size: 14px; cursor: pointer; padding: 0 4px; height: 48px; display: flex; align-items: center; border-bottom: 3px solid transparent; }
+  .nav-item.active { color: #fff; border-bottom-color: #fff; }
+  .nav-right { margin-left: auto; display: flex; align-items: center; gap: 16px; color: rgba(255,255,255,.85); font-size: 13px; }
+  .nav-right a { color: rgba(255,255,255,.85); text-decoration: none; }
+
+  .content { padding: 24px; }
+  .breadcrumb { font-size: 13px; color: #999; margin-bottom: 20px; }
+  .breadcrumb a { color: #1677ff; text-decoration: none; }
+
+  .form-card { background: #fff; border-radius: 6px; padding: 32px 40px; max-width: 780px; }
+  .form-title { font-size: 16px; font-weight: 600; color: #222; margin-bottom: 24px; }
+  .form-row { display: flex; align-items: flex-start; margin-bottom: 20px; }
+  .form-label { width: 130px; text-align: right; padding-right: 12px; padding-top: 7px; font-size: 14px; color: #333; flex-shrink: 0; }
+  .form-label .req { color: #ff4d4f; margin-right: 2px; }
+  .form-field { flex: 1; }
+  .form-input { width: 100%; height: 36px; border: 1px solid #d9d9d9; border-radius: 4px; padding: 0 12px; font-size: 14px; color: #333; outline: none; }
+  .form-input:focus { border-color: #1677ff; box-shadow: 0 0 0 2px rgba(22,119,255,.1); }
+  .form-input::placeholder { color: #bbb; }
+  .radio-group { display: flex; gap: 24px; padding-top: 8px; }
+  .radio-label { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 14px; }
+  .form-textarea { width: 100%; border: 1px solid #d9d9d9; border-radius: 4px; padding: 8px 12px; font-size: 14px; color: #333; outline: none; resize: vertical; min-height: 90px; font-family: inherit; }
+  .form-textarea:focus { border-color: #1677ff; box-shadow: 0 0 0 2px rgba(22,119,255,.1); }
+  .form-textarea::placeholder { color: #bbb; }
+  .form-actions { display: flex; gap: 12px; padding-top: 8px; padding-left: 130px; }
+  .btn { height: 36px; padding: 0 24px; font-size: 14px; border-radius: 4px; cursor: pointer; border: 1px solid #d9d9d9; background: #fff; color: #333; }
+  .btn-primary { background: #1677ff; color: #fff; border-color: #1677ff; }
+  .btn-primary:hover { background: #0e62d6; }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="6" fill="rgba(255,255,255,.25)"/><text x="14" y="20" text-anchor="middle" fill="#fff" font-size="14" font-weight="700">M</text></svg>
+    易面 <span>EASY INTERVIEW</span>
+  </div>
+  <div class="nav-item">项目</div>
+  <div class="nav-item">评分表</div>
+  <div class="nav-item">面试题</div>
+  <div class="nav-item">岗位</div>
+  <div class="nav-item active">面试官</div>
+  <div class="nav-item">面试间</div>
+  <div class="nav-item">组织管理 ▾</div>
+  <div class="nav-right">
+    <a href="#">终端入口 →</a>
+    <a href="#">② 帮助</a>
+    <span>superadmin ▾</span>
+  </div>
+</nav>
+
+<div class="content">
+  <div class="breadcrumb">
+    <a href="#">面试官列表</a> / 添加、编辑面试官
+  </div>
+
+  <div class="form-card">
+    <div class="form-title">添加/编辑面试官</div>
+
+    <div class="form-row">
+      <div class="form-label"><span class="req">*</span>姓名（必填）：</div>
+      <div class="form-field">
+        <input class="form-input" type="text" placeholder="" value="ysmsg4">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-label"><span class="req">*</span>性别（必填）：</div>
+      <div class="form-field">
+        <div class="radio-group">
+          <label class="radio-label"><input type="radio" name="gender" checked> 男</label>
+          <label class="radio-label"><input type="radio" name="gender"> 女</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-label"><span class="req">*</span>账户名（必填）：</div>
+      <div class="form-field">
+        <input class="form-input" type="text" placeholder="" value="ysmsg4">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-label"><span class="req">*</span>登录密码（必填）：</div>
+      <div class="form-field">
+        <input class="form-input" type="password" value="······">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-label">手机：</div>
+      <div class="form-field">
+        <input class="form-input" type="text" placeholder="">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-label">邮箱：</div>
+      <div class="form-field">
+        <input class="form-input" type="text" placeholder="" value="ysmsg4@ata.net.cn">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-label">部门：</div>
+      <div class="form-field">
+        <input class="form-input" type="text" placeholder="">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-label">职务：</div>
+      <div class="form-field">
+        <input class="form-input" type="text" placeholder="">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-label">标签：</div>
+      <div class="form-field">
+        <input class="form-input" type="text" placeholder="">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-label">备注：</div>
+      <div class="form-field">
+        <textarea class="form-textarea" placeholder="对面试官技能的描述"></textarea>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-primary">保存</button>
+      <button class="btn">取消</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

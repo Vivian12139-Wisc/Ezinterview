@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>面试官列表</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 14px; color: #333; background: #f5f7fa; }
+
+  .nav { background: #1677ff; height: 48px; display: flex; align-items: center; padding: 0 20px; gap: 32px; }
+  .nav-logo { color: #fff; font-size: 18px; font-weight: 600; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
+  .nav-logo span { font-size: 11px; font-weight: 400; opacity: .7; }
+  .nav-item { color: rgba(255,255,255,.8); font-size: 14px; cursor: pointer; padding: 0 4px; height: 48px; display: flex; align-items: center; border-bottom: 3px solid transparent; }
+  .nav-item.active { color: #fff; border-bottom-color: #fff; }
+  .nav-right { margin-left: auto; display: flex; align-items: center; gap: 16px; color: rgba(255,255,255,.85); font-size: 13px; }
+  .nav-right a { color: rgba(255,255,255,.85); text-decoration: none; }
+
+  .content { padding: 24px; }
+
+  .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .toolbar-label { font-size: 14px; color: #333; }
+  .search-wrap { display: flex; align-items: center; border: 1px solid #d9d9d9; border-radius: 4px; background: #fff; height: 32px; padding: 0 10px; gap: 6px; }
+  .search-wrap input { border: none; outline: none; font-size: 13px; width: 160px; color: #333; }
+  .search-wrap input::placeholder { color: #bbb; }
+  .spacer { flex: 1; }
+
+  .btn { height: 32px; padding: 0 14px; border-radius: 4px; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; border: 1px solid #d9d9d9; background: #fff; color: #333; }
+  .btn-primary { background: #1677ff; color: #fff; border-color: #1677ff; }
+  .btn-primary:hover { background: #0e62d6; }
+  .btn-outline { border-color: #1677ff; color: #1677ff; background: #fff; }
+  .btn-danger-outline { border-color: #ff4d4f; color: #ff4d4f; background: #fff; }
+
+  .table-wrap { background: #fff; border-radius: 6px; border: 1px solid #e8ecf0; }
+  table { width: 100%; border-collapse: collapse; }
+  thead th { background: #fafafa; padding: 12px 16px; text-align: left; font-weight: 500; color: #555; font-size: 13px; border-bottom: 1px solid #e8ecf0; white-space: nowrap; }
+  thead th .filter-tag { display: inline-flex; align-items: center; gap: 4px; border: 1px solid #d9d9d9; border-radius: 12px; padding: 1px 8px; font-size: 12px; cursor: pointer; color: #555; background: #fff; }
+  tbody tr { border-bottom: 1px solid #f0f2f5; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: #f8fbff; }
+  tbody td { padding: 14px 16px; font-size: 13px; color: #333; vertical-align: middle; }
+  .td-name a { color: #1677ff; text-decoration: none; }
+  .td-name a:hover { text-decoration: underline; }
+  .td-muted { color: #bbb; }
+  .col-username { font-family: monospace; font-size: 13px; color: #333; }
+  .col-email { color: #888; font-size: 12px; }
+  .action-btn { background: none; border: none; cursor: pointer; padding: 4px 6px; font-size: 13px; border-radius: 3px; }
+  .action-disable { color: #1677ff; }
+  .action-edit { color: #1677ff; font-size: 15px; }
+  .action-delete { color: #ff4d4f; font-size: 15px; }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="6" fill="rgba(255,255,255,.25)"/><text x="14" y="20" text-anchor="middle" fill="#fff" font-size="14" font-weight="700">M</text></svg>
+    易面 <span>EASY INTERVIEW</span>
+  </div>
+  <div class="nav-item">项目</div>
+  <div class="nav-item">评分表</div>
+  <div class="nav-item">面试题</div>
+  <div class="nav-item">岗位</div>
+  <div class="nav-item active">面试官</div>
+  <div class="nav-item">面试间</div>
+  <div class="nav-item">组织管理 ▾</div>
+  <div class="nav-right">
+    <a href="#">终端入口 →</a>
+    <a href="#">② 帮助</a>
+    <span>superadmin ▾</span>
+  </div>
+</nav>
+
+<div class="content">
+  <div class="toolbar">
+    <span class="toolbar-label">面试官</span>
+    <div class="search-wrap">
+      <svg width="14" height="14" fill="none" stroke="#bbb" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input type="text" placeholder="姓名 / 账户名">
+    </div>
+    <div class="spacer"></div>
+    <button class="btn">⬇ 下载模板</button>
+    <button class="btn btn-outline">⬆ 批量导入面试官</button>
+    <button class="btn btn-primary">+ 添加面试官</button>
+    <button class="btn btn-danger-outline">删除全部</button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:60px">序号</th>
+          <th>姓名 ↓</th>
+          <th>性别</th>
+          <th>参面日... ▾</th>
+          <th>账户名</th>
+          <th>邮箱</th>
+          <th><span class="filter-tag">部门 ▾</span></th>
+          <th><span class="filter-tag">职务 ▾</span></th>
+          <th><span class="filter-tag">标签 ▾</span></th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td class="td-name"><a href="#">ysmsg4</a></td>
+          <td>男</td><td>3</td>
+          <td class="col-username">ysmsg4</td>
+          <td class="col-email">ysmsg4@ata.net.cn</td>
+          <td class="td-muted">--</td><td class="td-muted">--</td><td class="td-muted">--</td>
+          <td><button class="action-btn action-disable">禁用</button><button class="action-btn action-edit">✏</button><button class="action-btn action-delete">🗑</button></td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td class="td-name"><a href="#">ysmsg3</a></td>
+          <td>男</td><td>4</td>
+          <td class="col-username">ysmsg3</td>
+          <td class="col-email">ysmsg3@ata.net.cn</td>
+          <td class="td-muted">--</td><td class="td-muted">--</td><td class="td-muted">--</td>
+          <td><button class="action-btn action-disable">禁用</button><button class="action-btn action-edit">✏</button><button class="action-btn action-delete">🗑</button></td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td class="td-name"><a href="#">ysmsg2</a></td>
+          <td>男</td><td>3</td>
+          <td class="col-username">ysmsg2</td>
+          <td class="col-email">ysmsg2@ata.net.cn</td>
+          <td class="td-muted">--</td><td class="td-muted">--</td><td class="td-muted">--</td>
+          <td><button class="action-btn action-disable">禁用</button><button class="action-btn action-edit">✏</button><button class="action-btn action-delete">🗑</button></td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td class="td-name"><a href="#">ysmsg1</a></td>
+          <td>男</td><td>3</td>
+          <td class="col-username">ysmsg1</td>
+          <td class="col-email">ysmsg1@ata.net.cn</td>
+          <td class="td-muted">--</td><td class="td-muted">--</td><td class="td-muted">--</td>
+          <td><button class="action-btn action-disable">禁用</button><button class="action-btn action-edit">✏</button><button class="action-btn action-delete">🗑</button></td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td class="td-name"><a href="#">01岳明明</a></td>
+          <td>男</td><td>1</td>
+          <td class="col-username">yuemingming</td>
+          <td class="col-email">01@qq.com</td>
+          <td class="td-muted">--</td><td class="td-muted">--</td><td>A</td>
+          <td><button class="action-btn action-disable">禁用</button><button class="action-btn action-edit">✏</button><button class="action-btn action-delete">🗑</button></td>
+        </tr>
+        <tr>
+          <td>6</td>
+          <td class="td-name"><a href="#">10周洋</a></td>
+          <td>男</td><td>0</td>
+          <td class="col-username">zhouyang</td>
+          <td class="col-email">10@qq.com</td>
+          <td class="td-muted">--</td><td class="td-muted">--</td><td>E</td>
+          <td><button class="action-btn action-disable">禁用</button><button class="action-btn action-edit">✏</button><button class="action-btn action-delete">🗑</button></td>
+        </tr>
+        <tr>
+          <td>7</td>
+          <td class="td-name"><a href="#">09崔海燕</a></td>
+          <td>男</td><td>0</td>
+          <td class="col-username">cuihaiyan</td>
+          <td class="col-email">09@qq.com</td>
+          <td class="td-muted">--</td><td class="td-muted">--</td><td>E</td>
+          <td><button class="action-btn action-disable">禁用</button><button class="action-btn action-edit">✏</button><button class="action-btn action-delete">🗑</button></td>
+        </tr>
+        <tr>
+          <td>8</td>
+          <td class="td-name"><a href="#">08张长江</a></td>
+          <td>男</td><td>1</td>
+          <td class="col-username">zhangchangjiang</td>
+          <td class="col-email">08@qq.com</td>
+          <td class="td-muted">--</td><td class="td-muted">--</td><td>D</td>
+          <td><button class="action-btn action-disable">禁用</button><button class="action-btn action-edit">✏</button><button class="action-btn action-delete">🗑</button></td>
+        </tr>
+        <tr>
+          <td>9</td>
+          <td class="td-name"><a href="#">07关姗姗</a></td>
+          <td>男</td><td>0</td>
+          <td class="col-username">guanshanshan</td>
+          <td class="col-email">07@qq.com</td>
+          <td class="td-muted">--</td><td class="td-muted">--</td><td>D</td>
+          <td><button class="action-btn action-disable">禁用</button><button class="action-btn action-edit">✏</button><button class="action-btn action-delete">🗑</button></td>
+        </tr>
+        <tr>
+          <td>10</td>
+          <td class="td-name"><a href="#">06武春</a></td>
+          <td>男</td><td>0</td>
+          <td class="col-username">wuchun</td>
+          <td class="col-email">06@qq.com</td>
+          <td class="td-muted">--</td><td class="td-muted">--</td><td>C</td>
+          <td><button class="action-btn action-disable">禁用</button><button class="action-btn action-edit">✏</button><button class="action-btn action-delete">🗑</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</body>
+</html>
