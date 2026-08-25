@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>候考区管理 - 签到管理</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background:#f5f6f8; color:#333; }
+  a { text-decoration:none; cursor:pointer; }
+
+  /* ===== 顶部导航（候考区风格） ===== */
+  .topbar {
+    height:64px; background:#fff; border-bottom:1px solid #ebedf0;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 24px; position:relative;
+  }
+  .topbar-left { display:flex; align-items:center; gap:8px; }
+  .logo-badge {
+    width:28px; height:28px; border-radius:6px; background:#2f7dfa; color:#fff;
+    display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:600;
+  }
+  .logo-text { font-weight:600; font-size:15px; color:#333; }
+  .topbar-title {
+    position:absolute; left:50%; transform:translateX(-50%);
+    font-size:20px; font-weight:600; color:#1a1a1a;
+  }
+  .topbar-right { display:flex; align-items:center; gap:14px; }
+  .user-chip { display:flex; align-items:center; gap:6px; color:#555; font-size:14px; }
+  .user-icon {
+    width:20px; height:20px; border-radius:50%; background:#e6ebf1; color:#8a94a3;
+    display:flex; align-items:center; justify-content:center; font-size:12px;
+  }
+  .logout-btn {
+    color:#f5544d; background:#fff2f1; border:1px solid #ffd9d6; border-radius:4px;
+    padding:5px 14px; font-size:13px;
+  }
+
+  /* ===== 布局 ===== */
+  .layout { display:flex; min-height:calc(100vh - 64px); }
+  .sidebar {
+    width:180px; background:#fff; border-right:1px solid #ebedf0; padding:16px 0;
+  }
+  .sidebar .nav-item {
+    display:block; padding:12px 24px; font-size:14px; color:#555; cursor:pointer;
+  }
+  .sidebar .nav-item.active {
+    background:#2f7dfa; color:#fff; font-weight:500;
+  }
+  .main { flex:1; padding:28px 32px; }
+
+  /* ===== 面包屑（详情页用） ===== */
+  .breadcrumb { font-size:13px; color:#8a94a3; margin-bottom:16px; }
+  .breadcrumb a { color:#8a94a3; }
+  .breadcrumb a:hover { color:#2f7dfa; }
+  .breadcrumb .sep { margin:0 6px; }
+  .breadcrumb .current { color:#333; }
+
+  /* ===== 卡片 / 面板 ===== */
+  .panel {
+    background:#fff; border-radius:6px; padding:24px;
+    box-shadow:0 1px 2px rgba(0,0,0,0.04);
+  }
+  .panel-title { font-size:18px; font-weight:600; color:#1a1a1a; margin-bottom:20px; }
+
+  .toolbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+  .search-box {
+    width:320px; border:1px solid #dfe3e8; border-radius:4px; padding:8px 12px;
+    font-size:13px; color:#999; display:flex; align-items:center; gap:8px;
+  }
+  .kiosk-btn {
+    border:1px solid #dfe3e8; border-radius:4px; padding:8px 16px; font-size:13px;
+    color:#555; background:#fff; display:flex; align-items:center; gap:6px;
+  }
+
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  thead th {
+    text-align:left; color:#8a94a3; font-weight:500; padding:10px 8px;
+    border-bottom:1px solid #ebedf0; white-space:nowrap;
+  }
+  tbody td { padding:14px 8px; border-bottom:1px solid #f2f3f5; color:#333; }
+  tbody tr:hover { background:#f7f9fc; }
+  .name-link { color:#2f7dfa; font-weight:500; }
+  .name-link:hover { text-decoration:underline; }
+  .view-link { color:#2f7dfa; }
+  .status-done { color:#19be6b; }
+  .op-btn {
+    border:1px solid #dfe3e8; border-radius:4px; padding:5px 14px; font-size:12px;
+    color:#555; background:#fff;
+  }
+
+  /* ===== 候选人详情页 ===== */
+  .detail-card { display:flex; gap:28px; padding-bottom:24px; border-bottom:1px solid #ebedf0; margin-bottom:24px; }
+  .avatar {
+    width:96px; height:96px; border-radius:6px; overflow:hidden; flex-shrink:0; background:#eaf1ff;
+  }
+  .avatar img { width:100%; height:100%; object-fit:cover; }
+  .avatar-name { text-align:center; font-size:13px; color:#555; margin-top:8px; width:96px; }
+  .detail-info { flex:1; display:grid; grid-template-columns:1fr 1fr; gap:14px 40px; }
+  .info-row { font-size:14px; color:#333; }
+  .info-label { color:#8a94a3; margin-right:6px; }
+  .info-link { color:#2f7dfa; }
+
+  .schedule-title { font-size:15px; font-weight:600; color:#1a1a1a; margin-bottom:8px; }
+  .scope-note {
+    font-size:12px; color:#8a94a3; background:#f7f9fc; border:1px solid #ebedf0;
+    border-radius:4px; padding:8px 12px; margin-bottom:14px;
+  }
+  .badge {
+    display:inline-flex; align-items:center; gap:4px; padding:2px 10px; border-radius:12px;
+    font-size:12px; color:#fff;
+  }
+  .badge-video { background:#3fbf78; }
+  .badge-onsite { background:#3fbf78; }
+  .badge-ai { background:#7c6ff0; }
+
+  .page-toggle {
+    position:fixed; top:14px; right:24px; z-index:50; display:flex; gap:8px;
+  }
+  .page-toggle button {
+    border:1px solid #dfe3e8; background:#fff; border-radius:4px; padding:6px 12px; font-size:12px; color:#555;
+  }
+  .page-toggle button.active { background:#2f7dfa; color:#fff; border-color:#2f7dfa; }
+
+  .view { display:none; }
+  .view.active { display:block; }
+
+  /* ===== 编辑模式 ===== */
+  .detail-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+  .detail-title { font-size:16px; font-weight:600; color:#1a1a1a; }
+  .edit-btn {
+    border:1px solid #2f7dfa; color:#2f7dfa; background:#fff; border-radius:4px;
+    padding:6px 16px; font-size:13px;
+  }
+  .save-btn {
+    border:1px solid #2f7dfa; background:#2f7dfa; color:#fff; border-radius:4px;
+    padding:6px 16px; font-size:13px; margin-right:8px;
+  }
+  .cancel-btn {
+    border:1px solid #dfe3e8; color:#555; background:#fff; border-radius:4px;
+    padding:6px 16px; font-size:13px;
+  }
+  .field-input {
+    border:1px solid #dfe3e8; border-radius:4px; padding:6px 10px; font-size:13px;
+    color:#333; width:220px;
+  }
+  .field-input:focus { outline:none; border-color:#2f7dfa; }
+  .view-mode .edit-only { display:none; }
+  .edit-mode .view-only { display:none; }
+  .edit-mode .edit-btn { display:none; }
+  .view-mode .save-btn, .view-mode .cancel-btn { display:none; }
+
+  /* ===== 管理后台-修改记录 ===== */
+  .admin-topbar {
+    height:56px; background:#2f7dfa; display:flex; align-items:center; padding:0 20px; gap:26px;
+  }
+  .admin-topbar .logo-badge { background:#fff; color:#2f7dfa; }
+  .admin-topbar .logo-text { color:#fff; }
+  .admin-topbar .admin-nav { display:flex; gap:22px; margin-left:10px; }
+  .admin-topbar .admin-nav span { color:#eaf1ff; font-size:14px; padding:6px 2px; }
+  .admin-topbar .admin-nav span.active { color:#fff; font-weight:600; border-bottom:2px solid #fff; }
+  .admin-topbar-right { margin-left:auto; display:flex; align-items:center; gap:18px; color:#eaf1ff; font-size:13px; }
+  .admin-crumb { font-size:13px; color:#8a94a3; padding:16px 32px 0; }
+  .admin-crumb span { color:#333; }
+  .log-toolbar { display:flex; gap:12px; margin-bottom:16px; }
+  .log-filter {
+    border:1px solid #dfe3e8; border-radius:4px; padding:8px 12px; font-size:13px; color:#8a94a3;
+  }
+  .field-tag {
+    display:inline-block; background:#eaf1ff; color:#2f7dfa; border-radius:3px;
+    padding:1px 8px; font-size:12px;
+  }
+  .old-val { color:#c0392b; text-decoration:line-through; }
+  .new-val { color:#19be6b; }
+
+  /* ===== 备注记录列表 ===== */
+  .remark-tabs { display:flex; gap:32px; border-bottom:1px solid #ebedf0; margin-bottom:20px; }
+  .remark-tabs span { font-size:15px; color:#555; padding:12px 2px; cursor:pointer; }
+  .remark-tabs span.active { color:#2f7dfa; font-weight:600; border-bottom:2px solid #2f7dfa; }
+  .remark-preview { color:#555; max-width:360px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:inline-block; vertical-align:bottom; }
+  .attach-tag { color:#2f7dfa; font-size:12px; margin-left:6px; }
+
+  /* ===== 备注详情单 ===== */
+  .detail-modal-box { width:520px; }
+  .detail-modal-title { text-align:center; font-size:17px; font-weight:600; color:#1a1a1a; padding:20px 24px 16px; border-bottom:1px solid #ebedf0; }
+  .detail-field { display:flex; padding:14px 28px; font-size:14px; }
+  .detail-field-label { width:110px; flex-shrink:0; color:#8a94a3; }
+  .detail-field-value { color:#333; }
+  .attach-link { display:inline-flex; align-items:center; gap:5px; color:#8a94a3; font-size:13px; }
+  .attach-link:hover { color:#2f7dfa; }
+
+  .status-normal { color:#19be6b; }
+  .status-withdrawn { color:#b7bec9; }
+  .row-withdrawn td { color:#b7bec9; }
+  .row-withdrawn .remark-preview { color:#b7bec9; text-decoration:line-through; }
+  .withdraw-link { color:#f5544d; margin-left:12px; }
+
+  /* ===== 编辑弹窗 ===== */
+  .modal-mask {
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45);
+    z-index:100; align-items:center; justify-content:center;
+  }
+  .modal-mask.active { display:flex; }
+  .modal-box {
+    width:560px; max-height:86vh; background:#fff; border-radius:8px; overflow:hidden;
+    display:flex; flex-direction:column; box-shadow:0 8px 30px rgba(0,0,0,0.2);
+  }
+  .modal-header {
+    padding:16px 24px; border-bottom:1px solid #ebedf0; font-size:16px; font-weight:600;
+    color:#1a1a1a; display:flex; justify-content:space-between; align-items:center;
+  }
+  .modal-close { cursor:pointer; color:#8a94a3; font-size:14px; }
+  .modal-close:hover { color:#333; }
+  .modal-body { padding:24px 28px 8px; overflow-y:auto; }
+  .modal-footer {
+    padding:14px 24px; border-top:1px solid #ebedf0; display:flex; justify-content:flex-end; gap:0;
+  }
+
+  /* 表单行（对齐管理后台原有编辑候选人页风格） */
+  .form-row { margin-bottom:22px; }
+  .form-label { display:block; font-size:14px; color:#1a1a1a; font-weight:600; margin-bottom:10px; }
+  .form-label .req { font-weight:400; color:#1a1a1a; }
+  .form-input {
+    width:100%; border:1px solid #dfe3e8; border-radius:6px; padding:10px 12px;
+    font-size:14px; color:#333;
+  }
+  .form-input:focus { outline:none; border-color:#2f7dfa; }
+  .radio-group { display:flex; gap:48px; padding:6px 0; }
+  .radio-item { display:flex; align-items:center; gap:8px; font-size:14px; color:#333; cursor:pointer; }
+  .radio-item input { accent-color:#2f7dfa; width:16px; height:16px; }
+  .upload-box {
+    border:1px dashed #dfe3e8; border-radius:20px; text-align:center; padding:10px;
+    font-size:13px; color:#8a94a3; margin-bottom:8px;
+  }
+  .upload-file {
+    display:flex; align-items:center; gap:8px; font-size:13px; color:#555;
+  }
+  .file-remove { color:#b7bec9; cursor:pointer; margin-left:2px; }
+  .file-remove:hover { color:#f5544d; }
+  .form-textarea {
+    width:100%; border:1px solid #dfe3e8; border-radius:6px; padding:10px 12px;
+    font-size:14px; color:#333; resize:vertical; min-height:110px; font-family:inherit;
+  }
+  .form-textarea:focus { outline:none; border-color:#2f7dfa; }
+  .remark-target { font-size:13px; color:#8a94a3; background:#f7f9fc; border:1px solid #ebedf0; border-radius:4px; padding:8px 12px; margin-bottom:20px; }
+  .remark-target b { color:#333; font-weight:500; }
+
+  .last-remark-card {
+    background:#f7f9fc; border:1px solid #ebedf0; border-radius:6px; padding:12px 14px; margin-bottom:22px;
+  }
+  .last-remark-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+  .last-remark-head span:first-child { font-size:12px; color:#8a94a3; }
+  .last-remark-content { font-size:13px; color:#333; line-height:1.6; }
+  .withdraw-btn { color:#f5544d; font-size:12px; cursor:pointer; }
+  .withdraw-btn:hover { text-decoration:underline; }
+  .withdraw-hint { font-size:12px; color:#b7bec9; }
+
+  /* ===== 候选人日志时间线 ===== */
+  .log-list { padding:6px 8px 18px 8px; }
+  .log-item { display:flex; gap:24px; padding:7px 0; font-size:13px; color:#555; }
+  .log-time { width:150px; flex-shrink:0; color:#8a94a3; }
+  .log-text { color:#555; }
+  .log-highlight .log-text { color:#1a1a1a; font-weight:500; }
+  .log-highlight .log-time { color:#2f7dfa; }
+</style>
+</head>
+<body>
+
+<div class="page-toggle">
+  <button id="btn-list" class="active" onclick="showView('list')">候考区-签到管理页</button>
+  <button id="btn-remark" onclick="showView('remark')">管理后台-备注记录</button>
+  <button id="btn-log" onclick="showView('log')">管理后台-候选人详情(日志)</button>
+</div>
+
+<!-- ============ 视图一：候考区签到管理 ============ -->
+<div id="view-list" class="view active">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="logo-badge">易</div>
+      <span class="logo-text">易面</span>
+    </div>
+    <div class="topbar-title">候考区管理</div>
+    <div class="topbar-right">
+      <div class="user-chip"><span class="user-icon">👤</span> yshkq1</div>
+      <div class="logout-btn">退出</div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="sidebar">
+      <div class="nav-item active">签到管理</div>
+      <div class="nav-item">安排管理</div>
+    </div>
+
+    <div class="main">
+      <div class="panel">
+        <div class="panel-title">演示-现场日程签到表</div>
+
+        <div class="toolbar">
+          <div class="search-box">🔍 姓名、编号、客户编号、身份证号</div>
+          <div class="kiosk-btn">独立签到机 🔗</div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th><input type="checkbox"></th>
+              <th>姓名</th>
+              <th>性别</th>
+              <th>编号 ⇅</th>
+              <th>客户编号</th>
+              <th>邮箱地址</th>
+              <th>简历</th>
+              <th>参考附件1</th>
+              <th>照片</th>
+              <th>签到状态 ▾</th>
+              <th>签到时间 ⇅</th>
+              <th>签到地点 ▾</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="candidate-rows">
+            <!-- rows injected by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 添加备注 - 弹窗 ============ -->
+<div id="edit-modal-mask" class="modal-mask">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span>添加备注</span>
+      <span class="modal-close" onclick="closeModal()">✕</span>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <label class="form-label">备注说明 <span class="req">(必填)</span>：</label>
+        <textarea class="form-textarea" id="m-remark" placeholder="请填写该考生的异常情况说明，例如：证件与本人不符、缺少材料、现场沟通异常等"></textarea>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label">相关附件：</label>
+        <div class="upload-box">☁ 点击或拖拽文件到此处上传</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="cancel-btn" onclick="closeModal()">取消</button>
+      <button class="save-btn" id="submit-remark-btn" style="margin-right:0;" onclick="submitRemark()">提交备注</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 视图二：管理后台 - 备注记录 ============ -->
+<div id="view-remark" class="view">
+  <div class="admin-topbar">
+    <div class="logo-badge">易</div>
+    <span class="logo-text">易面</span>
+    <div class="admin-nav">
+      <span>项目</span><span>评分表</span><span>面试题</span><span>岗位</span>
+      <span>面试官</span><span>面试间</span><span>组织管理 ›</span>
+    </div>
+    <div class="admin-topbar-right">
+      <span>终端入口 ›</span><span>帮助</span><span>superadmin</span>
+    </div>
+  </div>
+
+  <div class="admin-crumb">
+    我的面试项目 / 易面-使用手册 / 演示-现场日程 / <span>监控统计</span>
+  </div>
+
+  <div class="main" style="padding-top:16px;">
+    <div class="panel">
+      <div class="remark-tabs">
+        <span>面试官</span>
+        <span>候选人</span>
+        <span>申请记录</span>
+        <span class="active">备注记录</span>
+        <span>评分监控</span>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>状态</th>
+            <th>申请者</th>
+            <th>备注对象</th>
+            <th>备注内容</th>
+            <th>申请时间</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="remark-rows">
+          <tr>
+            <td class="status-normal">已提交</td>
+            <td>yshkq1</td>
+            <td>A同学 1</td>
+            <td><span class="remark-preview">现场核对身份证时发现照片与本人略有差异，已电话联系带队老师确认</span></td>
+            <td>刚刚</td>
+            <td><a class="view-link" onclick="openDetail(0)">查看详情</a></td>
+          </tr>
+          <tr>
+            <td class="status-withdrawn">已撤销</td>
+            <td>yshkq2</td>
+            <td>B同学 2</td>
+            <td><span class="remark-preview">迟到 15 分钟，已按流程签到</span><span class="attach-tag">📎 2个附件</span></td>
+            <td>昨天 15:56</td>
+            <td><a class="view-link" onclick="openDetail(1)">查看详情</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 备注详情单 - 弹窗 ============ -->
+<div id="detail-modal-mask" class="modal-mask">
+  <div class="modal-box detail-modal-box">
+    <div class="detail-modal-title">备注详情单</div>
+    <div>
+      <div class="detail-field"><span class="detail-field-label">备注内容：</span><span class="detail-field-value" id="d-content">证件照片模糊，与证件本人存在差异，已现场核实</span></div>
+      <div class="detail-field" id="d-attach-row"><span class="detail-field-label">备注附件：</span><span class="detail-field-value"><a class="attach-link">📎 查看附件</a></span></div>
+    </div>
+    <div class="modal-footer" id="detail-footer">
+      <button class="cancel-btn" onclick="closeDetail()">关闭</button>
+      <button class="save-btn" id="detail-withdraw-btn" style="margin-right:0; background:#fff; color:#f5544d; border-color:#f5544d;" onclick="withdrawFromDetail()">撤回备注</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 视图三：管理后台 - 候选人详情页（日志时间线含备注记录） ============ -->
+<div id="view-log" class="view">
+  <div class="admin-topbar">
+    <div class="logo-badge">易</div>
+    <span class="logo-text">易面</span>
+    <div class="admin-nav">
+      <span>项目</span><span>评分表</span><span>面试题</span><span>岗位</span>
+      <span>面试官</span><span>面试间</span><span>组织管理 ›</span>
+    </div>
+    <div class="admin-topbar-right">
+      <span>终端入口 ›</span><span>帮助</span><span>superadmin</span>
+    </div>
+  </div>
+
+  <div class="admin-crumb">
+    我的面试项目 / 易面-使用手册 / 候选人名单 / <span>候选人详情</span>
+  </div>
+
+  <div class="main" style="padding-top:16px;">
+    <div class="panel">
+      <div class="detail-card" style="align-items:flex-start; border-bottom:none; margin-bottom:0; padding-bottom:0;">
+        <div>
+          <div class="avatar" style="width:96px;height:96px;">
+            <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Astudent" alt="头像">
+          </div>
+          <div class="avatar-name">姓名：A同学</div>
+        </div>
+        <div class="detail-info">
+          <div class="info-row"><span class="info-label">姓名：</span>A同学</div>
+          <div class="info-row"><span class="info-label">性别：</span>男</div>
+          <div class="info-row"><span class="info-label">客户编号：</span>111111111</div>
+          <div class="info-row"><span class="info-label">邮箱地址：</span>1-new@ata.net.cn</div>
+          <div class="info-row"><span class="info-label">身份证号：</span>110101199001011234</div>
+          <div class="info-row"><span class="info-label">简历：</span><span class="info-link">查看简历</span></div>
+          <div class="info-row"><span class="info-label">参考附件1：</span><span class="info-link">查看参考附件1</span></div>
+          <div class="info-row"><span class="info-label">照片：</span><span class="info-link">查看照片</span></div>
+          <div class="info-row"><span class="info-label">报告：</span>暂无报告</div>
+          <div class="info-row"><span class="info-label">创建时间：</span>2025/11/10 16:10</div>
+          <div class="info-row"><span class="info-label">上次修改：</span>2026/08/17 09:21</div>
+        </div>
+        <button class="edit-btn" style="flex-shrink:0;">✎ 编辑</button>
+      </div>
+
+      <table style="margin-top:24px;">
+        <thead>
+          <tr>
+            <th>日期</th>
+            <th>轮次</th>
+            <th>日程名称</th>
+            <th>分组</th>
+            <th>序号</th>
+            <th>编号</th>
+            <th>成绩</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>2026-08-17</td>
+            <td><span class="badge badge-onsite">一面</span></td>
+            <td>演示-现场日程</td>
+            <td>--</td>
+            <td>--</td>
+            <td>1</td>
+            <td>--</td>
+            <td><a class="view-link">成绩表 ⌄</a> &nbsp; <a class="view-link">日志 ⌃</a></td>
+          </tr>
+          <tr>
+            <td colspan="8" style="padding:0; border-bottom:none;">
+              <div class="log-list">
+                <div class="log-item"><span class="log-time">2026-06-30 20:13</span><span class="log-text">管理端签到 【取消成功】</span></div>
+                <div class="log-item"><span class="log-time">2026-06-30 20:13</span><span class="log-text">管理端批量签到 【签到成功】</span></div>
+                <div class="log-item log-highlight"><span class="log-time">2026-08-17 09:20</span><span class="log-text">候考区备注【yshkq1：添加备注】</span></div>
+                <div class="log-item log-highlight"><span class="log-time">2026-08-17 09:21</span><span class="log-text">候考区备注【yshkq1：撤回备注】</span></div>
+                <div class="log-item log-highlight"><span class="log-time">2026-08-17 09:22</span><span class="log-text">候考区备注【yshkq1：添加备注】</span></div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  const candidates = [
+    {name:"A同学", gender:"男", no:1, cid:"111111111", email:"1@ata.net.cn", status:"已签到", time:"2026/06/30 20:13", loc:"yshkq1",
+      lastRemark:{time:"刚刚", content:"现场核对身份证时发现照片与本人略有差异，已电话联系带队老师确认", withinWindow:true}},
+    {name:"B同学", gender:"男", no:2, cid:"222222222", email:"2@ata.net.cn", status:"已签到", time:"2026/06/30 20:13", loc:"yshkq1", lastRemark:null},
+    {name:"C同学", gender:"男", no:3, cid:"333333333", email:"3@ata.net.cn", status:"已签到", time:"2026/06/30 20:13", loc:"yshkq2", lastRemark:null},
+    {name:"D同学", gender:"男", no:4, cid:"444444444", email:"4@ata.net.cn", status:"已签到", time:"2026/06/30 20:13", loc:"yshkq2", lastRemark:null},
+    {name:"E同学", gender:"男", no:5, cid:"555555555", email:"4@ata.net.cn", status:"已签到", time:"2026/06/30 20:13", loc:"yshkq2", lastRemark:null},
+  ];
+
+  const tbody = document.getElementById('candidate-rows');
+  candidates.forEach((c, idx) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="checkbox"></td>
+      <td>${c.name}</td>
+      <td>${c.gender}</td>
+      <td>${c.no}</td>
+      <td>${c.cid}</td>
+      <td>${c.email}</td>
+      <td><a class="view-link">查看</a></td>
+      <td><a class="view-link">查看</a></td>
+      <td><a class="view-link">查看</a></td>
+      <td class="status-done">${c.status}</td>
+      <td>${c.time}</td>
+      <td>${c.loc}</td>
+      <td>
+        <button class="op-btn" onclick="openCandidateRemark(${idx})">${c.lastRemark ? '查看备注' : '添加备注'}</button>
+        <button class="op-btn" style="margin-left:6px;">签到 🔗</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  function refreshCandidateRow(idx) {
+    const c = candidates[idx];
+    const tr = tbody.children[idx];
+    const btn = tr.querySelector('.op-btn');
+    btn.textContent = c.lastRemark ? '查看备注' : '添加备注';
+  }
+
+  function showView(name) {
+    ['list','remark','log'].forEach(n => {
+      document.getElementById('view-' + n).classList.toggle('active', n === name);
+      document.getElementById('btn-' + n).classList.toggle('active', n === name);
+    });
+    window.scrollTo(0,0);
+  }
+
+  // ============ 候考区：添加 / 查看备注 ============
+  let currentModalIdx = null;
+
+  function openCandidateRemark(idx) {
+    currentModalIdx = idx;
+    const c = candidates[idx];
+    if (c.lastRemark) {
+      // 已有备注：打开详情单查看，可撤回
+      showDetail({applicant:"yshkq1", time:c.lastRemark.time, target:c.name + " 1", content:c.lastRemark.content, hasAttach:c.lastRemark.hasAttach}, {allowWithdraw:true, source:'candidate'});
+    } else {
+      // 尚无备注：打开表单提交
+      document.getElementById('m-remark').value = '';
+      document.getElementById('edit-modal-mask').classList.add('active');
+    }
+  }
+
+  function submitRemark() {
+    const text = document.getElementById('m-remark').value.trim();
+    if (!text) { return; }
+    candidates[currentModalIdx].lastRemark = {time:"刚刚", content:text, hasAttach:false};
+    refreshCandidateRow(currentModalIdx);
+    closeModal();
+  }
+
+  function closeModal() {
+    document.getElementById('edit-modal-mask').classList.remove('active');
+  }
+
+  // ============ 备注记录（后台，只读） ============
+  const remarks = [
+    {applicant:"yshkq1", time:"刚刚", target:"A同学 1", content:"现场核对身份证时发现照片与本人略有差异，已电话联系带队老师确认", hasAttach:false},
+    {applicant:"yshkq2", time:"昨天 15:56", target:"B同学 2", content:"迟到 15 分钟，已按流程签到", hasAttach:true},
+  ];
+
+  function openDetail(idx) {
+    showDetail(remarks[idx], {allowWithdraw:false});
+  }
+
+  // ============ 备注详情单（候考区可撤回 / 后台只读共用） ============
+  let detailContext = null;
+
+  function showDetail(r, opts) {
+    detailContext = opts;
+    document.getElementById('d-content').textContent = r.content;
+    document.getElementById('d-attach-row').style.display = r.hasAttach ? 'flex' : 'none';
+    document.getElementById('detail-withdraw-btn').style.display = opts.allowWithdraw ? 'inline-block' : 'none';
+    document.getElementById('detail-modal-mask').classList.add('active');
+  }
+
+  function withdrawFromDetail() {
+    if (detailContext && detailContext.source === 'candidate' && currentModalIdx !== null) {
+      candidates[currentModalIdx].lastRemark = null;
+      refreshCandidateRow(currentModalIdx);
+    }
+    closeDetail();
+  }
+
+  function closeDetail() {
+    document.getElementById('detail-modal-mask').classList.remove('active');
+  }
+</script>
+
+</body>
+</html>
