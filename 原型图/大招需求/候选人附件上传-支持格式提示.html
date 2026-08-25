@@ -74,8 +74,8 @@
     <div class="upload-box" id="box-1" onclick="document.getElementById('file-input-1').click()">
       <span class="icon">☁</span>点击上传
     </div>
-    <input type="file" id="file-input-1" style="display:none;" accept=".txt,.doc,.docx,.pdf,.html,.htm" onchange="handleFileSelect(this, 1)">
-    <div class="format-hint">支持上传 <b>TXT、Word、PDF</b> 格式，上传后将自动转换为 PDF；暂不支持 HTML 格式文件</div>
+    <input type="file" id="file-input-1" style="display:none;" onchange="handleFileSelect(this, 1)">
+    <div class="format-hint"><b>TXT、Word、PDF</b> 格式将自动转换为 PDF 格式；暂不支持上传 HTML 格式文件</div>
     <div class="upload-error" id="error-1">不支持 HTML 格式文件，请上传 TXT、Word 或 PDF 格式</div>
     <div class="upload-file" id="file-1" style="display:none;"><span>📎</span> <span class="fname"></span> <span class="file-remove">✕</span></div>
   </div>
@@ -93,6 +93,7 @@
 
 <script>
   const HTML_EXT = ['html', 'htm'];
+  const CONVERT_EXT = ['txt', 'doc', 'docx', 'pdf']; // 这几种格式会自动转换为 PDF，其余格式（如图片）原样上传
 
   function getExt(filename) {
     const parts = filename.split('.');
@@ -123,14 +124,15 @@
       return;
     }
 
-    // TXT / Word / PDF：弹出"正在上传中"，完成后文件名统一变为 .pdf
+    // 弹出"正在上传中"
     document.getElementById('convert-modal-mask').classList.add('active');
     setTimeout(() => {
       document.getElementById('convert-modal-mask').classList.remove('active');
       box.innerHTML = '<span class="icon">☁</span>上传成功';
-      const pdfName = getBaseName(file.name) + '.pdf';
+      // TXT / Word / PDF 自动转换为 .pdf；其余格式（如图片）保留原文件名和格式，不做转换
+      const finalName = CONVERT_EXT.includes(ext) ? (getBaseName(file.name) + '.pdf') : file.name;
       fileTag.style.display = 'flex';
-      fileTag.querySelector('.fname').textContent = pdfName;
+      fileTag.querySelector('.fname').textContent = finalName;
       input.value = '';
     }, 1500);
   }
