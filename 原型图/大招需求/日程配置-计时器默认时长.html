@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>日程配置 - 计时器默认时长</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background:#fff; color:#333; }
+
+  .page { max-width:1000px; margin:0 auto; padding:40px 32px; }
+
+  .section-head {
+    display:flex; align-items:baseline; gap:14px; padding-bottom:22px; border-bottom:1px solid #f0f2f5; margin-bottom:8px;
+  }
+  .section-title { font-size:15px; font-weight:600; color:#1a1a1a; white-space:nowrap; }
+  .section-tip { font-size:13px; color:#2f9bff; flex:1; }
+  .collapse-btn { font-size:13px; color:#2f9bff; cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:4px; }
+
+  .item-row {
+    display:flex; gap:14px; padding:20px 0; align-items:flex-start;
+  }
+  .item-checkbox {
+    width:18px; height:18px; border:1px solid #c7cdd6; border-radius:3px; flex-shrink:0; margin-top:3px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .item-checkbox.checked { background:#2f9bff; border-color:#2f9bff; color:#fff; font-size:12px; }
+  .item-icon {
+    width:36px; height:36px; border-radius:6px; border:1px solid #dfe3e8; color:#8a94a3;
+    display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0;
+  }
+  .item-icon.on { border-color:#2f9bff; color:#2f9bff; }
+  .item-body { flex:1; }
+  .item-title { font-size:14px; font-weight:600; color:#1a1a1a; margin-bottom:4px; }
+  .item-desc { font-size:13px; color:#8a94a3; line-height:1.7; }
+  .inline-input {
+    display:inline-block; width:52px; border:none; border-bottom:1px solid #c7cdd6; text-align:center;
+    font-size:13px; color:#333; padding:0 2px 1px; margin:0 2px; background:transparent;
+  }
+  .inline-input:focus { outline:none; border-color:#2f9bff; }
+
+  .hms-input {
+    display:inline-block; width:32px; border:none; border-bottom:1px solid #c7cdd6; text-align:center;
+    font-size:13px; color:#333; padding:0 2px 1px; margin:0 2px; background:transparent;
+  }
+  .hms-input:focus { outline:none; border-color:#2f9bff; }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <div class="section-head">
+    <span class="section-title">日程配置：</span>
+    <span class="section-tip">提示：面试开始后，请谨慎修改日程配置，可能导致部分已有数据丢失。</span>
+    <span class="collapse-btn">收起 ⌃</span>
+  </div>
+
+  <div class="item-row">
+    <div class="item-checkbox checked">✓</div>
+    <div class="item-icon on">⏱</div>
+    <div class="item-body">
+      <div class="item-title">计时器默认时长</div>
+      <div class="item-desc">
+        开启后，计时器默认时长为 <input class="hms-input" value="00"/>时 <input class="hms-input" value="15"/>分 <input class="hms-input" value="00"/>秒。
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
