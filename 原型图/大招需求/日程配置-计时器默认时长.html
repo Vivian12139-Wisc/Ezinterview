@@ -52,7 +52,6 @@
   .shortcut-row {
     display:flex; align-items:center; gap:10px; padding:8px 0;
   }
-  .shortcut-label { font-size:13px; color:#8a94a3; width:56px; flex-shrink:0; }
   .shortcut-del {
     width:26px; height:26px; border-radius:6px; border:1px solid #f5544d; color:#f5544d; cursor:pointer;
     display:flex; align-items:center; justify-content:center; flex-shrink:0;
@@ -130,31 +129,21 @@
     }
   }
 
-  function renumberShortcuts() {
-    const list = document.getElementById('shortcut-list');
-    Array.from(list.children).forEach((row, i) => {
-      row.querySelector('.shortcut-label').textContent = '常用时长' + (i + 1);
-    });
-  }
-
   function addShortcut() {
     const list = document.getElementById('shortcut-list');
     if (list.children.length >= MAX_SHORTCUTS) return;
     const row = document.createElement('div');
     row.className = 'shortcut-row';
     row.innerHTML =
-      '<span class="shortcut-label"></span>' +
       '<input class="shortcut-num" value="5"/>' +
       '<select class="shortcut-unit"><option>分钟</option><option>秒</option><option>小时</option></select>' +
       '<span class="shortcut-del" onclick="removeShortcut(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></span>';
     list.appendChild(row);
-    renumberShortcuts();
     updateAddBtnState();
   }
 
   function removeShortcut(el) {
     el.closest('.shortcut-row').remove();
-    renumberShortcuts();
     updateAddBtnState();
   }
 
