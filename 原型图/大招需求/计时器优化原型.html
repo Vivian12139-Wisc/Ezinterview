@@ -46,31 +46,24 @@
     background:#eaf3ff;
   }
 
-  /* ===== 悬浮计时器（新增：页面悬浮显示） ===== */
-  .float-timer {
+  /* ===== 计时器悬浮按钮（可拖动，兼作触发入口 + 倒计时展示） ===== */
+  .timer-launcher-btn {
     position:absolute; top:18px; right:18px; z-index:20;
-    background:#2f9bff; border:1px solid rgba(255,255,255,0.2);
-    border-radius:24px; padding:10px 20px; display:none; align-items:center; gap:12px;
-    box-shadow:0 6px 20px rgba(0,0,0,0.25); cursor:grab; user-select:none;
-    transition:background .2s, box-shadow .2s;
+    background:#2f9bff; color:#fff; border:none; border-radius:8px;
+    padding:14px 26px; font-size:16px; font-weight:600; font-variant-numeric:tabular-nums;
+    box-shadow:0 6px 20px rgba(47,155,255,0.35); cursor:grab; user-select:none;
   }
-  .float-timer.active { display:flex; }
-  .float-timer .ft-time {
-    font-size:24px; font-weight:700; color:#fff; letter-spacing:0.5px; min-width:88px; font-variant-numeric:tabular-nums;
+  .timer-launcher-btn:hover { background:#1c8aef; }
+  .timer-launcher-btn.warning {
+    background:#f5544d; animation: launcher-blink 1s infinite;
   }
-  .float-timer .ft-ring {
-    width:8px; height:8px; border-radius:50%; background:#fff; flex-shrink:0; opacity:.85;
-  }
-  .float-timer.ft-paused .ft-ring { opacity:.5; }
-  .float-timer.ft-done { background:#f5544d; }
-  .float-timer.ft-done .ft-ring { animation:ft-pulse 1s infinite; }
-  @keyframes ft-pulse { 0%,100%{ opacity:1; } 50%{ opacity:.3; } }
-  .float-timer .ft-btns { display:flex; align-items:center; gap:2px; }
-  .ft-icon-btn {
-    width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center;
-    color:#fff; font-size:13px; background:rgba(255,255,255,0.15);
-  }
-  .ft-icon-btn:hover { background:rgba(255,255,255,0.3); }
+  .timer-launcher-btn.warning:hover { background:#f5544d; }
+  @keyframes launcher-blink { 0%,100%{ opacity:1; } 50%{ opacity:.45; } }
+  .timer-launcher-btn.done-static { background:#2f9bff; animation:none; opacity:1; }
+  .timer-launcher-wrap { position:absolute; top:18px; right:18px; z-index:20; display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .timer-launcher-wrap .timer-launcher-btn { position:static; top:auto; right:auto; }
+  .launcher-done-tip { font-size:12px; color:#f5544d; display:none; }
+  .launcher-done-tip.show { display:block; }
 
   /* ===== 弹窗 ===== */
   .modal-mask {
@@ -135,11 +128,11 @@
   .ring-bg { fill:none; stroke:#f0f2f5; stroke-width:8; }
   .ring-progress { fill:none; stroke:#2f9bff; stroke-width:8; stroke-linecap:round; transition:stroke-dashoffset .3s linear; }
   .ring-wrap.paused .ring-progress { stroke:#f5a623; }
-  .ring-wrap.done .ring-progress { stroke:#f5544d; }
+  .ring-wrap.done .ring-progress { stroke:#22c55e; }
   .ring-center { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
   .ring-time { font-size:34px; font-weight:600; color:#333; font-variant-numeric:tabular-nums; }
   .ring-wrap.paused .ring-time { color:#f5a623; }
-  .ring-wrap.done .ring-time { color:#f5544d; }
+  .ring-wrap.done .ring-time { color:#22c55e; }
   .ring-status { font-size:13px; color:#b7bec9; margin-top:4px; }
 
   .btn-row { display:flex; gap:14px; }
@@ -176,14 +169,13 @@
 
 <div class="meeting-bar">
   <div class="meeting-info">smsap1 <span class="meeting-time">11:05 ~ 14:00</span></div>
-  <button class="timer-trigger-btn" onclick="openSetup()">⏱ 计时器</button>
 </div>
 
 <div class="video-stage" id="video-stage">
-  <!-- ============ 悬浮计时器（新增） ============ -->
-  <div class="float-timer" id="float-timer">
-    <span class="ft-ring"></span>
-    <span class="ft-time" id="ft-time">00:14:59</span>
+  <!-- ============ 计时器悬浮按钮（可拖动，兼作触发入口和倒计时展示） ============ -->
+  <div class="timer-launcher-wrap" id="timer-launcher-wrap">
+    <button class="timer-launcher-btn" id="timer-launcher-btn" onclick="openSetup()">计时器</button>
+    <span class="launcher-done-tip" id="launcher-done-tip">时间已到</span>
   </div>
 </div>
 
@@ -225,11 +217,11 @@
         </div>
 
         <div class="preset-row">
-          <div class="preset-pill" onclick="setPreset(5)">5 分钟</div>
-          <div class="preset-pill" onclick="setPreset(10)">10 分钟</div>
-          <div class="preset-pill" onclick="setPreset(15)">15 分钟</div>
-          <div class="preset-pill" onclick="setPreset(20)">20 分钟</div>
-          <div class="preset-pill" onclick="setPreset(30)">30 分钟</div>
+          <div class="preset-pill" data-minutes="5" onclick="setPreset(5)">5 分钟</div>
+          <div class="preset-pill" data-minutes="10" onclick="setPreset(10)">10 分钟</div>
+          <div class="preset-pill" data-minutes="15" onclick="setPreset(15)">15 分钟</div>
+          <div class="preset-pill" data-minutes="20" onclick="setPreset(20)">20 分钟</div>
+          <div class="preset-pill" data-minutes="30" onclick="setPreset(30)">30 分钟</div>
         </div>
 
         <button class="primary-btn" onclick="startTimer()">开始计时</button>
@@ -257,7 +249,7 @@
           <button class="secondary-btn" onclick="resetTimer()">重置</button>
         </div>
         <div class="btn-row" id="done-btns" style="display:none;">
-          <button class="primary-btn" style="background:#f5544d;" onclick="resetTimer()">重置</button>
+          <button class="primary-btn" onclick="resetTimer()">重置</button>
         </div>
 
       </div>
@@ -267,7 +259,10 @@
 </div>
 
 <script>
-  let hh = 0, mm = 0, ss = 0;
+  // 后台"日程配置-计时器默认时长"配置的值（示例：00时15分00秒）
+  const ADMIN_DEFAULT = { h: 0, m: 0, s: 0 };
+
+  let hh = ADMIN_DEFAULT.h, mm = ADMIN_DEFAULT.m, ss = ADMIN_DEFAULT.s;
   let totalSeconds = 0, remainSeconds = 0;
   let timerHandle = null;
   let state = 'idle'; // idle | running | paused | done
@@ -281,6 +276,15 @@
     refreshDropdownSelection('h', hh);
     refreshDropdownSelection('m', mm);
     refreshDropdownSelection('s', ss);
+    refreshPresetSelection();
+  }
+
+  // 若当前时长与某个快捷预设一致，高亮对应预设按钮（体现"这就是默认值"）
+  function refreshPresetSelection() {
+    document.querySelectorAll('.preset-pill').forEach(p => {
+      const m = Number(p.dataset.minutes);
+      p.classList.toggle('selected', hh === 0 && ss === 0 && mm === m);
+    });
   }
 
   function adjust(unit, delta) {
@@ -352,13 +356,14 @@
   function setPreset(minutes) {
     hh = 0; mm = minutes; ss = 0;
     refreshPickerDisplay();
-    document.querySelectorAll('.preset-pill').forEach(p => p.classList.remove('selected'));
-    event.target.classList.add('selected');
   }
 
   function openSetup() {
     document.getElementById('timer-modal-mask').classList.add('active');
     if (state === 'idle') {
+      // 尚未开始计时：自动带入后台配置的默认时长
+      hh = ADMIN_DEFAULT.h; mm = ADMIN_DEFAULT.m; ss = ADMIN_DEFAULT.s;
+      refreshPickerDisplay();
       document.getElementById('panel-setup').style.display = 'block';
       document.getElementById('panel-running').style.display = 'none';
     } else {
@@ -409,22 +414,34 @@
     const s = remainSeconds % 60;
     const text = `${pad(h)}:${pad(m)}:${pad(s)}`;
     document.getElementById('ring-time').textContent = text;
-    document.getElementById('ft-time').textContent = state === 'done' ? '时间已到' : text;
 
     const ringWrap = document.getElementById('ring-wrap');
-    const floatEl = document.getElementById('float-timer');
+    const launcherBtn = document.getElementById('timer-launcher-btn');
+    const doneTip = document.getElementById('launcher-done-tip');
     ringWrap.classList.remove('paused','done');
-    floatEl.classList.remove('ft-paused','ft-done');
+    launcherBtn.classList.remove('warning','done-static');
+    doneTip.classList.remove('show');
 
     const statusEl = document.getElementById('ring-status');
     if (state === 'paused') {
-      ringWrap.classList.add('paused'); floatEl.classList.add('ft-paused');
+      ringWrap.classList.add('paused');
       statusEl.textContent = '已暂停';
+      launcherBtn.textContent = text;
     } else if (state === 'done') {
-      ringWrap.classList.add('done'); floatEl.classList.add('ft-done');
+      ringWrap.classList.add('done');
       statusEl.textContent = '时间已到';
+      launcherBtn.classList.add('done-static');
+      launcherBtn.textContent = '计时器';
+      doneTip.classList.add('show');
+    } else if (state === 'running') {
+      statusEl.textContent = '';
+      if (remainSeconds > 0 && remainSeconds <= 10) {
+        launcherBtn.classList.add('warning');
+      }
+      launcherBtn.textContent = text;
     } else {
       statusEl.textContent = '';
+      launcherBtn.textContent = '计时器';
     }
 
     const circumference = 628;
@@ -443,11 +460,11 @@
   }
 
   function showFloatTimer() {
-    document.getElementById('float-timer').classList.add('active');
+    tick();
   }
 
   function hideFloatTimer() {
-    document.getElementById('float-timer').classList.remove('active');
+    tick();
   }
 
   function pauseTimer() { state = 'paused'; tick(); }
@@ -458,9 +475,15 @@
     state = 'idle';
     remainSeconds = 0; totalSeconds = 0;
     hideFloatTimer();
+    hh = ADMIN_DEFAULT.h; mm = ADMIN_DEFAULT.m; ss = ADMIN_DEFAULT.s;
+    refreshPickerDisplay();
     document.getElementById('panel-setup').style.display = 'block';
     document.getElementById('panel-running').style.display = 'none';
-    document.querySelectorAll('.preset-pill').forEach(p => p.classList.remove('selected'));
+    const launcherBtn = document.getElementById('timer-launcher-btn');
+    launcherBtn.classList.remove('warning');
+    launcherBtn.classList.remove('done-static');
+    launcherBtn.textContent = '计时器';
+    document.getElementById('launcher-done-tip').classList.remove('show');
   }
 
   // 需求：倒计时结束增加提示音（Web Audio 生成蜂鸣，无需外部音频文件）
@@ -484,34 +507,38 @@
     } catch (e) { /* 部分浏览器需用户交互后才允许播放，原型环境忽略 */ }
   }
 
-  // 悬浮窗拖动
+  // 计时器悬浮按钮拖动（拖动整体，拖动后不触发点击打开弹窗）
   (function enableDrag() {
-    const el = document.getElementById('float-timer');
+    const wrap = document.getElementById('timer-launcher-wrap');
+    const btn = document.getElementById('timer-launcher-btn');
     const stage = document.getElementById('video-stage');
-    let dragging = false, offsetX = 0, offsetY = 0;
-    el.addEventListener('mousedown', (e) => {
-      if (e.target.closest('.ft-icon-btn')) return;
-      dragging = true;
-      el.style.cursor = 'grabbing';
-      const rect = el.getBoundingClientRect();
+    let dragging = false, moved = false, offsetX = 0, offsetY = 0;
+    btn.addEventListener('mousedown', (e) => {
+      dragging = true; moved = false;
+      btn.style.cursor = 'grabbing';
+      const rect = wrap.getBoundingClientRect();
       offsetX = e.clientX - rect.left;
       offsetY = e.clientY - rect.top;
       e.preventDefault();
     });
     document.addEventListener('mousemove', (e) => {
       if (!dragging) return;
+      moved = true;
       const stageRect = stage.getBoundingClientRect();
       let x = e.clientX - stageRect.left - offsetX;
       let y = e.clientY - stageRect.top - offsetY;
-      x = Math.max(0, Math.min(stageRect.width - el.offsetWidth, x));
-      y = Math.max(0, Math.min(stageRect.height - el.offsetHeight, y));
-      el.style.left = x + 'px';
-      el.style.top = y + 'px';
-      el.style.right = 'auto';
+      x = Math.max(0, Math.min(stageRect.width - wrap.offsetWidth, x));
+      y = Math.max(0, Math.min(stageRect.height - wrap.offsetHeight, y));
+      wrap.style.left = x + 'px';
+      wrap.style.top = y + 'px';
+      wrap.style.right = 'auto';
     });
     document.addEventListener('mouseup', () => {
-      if (dragging) { dragging = false; el.style.cursor = 'grab'; }
+      if (dragging) { dragging = false; btn.style.cursor = 'grab'; }
     });
+    btn.addEventListener('click', (e) => {
+      if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; }
+    }, true);
   })();
 
   refreshPickerDisplay();
