@@ -203,6 +203,15 @@ body::after  { width:360px;height:360px;background:rgba(255,255,255,0.10);bottom
 .end-title { font-size:28px;font-weight:700;color:#1677ff;margin-bottom:14px; }
 .end-desc { font-size:14px;color:#888;line-height:1.7;margin-bottom:32px; }
 .end-illus { width:300px;flex-shrink:0;background:linear-gradient(135deg,#f0f8ff,#e6f7ff);min-height:420px;display:flex;align-items:center;justify-content:center; }
+
+/* Lottery / assign-wait */
+.lottery-wrap { display:flex;flex-direction:column;align-items:center;gap:20px;padding:20px 0; }
+.dice-svg { width:120px;height:120px;animation:float 2s ease-in-out infinite; }
+@keyframes float { 0%,100%{transform:translateY(0) rotate(-5deg)} 50%{transform:translateY(-12px) rotate(5deg)} }
+.lottery-bar-bg { width:280px;height:8px;background:#e8edf3;border-radius:4px;overflow:hidden;position:relative; }
+.lottery-bar-fill { position:absolute;top:0;left:-60%;width:50%;height:100%;background:linear-gradient(90deg,transparent 0%,#1677ff 40%,#69b1ff 60%,transparent 100%);border-radius:4px;animation:shimmer 1.6s ease-in-out infinite; }
+@keyframes shimmer { 0%{left:-60%} 100%{left:110%} }
+.lottery-text { font-size:14px;color:#1677ff;font-weight:500; }
 </style>
 </head>
 <body>
@@ -224,6 +233,7 @@ body::after  { width:360px;height:360px;background:rgba(255,255,255,0.10);bottom
 <div class="flow-nav">
   <span>远程流程：</span>
   <button class="nav-btn active" onclick="go('p-arrange')">① 查看安排</button>
+  <button class="nav-btn" onclick="go('p-assign-wait')">② 等待分配试题</button>
   <button class="nav-btn" onclick="go('p-pretest-choose')">② 自选试题</button>
   <button class="nav-btn" onclick="go('p-pretest-yueti-pre')">③ 考前准备·我的试题悦题版</button>
   <button class="nav-btn" onclick="go('p-pretest-attach-pre')">③ 考前准备·我的试题附件版</button>
@@ -278,7 +288,46 @@ body::after  { width:360px;height:360px;background:rgba(255,255,255,0.10);bottom
             </div>
           </div>
         </div>
-        <button class="cam-btn-primary" style="margin-top:28px;border-radius:20px;padding:10px 48px;" onclick="go('p-pretest-choose')">确认，下一步</button>
+        <button class="cam-btn-primary" style="margin-top:28px;border-radius:20px;padding:10px 48px;" onclick="go('p-assign-wait')">确认，下一步</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ① · 等待分配试题 ══ -->
+<div class="page" id="p-assign-wait">
+  <div class="card card-step" style="width:960px">
+    <div class="card-hd">
+      <div class="card-title">{日程名称}</div>
+      <div class="user-chip">
+        <div class="sec-badge"><div class="sec-dot"></div>副视角</div>
+        <div class="user-text"><div>Candidate: <strong>A同学</strong></div><div>Admission Number: <strong>236363</strong></div></div>
+        <div class="avatar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="#8a9ab8"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#8a9ab8" stroke-width="2" stroke-linecap="round"/></svg></div>
+      </div>
+    </div>
+    <div class="card-step-body">
+      <div class="step-side">
+        <div class="step-item"><div class="step-num done"></div><div class="step-label done">面试签到</div></div>
+        <div class="step-item"><div class="step-num done"></div><div class="step-label done">查看安排</div></div>
+        <div class="step-item"><div class="step-num active">3</div><div class="step-label active">考前准备</div></div>
+        <div class="step-item"><div class="step-num">4</div><div class="step-label">等候面试</div></div>
+        <div class="step-item"><div class="step-num">5</div><div class="step-label">进入面试</div></div>
+      </div>
+      <div class="step-content">
+        <div class="lottery-wrap">
+          <svg class="dice-svg" viewBox="0 0 120 120" fill="none">
+            <defs><linearGradient id="dg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#b37feb"/><stop offset="100%" stop-color="#9254de"/></linearGradient></defs>
+            <rect x="15" y="15" width="90" height="90" rx="18" fill="url(#dg2)" transform="rotate(-10 60 60)"/>
+            <circle cx="40" cy="40" r="7" fill="rgba(255,255,255,0.7)" transform="rotate(-10 60 60)"/>
+            <circle cx="80" cy="40" r="7" fill="rgba(255,255,255,0.7)" transform="rotate(-10 60 60)"/>
+            <circle cx="60" cy="60" r="7" fill="rgba(255,255,255,0.7)" transform="rotate(-10 60 60)"/>
+            <circle cx="40" cy="80" r="7" fill="rgba(255,255,255,0.7)" transform="rotate(-10 60 60)"/>
+            <circle cx="80" cy="80" r="7" fill="rgba(255,255,255,0.7)" transform="rotate(-10 60 60)"/>
+            <ellipse cx="60" cy="108" rx="36" ry="6" fill="rgba(100,50,200,0.3)"/>
+          </svg>
+          <div class="lottery-bar-bg"><div class="lottery-bar-fill"></div></div>
+          <div class="lottery-text">正在为您分配试题，请稍候...</div>
+        </div>
       </div>
     </div>
   </div>
@@ -790,6 +839,11 @@ function go(id) {
   if (id === 'p-wait') {
     clearTimeout(window._waitTimer);
     window._waitTimer = setTimeout(function(){ go('p-interview'); }, 3000);
+  }
+  // p-assign-wait：5秒自动进入自选试题
+  if (id === 'p-assign-wait') {
+    clearTimeout(window._assignWaitTimer);
+    window._assignWaitTimer = setTimeout(function(){ go('p-pretest-choose'); }, 5000);
   }
   // 进入面试中自动启动计时
   // interview timer intentionally static
