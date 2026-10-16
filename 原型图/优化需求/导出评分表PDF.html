@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>候选人评分结果 PDF - 原型</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#e9ebef;color:#222;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif}
+  .bar{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;padding:16px}
+  .bar button{height:36px;padding:0 18px;border:1px solid #b9dcff;background:#fff;color:#1a8cff;border-radius:18px;font-size:14px;cursor:pointer}
+  .bar button.on{background:#1a8cff;color:#fff;border-color:#1a8cff}
+  .paper{width:min(1040px,96vw);margin:0 auto 40px;background:#fff;padding:46px 48px 70px;box-shadow:0 2px 14px rgba(0,0,0,.12)}
+  h1{text-align:center;font-size:28px;margin:6px 0 40px}
+  .info{display:grid;grid-template-columns:1.2fr 1fr 1fr 1.3fr;font-size:17px;margin-bottom:26px}
+  .banner{background:#00a0ff;color:#fff;text-align:center;font-size:24px;line-height:1;padding:26px 0 24px}
+  .banner div+div{margin-top:30px}
+  table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:19px}
+  th,td{border:1px solid #ececec;text-align:center;padding:0 12px;height:60px;font-weight:400;word-break:break-all}
+  td.dim{width:15%}
+  td.sm{font-size:16px;color:#777}
+  tr.cmr td{height:auto;min-height:56px;padding:14px 12px;font-size:17px;line-height:1.6}
+  td.cmt{text-align:center}
+  .muted{color:#aaa}
+  tr.sign td{height:84px}
+  .sig{text-align:right;font-size:24px;margin:62px 100px 0 0}
+  @media print{.bar{display:none}body{background:#fff}.paper{box-shadow:none;margin:0;width:100%}}
+</style>
+</head>
+<body>
+<div class="paper" id="paper" style="margin-top:30px"></div>
+
+<script>
+/* 场景数据：评语按评分项归属；不计分项的答案按面试官分列 */
+const SC={
+  mix:{label:'综合示例',name:'yspfb1',iv:['ysmsg1','ysmsg2'],blocks:[
+    {dim:'评分维度1',items:[{t:'score',name:'评分项1',w:1,max:3,scores:[2,3],cm:['A；B；C；AAAA','B；表达清晰，逻辑完整']}]},
+    {items:[
+      {t:'single',name:'不计分项1',ans:['是','否']},
+      {t:'multi',name:'不计分项2',ans:[['民事','刑事'],['刑事']]}
+    ]}
+  ]},
+};
+const f1=n=>Number(n).toFixed(1);
+const mean=a=>a.reduce((x,y)=>x+y,0)/a.length;
+
+function render(key){
+  const S=SC[key],n=S.iv.length;
+  let rows='',totMax=0,tot=S.iv.map(()=>0),hasScore=false;
+  for(const b of S.blocks){
+    const span=b.items.reduce((a,it)=>a+1+(it.cm?1:0),0);
+    let dimDone=false;
+    for(const it of b.items){
+      let lead;
+      if(b.dim){
+        lead=(dimDone?'':`<td class="dim" rowspan="${span}">${b.dim}</td>`)+
+          `<td>${it.name}${it.t==='score'?`【权重：${it.w}】`:''}</td>`;
+        dimDone=true;
+      }else lead=`<td colspan="2">${it.name}</td>`;
+
+      if(it.t==='score'){
+        hasScore=true;totMax+=it.max*it.w;it.scores.forEach((s,k)=>tot[k]+=s*it.w);
+        rows+=`<tr>${lead}<td>${f1(it.max)}</td>${it.scores.map(s=>`<td>${f1(s)}</td>`).join('')}<td>${f1(mean(it.scores))}</td></tr>`;
+        if(it.cm)rows+=`<tr class="cmr">${b.dim?'<td class="sm">评语</td>':'<td colspan="2" class="sm">评语</td>'}<td></td>${
+          it.cm.map(c=>`<td class="cmt">${c||'<span class="muted">--</span>'}</td>`).join('')}<td></td></tr>`;
+      }else{
+        const cells=it.ans.map(a=>{const v=it.t==='multi'?a.join('、'):a;return `<td>${v||'<span class="muted">--</span>'}</td>`}).join('');
+        rows+=`<tr>${lead}<td>-</td>${cells}<td>--</td></tr>`;
+      }
+    }
+  }
+  const total=hasScore?`<tr><td colspan="2">总得分</td><td>${f1(totMax)}</td>${tot.map(t=>`<td>${f1(t)}</td>`).join('')}<td>${f1(mean(tot))}</td></tr>`:'';
+  const sign=`<tr class="sign"><td colspan="2">面试官签字</td><td></td>${S.iv.map(()=>'<td></td>').join('')}<td></td></tr>`;
+  document.getElementById('paper').innerHTML=`
+    <h1>候选人评分结果</h1>
+    <div class="info"><div>姓名： A同学</div><div>性别： 男</div><div>身份证号： 1</div><div>日期： 2026/10/15</div></div>
+    <div class="banner"><div>${S.name}</div><div>ysmsgz1 —— ysmsap1</div></div>
+    <table>
+      <thead><tr><th colspan="2">评分项</th><th style="width:13%">满分</th>${S.iv.map(v=>`<th>${v}</th>`).join('')}<th style="width:13%">平均分</th></tr></thead>
+      <tbody>${rows}${total}${sign}</tbody>
+    </table>
+    <div class="sig">签字处：</div>`;
+  document.querySelectorAll('#bar button').forEach(b=>b.classList.toggle('on',b.dataset.k===key));
+}
+render('mix');
+</script>
+</body>
+</html>

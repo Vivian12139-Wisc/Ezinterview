@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>集体评分 - 评分项评语与不计分项原型</title>
+<style>
+  :root{--blue:#1a8cff;--line:#e4e7ed;--text:#555}
+  *{box-sizing:border-box}
+  body{margin:0;background:#f5f6fa;color:var(--text);min-height:100vh;
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;font-size:16px}
+  .top{height:56px;background:linear-gradient(90deg,#1485ff,#2d9bff);color:#fff;display:flex;align-items:center;padding:0 24px;position:relative}
+  .top .back{font-size:22px}
+  .top h1{position:absolute;left:50%;transform:translateX(-50%);margin:0;font-size:20px;font-weight:600}
+  .top .r{margin-left:auto;display:flex;gap:28px;font-size:14px}
+  .tool{height:72px;background:#fff;display:flex;justify-content:flex-end;align-items:center;gap:14px;padding:0 26px;box-shadow:0 2px 6px rgba(0,0,0,.05)}
+  .pill{height:46px;padding:0 28px;border-radius:23px;border:1px solid #b9dcff;background:#eaf4ff;color:var(--blue);font-size:16px;display:flex;align-items:center;cursor:pointer}
+  .done{height:46px;padding:0 30px;border:0;border-radius:23px;background:var(--blue);color:#fff;font-size:16px;cursor:pointer}
+
+  .wrap{padding:26px 38px 160px}
+  table{width:100%;border-collapse:collapse;background:#fff;color:#555}
+  th,td{border:1px solid var(--line);text-align:center;padding:0 10px}
+  thead th{height:54px;font-weight:400;color:#777;font-size:17px;background:#fff}
+  thead th.u span{text-decoration:underline;cursor:help}
+  thead th.sub{height:46px;font-size:15px;color:#999}
+  tbody td{height:62px;background:#f8f9fd;font-size:17px}
+  td.no{color:var(--blue)}
+  td.gray{color:#999}
+  .scv{display:inline-flex;align-items:center;gap:6px;cursor:pointer;padding:8px 18px;color:#444}
+  .tri{border:4px solid transparent;border-top:5px solid #666;margin-top:5px}
+  .cmc{display:inline-flex;align-items:center;gap:6px;cursor:pointer;color:var(--blue);max-width:210px}
+  .cmc svg{width:18px;height:18px;flex:none;stroke:var(--blue);fill:none;stroke-width:1.8}
+  .cmc .txt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:15px}
+  .cmc.has .txt{color:#555}
+
+  /* 下拉选择 */
+  .sel{width:250px;margin:0 auto}
+  .sel-box{display:flex;align-items:center;justify-content:space-between;min-height:42px;padding:2px 10px;border:1px solid #dcdfe6;
+    background:#fff;border-radius:3px;cursor:pointer;text-align:left}
+  .sel-box.open{border-color:var(--blue)}
+  .sel-in{flex:1;min-width:0;display:flex;flex-wrap:wrap;align-items:center;font-size:16px;color:#333}
+  .ph{color:#c0c4cc;font-size:15px}
+  .tag{display:inline-flex;align-items:center;gap:6px;background:#f0f1f4;border-radius:3px;padding:3px 8px;margin:2px 6px 2px 0;font-size:15px;color:#666}
+  .tag b{width:16px;height:16px;border-radius:50%;background:#bfc3cc;color:#fff;font-size:12px;line-height:16px;text-align:center;font-weight:400;cursor:pointer}
+  .car{width:8px;height:8px;border-right:1.5px solid #bbb;border-bottom:1.5px solid #bbb;transform:rotate(45deg);margin:0 3px 4px 8px;flex:none;transition:.15s}
+  .open .car{transform:rotate(-135deg);margin:4px 3px 0 8px}
+  .menu{position:absolute;z-index:99;background:#fff;border-radius:4px;box-shadow:0 2px 14px rgba(0,0,0,.16);padding:6px 0}
+  .menu::before{content:"";position:absolute;top:-6px;left:50%;margin-left:-6px;width:12px;height:12px;background:#fff;transform:rotate(45deg);box-shadow:-2px -2px 3px rgba(0,0,0,.06)}
+  .mi{position:relative;display:flex;justify-content:space-between;align-items:center;height:46px;padding:0 24px;font-size:17px;cursor:pointer;color:#444;background:#fff}
+  .mi:hover{background:#f5f7fa}
+  .mi.on{color:var(--blue);font-weight:600}
+  .mi i{font-style:normal;margin-left:30px}
+
+  /* 评语弹窗 */
+  .mask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:flex-start;justify-content:center;padding-top:9vh}
+  .dlg{width:min(720px,92vw);background:#fff;border-radius:6px;box-shadow:0 6px 30px rgba(0,0,0,.25)}
+  .dlg-h{display:flex;align-items:baseline;gap:14px;padding:22px 30px 14px;border-bottom:1px solid #f0f0f0}
+  .dlg-h b{font-size:19px;color:#222}
+  .dlg-h span{color:#999;font-size:14px}
+  .dlg-h i{margin-left:auto;font-style:normal;font-size:24px;color:#aaa;cursor:pointer;line-height:1}
+  .dlg-b{padding:24px 30px 6px}
+  .cm-l{font-weight:700;font-size:17px;color:#222;margin-bottom:14px}
+  .ck{display:flex;align-items:center;gap:12px;margin:0 0 16px;cursor:pointer;font-size:16px;color:#444;width:max-content;max-width:100%}
+  .ck input{-webkit-appearance:none;appearance:none;width:20px;height:20px;border:1px solid #d3d7de;border-radius:3px;background:#fff;margin:0;cursor:pointer;flex:none;display:grid;place-content:center}
+  .ck input:checked{background:var(--blue);border-color:var(--blue)}
+  .ck input:checked::after{content:"";width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+  .note{margin:22px 0 12px;font-size:16px;color:#222}
+  textarea{display:block;width:100%;height:110px;border:1px solid #dcdfe6;border-radius:3px;padding:12px 14px;font:inherit;font-size:15px;outline:0;resize:vertical}
+  textarea:focus{border-color:var(--blue)}
+  textarea::placeholder{color:#aaa}
+  .dlg-f{display:flex;justify-content:center;gap:30px;padding:22px 0 30px}
+  .dlg-f button{height:46px;width:130px;border-radius:23px;font-size:17px;cursor:pointer}
+  .ok{background:#3399ff;color:#fff;border:0}
+  .cancel{background:#fff;color:#888;border:1.5px solid #c9c9c9}
+</style>
+</head>
+<body>
+<div class="top"><span class="back">↩</span><h1>演示-现场日程</h1>
+  <div class="r"><span>正常 ⌄</span><span>中文简体 ⌄</span><span>ysmsg1 ⌄</span></div></div>
+<div class="tool"><span class="pill">计时器</span><span class="pill">集体评分 ⌄</span><button class="done">完成</button></div>
+
+<div class="wrap">
+<table>
+  <colgroup>
+    <col style="width:70px"><col style="width:150px"><col style="width:150px"><col style="width:240px">
+    <col style="width:290px"><col style="width:340px"><col style="width:130px"><col style="width:170px">
+  </colgroup>
+  <thead>
+    <tr>
+      <th rowspan="3"></th>
+      <th rowspan="3">编号</th>
+      <th colspan="2">AAA</th>
+      <th rowspan="3" class="u"><span title="不计分项（单选）">意愿</span></th>
+      <th rowspan="3" class="u"><span title="不计分项（多选）">擅长领域</span></th>
+      <th rowspan="3">得分</th>
+      <th rowspan="3">查看试题</th>
+    </tr>
+    <tr><th colspan="2" class="u"><span title="评分项描述">评分项1</span></th></tr>
+    <tr><th class="sub">打分</th><th class="sub">评语</th></tr>
+  </thead>
+  <tbody id="tb"></tbody>
+</table>
+</div>
+
+<script>
+/* 评分项1 的评语配置（来自管理后台） */
+const CFG={item:'评分项1',min:0,max:3,presets:['A','B','C'],note:'请简要说明打分理由'};
+const WILL=['是','否'],AREA=['民事','刑事','行政'];
+const ROWS=[
+  {no:1,id:10,score:null,will:null,area:[],cm:{p:[],t:''}},
+  {no:2,id:11,score:2,will:'是',area:['民事','刑事'],cm:{p:['A','B'],t:'表达清晰，逻辑完整'}}
+];
+const PEN='<svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2 2 0 013 3L8 19l-4 1zM14 7l3 3"/></svg>';
+const tb=document.getElementById('tb');
+tb.innerHTML=ROWS.map((r,i)=>`<tr data-i="${i}">
+  <td class="no">${r.no}</td><td>${r.id}</td>
+  <td><div class="scv" data-act="score"><span class="v"></span><i class="tri"></i></div></td>
+  <td><div class="cmc" data-act="cm"></div></td>
+  <td><div class="sel"><div class="sel-box" data-act="will"><div class="sel-in"></div><i class="car"></i></div></div></td>
+  <td><div class="sel"><div class="sel-box" data-act="area"><div class="sel-in"></div><i class="car"></i></div></div></td>
+  <td class="tot"></td><td class="gray">尚未抽题</td></tr>`).join('');
+
+function refresh(i){
+  const r=ROWS[i],tr=tb.children[i];
+  tr.querySelector('.scv .v').textContent=r.score==null?'--':r.score;
+  tr.querySelector('.tot').textContent=r.score==null?0:r.score;
+  tr.querySelector('[data-act=will] .sel-in').innerHTML=r.will?`<span>${r.will}</span>`:'<span class="ph">请选择</span>';
+  tr.querySelector('[data-act=area] .sel-in').innerHTML=r.area.length
+    ?r.area.map(a=>`<span class="tag">${a}<b data-rm="${a}">×</b></span>`).join(''):'<span class="ph">请选择</span>';
+  const c=tr.querySelector('.cmc'),sum=[r.cm.p.join('、'),r.cm.t].filter(Boolean).join('；');
+  c.classList.toggle('has',!!sum);
+  c.innerHTML=PEN+'<span class="txt"></span>';
+  const tx=c.querySelector('.txt');tx.textContent=sum||'编辑';if(sum)c.title=sum;else c.removeAttribute('title');
+}
+ROWS.forEach((_,i)=>refresh(i));
+
+/* 下拉菜单 */
+let cur=null;
+function closeMenu(){if(cur){cur.m.remove();cur.anchor.classList.remove('open');cur=null}}
+function showMenu(anchor,items,isSel,pick,multi){
+  closeMenu();
+  const m=document.createElement('div');m.className='menu';
+  const render=()=>{m.innerHTML=items.map(o=>`<div class="mi${isSel(o.v)?' on':''}" data-v="${o.v}"><span>${o.t}</span>${isSel(o.v)?'<i>✓</i>':''}</div>`).join('')};
+  render();document.body.appendChild(m);anchor.classList.add('open');
+  const rc=anchor.getBoundingClientRect();
+  m.style.minWidth=Math.max(rc.width,130)+'px';
+  m.style.left=(rc.left+scrollX+(rc.width-m.offsetWidth)/2)+'px';
+  m.style.top=(rc.bottom+scrollY+10)+'px';
+  cur={m,anchor,render,pick:v=>{pick(v);if(multi)render();else closeMenu()}};
+}
+const idx=el=>+el.closest('tr').dataset.i;
+
+document.addEventListener('click',e=>{
+  const rm=e.target.closest('b[data-rm]');
+  if(rm){const i=idx(rm);ROWS[i].area=ROWS[i].area.filter(x=>x!==rm.dataset.rm);refresh(i);if(cur)cur.render();return}
+  const mi=e.target.closest('.menu .mi');
+  if(mi&&cur){cur.pick(mi.dataset.v);return}
+  const act=e.target.closest('[data-act]');
+  if(act){
+    const i=idx(act),r=ROWS[i],a=act.dataset.act;
+    if(cur&&cur.anchor===act){closeMenu();return}
+    if(a==='score'){
+      const items=[{v:'',t:'--'}];for(let s=CFG.min;s<=CFG.max;s++)items.push({v:String(s),t:s});
+      showMenu(act,items,v=>v!==''&&r.score===Number(v),v=>{r.score=v===''?null:Number(v);refresh(i)});
+    }else if(a==='will'){
+      showMenu(act,WILL.map(x=>({v:x,t:x})),v=>r.will===v,v=>{r.will=v;refresh(i)});
+    }else if(a==='area'){
+      showMenu(act,AREA.map(x=>({v:x,t:x})),v=>r.area.includes(v),v=>{
+        r.area=r.area.includes(v)?r.area.filter(x=>x!==v):AREA.filter(x=>x===v||r.area.includes(x));refresh(i)},true);
+    }else if(a==='cm'){closeMenu();openCm(i)}
+    return;
+  }
+  if(!e.target.closest('.menu'))closeMenu();
+});
+addEventListener('scroll',closeMenu,true);addEventListener('resize',closeMenu);
+addEventListener('keydown',e=>{if(e.key==='Escape'){closeMenu();document.querySelector('.mask')?.remove()}});
+
+/* 评语弹窗 */
+function openCm(i){
+  const r=ROWS[i];
+  const mask=document.createElement('div');mask.className='mask';
+  mask.innerHTML=`<div class="dlg">
+    <div class="dlg-h"><b>${CFG.item} · 评语</b><span>编号 ${r.id}</span><i class="x">×</i></div>
+    <div class="dlg-b"><div class="cm-l">评语:</div>
+      ${CFG.presets.map(p=>`<label class="ck"><input type="checkbox" value="${p}"${r.cm.p.includes(p)?' checked':''}><span>${p}</span></label>`).join('')}
+      <div class="note">${CFG.note}</div><textarea placeholder="评语"></textarea>
+    </div>
+    <div class="dlg-f"><button class="ok">确定</button><button class="cancel">取消</button></div></div>`;
+  mask.querySelector('textarea').value=r.cm.t;
+  document.body.appendChild(mask);
+  const close=()=>mask.remove();
+  mask.querySelector('.x').onclick=close;mask.querySelector('.cancel').onclick=close;
+  mask.querySelector('.ok').onclick=()=>{
+    r.cm.p=[...mask.querySelectorAll('input:checked')].map(x=>x.value);
+    r.cm.t=mask.querySelector('textarea').value.trim();
+    refresh(i);close();
+  };
+}
+</script>
+</body>
+</html>

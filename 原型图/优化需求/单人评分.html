@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>评分端 - 评语效果图</title>
+<style>
+  :root{--blue:#1a8cff;--text:#333;--sub:#999;--line:#eef0f4}
+  *{box-sizing:border-box}
+  body{margin:0;color:var(--text);background:#fff;
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;font-size:15px}
+  /* 顶栏 */
+  .top{height:56px;background:linear-gradient(90deg,#1485ff,#2d9bff);color:#fff;display:flex;align-items:center;padding:0 24px;position:relative}
+  .top .back{font-size:22px;cursor:pointer}
+  .top h1{position:absolute;left:50%;transform:translateX(-50%);margin:0;font-size:20px;font-weight:600}
+  .top .r{margin-left:auto;display:flex;gap:28px;font-size:14px}
+  .tabs{height:58px;display:flex;align-items:stretch;padding:0 4px;border-bottom:1px solid #f3f3f3}
+  .tabs a{padding:0 16px;display:flex;align-items:center;font-size:17px;font-weight:600;color:#888}
+  .tabs a.on{color:var(--blue);border-bottom:3px solid var(--blue)}
+  .tabs .r{margin-left:auto;display:flex;align-items:center;gap:12px}
+  .pill{height:42px;padding:0 28px;border-radius:21px;border:1px solid #b9dcff;background:#eaf4ff;color:var(--blue);font-size:15px;display:flex;align-items:center;cursor:pointer}
+  .pill.red{background:#fff0f0;border-color:#ffc9c9;color:#f04848}
+  .pill.org{background:#fff7e8;border-color:#ffd79a;color:#e6860a}
+  .bar{background:#ecf1fb;height:72px;display:flex;align-items:center;padding:0 6px;gap:10px}
+  .bar .l{color:var(--blue);display:flex;align-items:center;gap:10px}
+  .bar .dot{width:8px;height:8px;border-radius:50%;background:var(--blue);display:inline-block;margin-right:6px}
+  .bar .r{margin-left:auto;display:flex;gap:14px}
+  .stab{height:78px;background:linear-gradient(#eef4fd,#fff);display:flex;justify-content:center;align-items:flex-end;gap:54px;padding-bottom:0;margin-top:14px}
+  .stab a{padding:0 2px 10px;font-size:18px;font-weight:600;color:#222}
+  .stab a.on{color:var(--blue);border-bottom:3px solid var(--blue)}
+  .status{margin:8px 18px 0;background:#f4f4f4;height:74px;display:flex;align-items:center;justify-content:flex-end;gap:36px;padding:0 26px;border-bottom:1px dashed #ddd}
+  .status .s{color:#555;display:flex;align-items:center;gap:10px}
+  .status .score{font-size:20px;color:#333}
+  .status a{color:var(--blue);font-size:15px;cursor:pointer}
+  .btn{background:#2d96ff;color:#fff;border:0;border-radius:27px;height:54px;padding:0 33px;font-size:17px;cursor:pointer}
+
+  /* 内容 */
+  .main{padding:22px 46px 20px}
+  .dim{display:flex;align-items:center;gap:6px;font-weight:700;font-size:18px;margin:6px 0 24px}
+  .dim::before{content:"";width:14px;height:6px;border-radius:3px;background:var(--blue)}
+  .it{padding:22px 0 26px;border-top:1px solid var(--line)}
+  .it.first{border-top:0;padding-top:0}
+  .t{font-size:17px;margin-bottom:12px}
+  .d{color:#999;font-size:17px}
+  .sc{display:grid;grid-template-columns:1fr 160px;column-gap:50px;align-items:end;margin-top:-4px}
+  .sc .mm{display:flex;justify-content:space-between;padding:0 2px;font-size:17px;color:#444;margin-bottom:6px}
+  .sc .sl{padding:18px 0 4px}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:3px;margin:0;outline:0;
+    background:linear-gradient(to right,var(--blue) var(--p,0%),#e4e8f0 var(--p,0%))}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid var(--blue);cursor:pointer}
+  input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:#fff;border:2px solid var(--blue);cursor:pointer}
+  .st{display:flex;border:1px solid #dfe3ea;height:38px}
+  .st b{width:38px;display:flex;align-items:center;justify-content:center;background:#f5f6f8;color:#888;font-weight:400;cursor:pointer;user-select:none}
+  .st input{flex:1;min-width:0;border:0;border-left:1px solid #dfe3ea;border-right:1px solid #dfe3ea;text-align:center;font-size:16px;outline:0}
+
+  /* 评语区 */
+  .cm{margin-top:34px}
+  .cm-l{font-weight:700;font-size:17px;margin-bottom:14px}
+  .ck{display:flex;align-items:center;gap:12px;margin:0 0 16px;cursor:pointer;font-size:16px;color:#444;width:max-content;max-width:100%}
+  .ck input{-webkit-appearance:none;appearance:none;width:20px;height:20px;border:1px solid #d3d7de;border-radius:3px;background:#fff;margin:0;cursor:pointer;flex:none;display:grid;place-content:center}
+  .ck input[type=radio]{border-radius:50%}
+  .ck input[type=checkbox]:checked{background:var(--blue);border-color:var(--blue)}
+  .ck input[type=checkbox]:checked::after{content:"";width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+  .ck input[type=radio]:checked{border:6px solid var(--blue)}
+  .note{margin:26px 0 12px;font-size:17px;color:#222}
+  textarea{display:block;width:100%;height:110px;border:1px solid #dcdfe6;border-radius:3px;padding:12px 14px;font:inherit;font-size:15px;outline:0;resize:vertical}
+  textarea:focus{border-color:var(--blue)}
+  textarea::placeholder{color:#aaa}
+  .opts{margin-top:18px}
+  .copts{display:flex;flex-wrap:wrap;gap:40px;margin-top:16px}
+  .cbox{display:inline-flex;align-items:center;gap:12px;height:48px;min-width:96px;padding:0 22px 0 14px;border:1px solid #e1e4ea;
+    border-radius:3px;cursor:pointer;color:#555;font-size:16px;background:#fff}
+  .cbox:hover{border-color:#b9dcff}
+  .cbox:has(input:checked){border-color:var(--blue);background:#fff;color:var(--blue);font-weight:500;box-shadow:0 0 0 .5px var(--blue)}
+  .cbox input{-webkit-appearance:none;appearance:none;width:18px;height:18px;border:1.5px solid #d3d7de;border-radius:50%;
+    margin:0;flex:none;display:grid;place-content:center;cursor:pointer;background:#fff}
+  .cbox input[type=checkbox]{border-radius:4px;width:20px;height:20px}
+  .cbox input[type=radio]:checked{border:5px solid var(--blue)}
+  .cbox input[type=checkbox]:checked{background:var(--blue);border-color:var(--blue)}
+  .cbox input[type=checkbox]:checked::after{content:"";width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+  .foot{display:flex;justify-content:center;align-items:center;gap:36px;padding:18px 0 50px}
+  .foot a{color:var(--blue);cursor:pointer}
+  .toast{position:fixed;left:50%;top:80px;transform:translateX(-50%);background:#333;color:#fff;padding:8px 18px;border-radius:4px;opacity:0;transition:.3s;pointer-events:none;font-size:14px}
+  .toast.show{opacity:.92}
+</style>
+</head>
+<body>
+<div class="top"><span class="back">↩</span><h1>演示-现场日程</h1>
+  <div class="r"><span>正常 ⌄</span><span>中文简体 ⌄</span><span>ysmsg1 ⌄</span></div></div>
+<div class="tabs"><a class="on">1. 10</a><a>2. 11</a>
+  <div class="r"><span class="pill">计时器</span><span class="pill">单人评分 ⌄</span></div></div>
+<div class="bar"><span class="l">⟳ 刷新 <span><i class="dot"></i>ysmsg2 - 未开始</span></span>
+  <div class="r"><span class="pill">查看历史成绩</span><span class="pill red">⓵ 舞弊</span><span class="pill org">弃考</span></div></div>
+<div class="stab"><a class="on">评分表</a><a>试题</a></div>
+<div class="status">
+  <span class="s">💬 评分进行中</span>
+  <span class="score">总得分: <span id="total">0</span> 分</span>
+  <a>申请记录</a><button class="btn" onclick="done()">完成</button>
+</div>
+
+<div class="main" id="main"></div>
+<div class="foot"><a>申请记录</a><button class="btn" onclick="done()">完成</button></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* 效果图数据：覆盖评语的几种配置 + 不计分项 */
+const DATA=[
+  {dim:'AAA',items:[
+    {type:'score',title:'评分项1',desc:'评分项描述',min:0,max:3,presets:['A','B','C'],note:'请简要说明打分理由'}, // 预设 + 填写说明
+    {type:'choice',title:'意愿',desc:'',multi:false,opts:['是','否']} // 不计分项：单选，维度内
+  ]},
+  {items:[
+    {type:'choice',title:'擅长领域',desc:'',multi:true,opts:['民事','刑事','行政']} // 不计分项：多选，维度外
+  ]}
+];
+
+let n=0,gid=0;
+function scoreHTML(it,first){
+  n++;
+  let cm='';
+  if(it.presets||it.note){
+    cm='<div class="cm"><div class="cm-l">评语:</div>';
+    if(it.presets)cm+=it.presets.map(p=>`<label class="ck"><input type="checkbox"><span>${p}</span></label>`).join('');
+    if(it.note)cm+=`<div class="note">${it.note}</div><textarea placeholder="评语"></textarea>`;
+    cm+='</div>';
+  }
+  return `<section class="it${first?' first':''}" data-score>
+    <div class="sc">
+      <div class="th"><div class="t">${n}、${it.title}</div><div class="d">${it.desc}</div></div>
+      <div class="mm"><span>${it.min}</span><span>${it.max}</span></div>
+      <div class="sl"><input type="range" min="${it.min}" max="${it.max}" step="1" value="${it.min}"></div>
+      <div class="st"><b data-s="-1">−</b><input class="num" data-min="${it.min}" data-max="${it.max}"><b data-s="1">+</b></div>
+    </div>${cm}</section>`;
+}
+function choiceHTML(it,first){
+  n++;gid++;
+  const type=it.multi?'checkbox':'radio';
+  return `<section class="it${first?' first':''}">
+    <div class="t">${n}、${it.title}</div>${it.desc?`<div class="d">${it.desc}</div>`:''}
+    <div class="copts">${it.opts.map(o=>`<label class="cbox"><input type="${type}" name="g${gid}"><span>${o}</span></label>`).join('')}</div>
+  </section>`;
+}
+const main=document.getElementById('main');
+DATA.forEach((blk,bi)=>{
+  if(blk.dim)main.insertAdjacentHTML('beforeend',`<div class="dim">${blk.dim}</div>`);
+  blk.items.forEach((it,i)=>main.insertAdjacentHTML('beforeend',(it.type==='score'?scoreHTML:choiceHTML)(it,blk.dim&&i===0)));
+});
+
+/* 打分联动 */
+function setP(r){r.style.setProperty('--p',((r.value-r.min)/(r.max-r.min)*100)+'%')}
+function calc(){
+  let s=0;main.querySelectorAll('[data-score]').forEach(sec=>{
+    const v=sec.querySelector('.num').value;if(v!=='')s+=Number(v)});
+  document.getElementById('total').textContent=s;
+}
+main.querySelectorAll('input[type=range]').forEach(setP);
+main.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.type==='range'){const sec=t.closest('[data-score]');sec.querySelector('.num').value=t.value;setP(t);calc()}
+  if(t.classList.contains('num')){
+    const mn=+t.dataset.min,mx=+t.dataset.max;let v=t.value===''?'':Math.min(mx,Math.max(mn,Number(t.value)||mn));
+    t.value=v;const r=t.closest('[data-score]').querySelector('input[type=range]');if(v!==''){r.value=v;setP(r)}calc();
+  }
+});
+main.addEventListener('click',e=>{
+  const b=e.target.closest('b[data-s]');if(!b)return;
+  const sec=b.closest('[data-score]'),num=sec.querySelector('.num'),r=sec.querySelector('input[type=range]');
+  const mn=+num.dataset.min,mx=+num.dataset.max;
+  const cur=num.value===''?(Number(b.dataset.s)>0?mn-1:mn+1):Number(num.value);
+  const v=Math.min(mx,Math.max(mn,cur+Number(b.dataset.s)));
+  num.value=v;r.value=v;setP(r);calc();
+});
+function done(){const t=document.getElementById('toast');t.textContent='已提交（原型演示）';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
+</script>
+</body>
+</html>

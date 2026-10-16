@@ -180,6 +180,15 @@ HTML_TEMPLATE = """\
     font-size: 14px;
     font-weight: 500;
   }}
+  .file-badge {{
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 2px 7px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    font-family: var(--mono);
+  }}
   .file-arrow {{ font-size: 12px; color: var(--sub); }}
 
   /* ── 空状态 ── */
@@ -215,6 +224,28 @@ HTML_TEMPLATE = """\
 </html>
 """
 
+# ── 支持的文件类型配置 ──────────────────────────────────────────────
+FILE_TYPES = {
+    ".html": {"icon": "📄", "color": "#30b0c7", "shadow": "rgba(48,176,199,.25)", "label": "HTML", "new_tab": True,  "download": False},
+    ".pdf":  {"icon": "📕", "color": "#ff3b30", "shadow": "rgba(255,59,48,.25)",  "label": "PDF",  "new_tab": True,  "download": True},
+    ".csv":  {"icon": "📊", "color": "#34c759", "shadow": "rgba(52,199,89,.25)",  "label": "CSV",  "new_tab": False, "download": True},
+    ".xlsx": {"icon": "📗", "color": "#1d6f42", "shadow": "rgba(29,111,66,.25)",  "label": "XLSX", "new_tab": False, "download": True},
+    ".png":  {"icon": "🖼️", "color": "#bf5af2", "shadow": "rgba(191,90,242,.25)", "label": "PNG",  "new_tab": True,  "download": False},
+    # 新增：Word 文档
+    ".docx": {"icon": "📘", "color": "#2b579a", "shadow": "rgba(43,87,154,.25)",  "label": "DOCX", "new_tab": False, "download": True},
+    ".doc":  {"icon": "📘", "color": "#2b579a", "shadow": "rgba(43,87,154,.25)",  "label": "DOC",  "new_tab": False, "download": True},
+}
+
+
+def is_listed_file(name: str) -> bool:
+    """是否应该出现在文件列表中（统一过滤条件，列表和副标题统计共用）。"""
+    return (
+        os.path.splitext(name)[1].lower() in FILE_TYPES
+        and name != "index.html"
+        and not name.startswith("~$")   # 过滤 Word 打开文档时产生的临时锁文件
+    )
+
+
 def build_breadcrumb(rel_dir: str) -> str:
     root_a = '<a href="{depth}index.html">🏠 根目录</a>'
     sep = ' <span class="sep">/</span> '
@@ -242,8 +273,7 @@ def build_body(dirpath: str, rel_dir: str) -> str:
 
     subdirs = [i for i in items
                if os.path.isdir(os.path.join(dirpath, i)) and not i.startswith(".")]
-    files   = [i for i in items
-               if i.endswith(".html") and i != "index.html"]
+    files   = [i for i in items if is_listed_file(i)]
 
     parts = []
 
@@ -264,17 +294,27 @@ def build_body(dirpath: str, rel_dir: str) -> str:
 
     # ── 文件列表 ──
     if files:
-        rows = "\n".join(
-            f'<a href="{f}" class="file-row">'
-            f'  <div class="file-icon-wrap">📄</div>'
-            f'  <span class="file-name">{f}</span>'
-            f'  <span class="file-arrow">↗</span>'
-            f'</a>'
-            for f in files
-        )
+        rows = []
+        for f in files:
+            ext = os.path.splitext(f)[1].lower()
+            cfg = FILE_TYPES.get(ext, FILE_TYPES[".html"])
+            icon    = cfg["icon"]
+            color   = cfg["color"]
+            shadow  = cfg["shadow"]
+            label   = cfg["label"]
+            target  = 'target="_blank"' if cfg["new_tab"] else ""
+            dl_attr = f'download="{f}"' if cfg["download"] else ""
+            rows.append(
+                f'<a href="{f}" class="file-row" {target} {dl_attr}>'
+                f'  <div class="file-icon-wrap" style="background:linear-gradient(145deg,{color}cc,{color});box-shadow:0 2px 6px {shadow}">{icon}</div>'
+                f'  <span class="file-name">{f}</span>'
+                f'  <span class="file-badge" style="background:{color}22;color:{color}">{label}</span>'
+                f'  <span class="file-arrow">{"⬇" if cfg["download"] else "↗"}</span>'
+                f'</a>'
+            )
         parts.append(
             f'<p class="section-hd">文档</p>'
-            f'<div class="file-card">{rows}</div>'
+            f'<div class="file-card">{"".join(rows)}</div>'
         )
 
     if not subdirs and not files:
@@ -287,13 +327,13 @@ def gen_index_for_dir(dirpath: str, root: str = ".") -> None:
     rel_dir = os.path.relpath(dirpath, root)
     is_root = (rel_dir == ".")
 
-    name = "易面" if is_root else os.path.basename(dirpath)
+    name = "上座" if is_root else os.path.basename(dirpath)
 
     # 统计当前目录内容数量作为副标题
     try:
         children = [i for i in os.listdir(dirpath) if not i.startswith(".")]
         subdirs  = sum(1 for i in children if os.path.isdir(os.path.join(dirpath, i)))
-        files    = sum(1 for i in children if i.endswith(".html") and i != "index.html")
+        files    = sum(1 for i in children if is_listed_file(i))
         if subdirs and files:
             subtitle = f"{subdirs} 个文件夹 · {files} 个文档"
         elif subdirs:

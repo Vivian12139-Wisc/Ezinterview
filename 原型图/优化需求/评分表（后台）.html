@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>编辑评分表 - 不计分项原型</title>
+<style>
+  :root{
+    --blue:#3399ff; --blue-d:#1f86f0; --red:#f5565c;
+    --line:#e4e7ed; --text:#333; --sub:#999; --bg:#f7f7f7;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;font-size:15px}
+  /* 顶栏 */
+  .nav{height:46px;background:var(--blue);display:flex;align-items:stretch;padding:0 24px;
+    box-shadow:0 1px 4px rgba(0,0,0,.15)}
+  .logo{color:#fff;font-weight:700;font-size:20px;display:flex;align-items:center;margin-right:30px;letter-spacing:1px}
+  .nav a{color:#fff;padding:0 18px;display:flex;align-items:center;text-decoration:none;font-size:15px}
+  .nav a.active{background:#fff;color:var(--blue)}
+  .nav .right{margin-left:auto}
+  .wrap{width:min(960px,94vw);margin:0 auto}
+  .crumb{padding:22px 0 18px;color:#888;font-size:14px}
+  .crumb span{margin:0 6px}
+  .card{background:#fff;border:1px solid #f0f0f0;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .card-h{display:flex;align-items:center;padding:18px 16px;border-bottom:1px solid #f2f2f2}
+  .card-h h2{margin:0;font-size:18px;flex:1}
+  .total{color:#666;font-size:14px;margin-right:16px}
+  .total small{color:var(--sub);margin-left:6px;font-size:12px}
+  .btn-save{background:var(--blue);color:#fff;border:0;border-radius:20px;padding:9px 28px;font-size:15px;cursor:pointer}
+  .card-b{padding:16px}
+
+  /* 条目通用 */
+  .item{border:1px solid var(--line);background:#fff;margin-bottom:12px;position:relative}
+  .row{display:flex;align-items:stretch;height:42px;border-bottom:1px solid var(--line)}
+  .row>*{display:flex;align-items:center}
+  .no{width:48px;justify-content:center;border-right:1px solid var(--line);color:#555}
+  .ttl{flex:1;padding:0 10px;min-width:0}
+  .ttl input{width:100%;border:0;outline:0;font-size:15px;color:#444;background:transparent}
+  .ttl input::placeholder{color:#aaa}
+  .cell{padding:0 10px;border-left:1px solid var(--line);font-size:14px;color:#555;white-space:nowrap}
+  .cell input.w{width:34px;border:0;outline:0;font-size:14px;color:#555;margin-left:4px}
+  .stepper{display:flex;align-items:center;border:1px solid var(--line);height:28px;margin:0 2px}
+  .stepper b{width:24px;text-align:center;cursor:pointer;color:#555;font-weight:400;user-select:none}
+  .stepper input{width:38px;text-align:center;border:0;border-left:1px solid var(--line);border-right:1px solid var(--line);
+    height:100%;outline:0;font-size:14px}
+  .ghost{border:1px solid var(--line);background:#fff;height:32px;padding:0 12px;font-size:14px;cursor:pointer;color:#444}
+  .del{width:44px;justify-content:center;border-left:1px solid var(--line);cursor:pointer;color:var(--red)}
+  .del svg,.opt .del svg{width:18px;height:18px;stroke:var(--red);fill:none;stroke-width:1.6}
+  .desc{display:block;width:100%;border:0;outline:0;resize:vertical;min-height:62px;padding:12px 16px;
+    font-size:15px;color:#555;font-family:inherit}
+  .desc::placeholder{color:#aaa}
+
+  /* 不计分项 */
+  .item.choice{border-left:3px solid #b8d9ff}
+  .tag{font-size:12px;color:#7a8699;background:#eef1f6;border-radius:3px;padding:1px 8px;margin-left:8px;white-space:nowrap}
+  .sel{height:30px;border:1px solid var(--line);background:#fff;padding:0 8px;font-size:14px;outline:0;cursor:pointer;min-width:84px}
+  .req{display:flex;align-items:center;gap:6px;font-size:14px;color:#555;cursor:pointer;user-select:none}
+  .sw{width:34px;height:18px;border-radius:9px;background:#ccc;position:relative;transition:.2s}
+  .sw::after{content:"";position:absolute;left:2px;top:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:.2s}
+  .req.on .sw{background:var(--blue)}
+  .req.on .sw::after{left:18px}
+  .opts{padding:18px 16px 14px;border-top:1px solid var(--line)}
+  .opt{display:flex;align-items:center;margin-bottom:14px}
+  .mark{width:20px;height:20px;border:1.5px solid var(--blue);border-radius:50%;margin:0 28px 0 12px;flex:none}
+  .multi .mark{border-radius:3px}
+  .opt input{flex:1;height:36px;border:1px solid var(--line);padding:0 10px;font-size:15px;color:#555;outline:0}
+  .opt input:focus{border-color:var(--blue)}
+  .opt .del{border:0;width:44px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .opt .del.off{opacity:.3;cursor:not-allowed}
+  .addopt{display:inline-flex;align-items:center;gap:10px;color:var(--blue);cursor:pointer;margin-left:12px;font-size:14px}
+  .addopt i{width:22px;height:22px;border:1.5px solid var(--blue);border-radius:50%;display:inline-flex;
+    align-items:center;justify-content:center;font-style:normal;font-size:18px;line-height:1}
+  .hint{font-size:12px;color:var(--sub);margin:-4px 0 0 12px}
+
+  .ghost{white-space:nowrap}
+  .ghost.on{border-color:#ffc266;color:#e6860a;background:#fff8ea}
+  .cm{border-top:1px solid var(--line);padding:18px 16px 18px}
+  .ck{display:flex;align-items:center;gap:10px;font-size:15px;color:#666;cursor:pointer;width:max-content}
+  .ck input{width:18px;height:18px;margin:0;accent-color:#1a73ff;cursor:pointer}
+  .cm-note{width:calc(100% - 28px);margin:10px 0 0 28px;min-height:84px;border:1px solid #888;border-radius:3px;
+    padding:8px 10px;font:inherit;font-size:15px;color:#333;outline:0;resize:vertical}
+  .pre{margin-top:16px}
+  .chips{display:flex;flex-wrap:wrap;gap:16px}
+  .chip{min-width:130px;max-width:100%;height:44px;border:1px solid #dcdfe6;padding:0 14px;display:flex;
+    align-items:center;justify-content:space-between;color:#666;font-size:15px}
+  .chip i{font-style:normal;color:#bbb;margin-left:10px;cursor:pointer;display:none;font-size:16px}
+  .chip:hover i{display:block}
+  .chip i:hover{color:var(--red)}
+  .plus{width:130px;height:44px;border:1px solid var(--blue);color:var(--blue);display:flex;align-items:center;
+    justify-content:center;font-size:24px;cursor:pointer;background:#fff}
+  .pre-add{display:flex;align-items:center;gap:12px}
+  .pre-add .del{cursor:pointer;display:flex;align-items:center}
+  .pre-add input{flex:1;height:38px;border:1px solid #888;border-radius:3px;padding:0 12px;font-size:15px;outline:0;color:#444}
+  .pre-add input:focus{border-color:var(--blue)}
+  .okc{width:28px;height:28px;border-radius:50%;background:var(--blue);display:flex;align-items:center;
+    justify-content:center;cursor:pointer;flex:none}
+  .okc svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:3}
+
+  /* 维度 */
+  .dim{margin-bottom:12px;background:#f6f6fa;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .dim-h{background:var(--blue);color:#fff;height:46px;display:flex;align-items:center;padding:0 14px}
+  .dim-h input{flex:1;background:transparent;border:0;outline:0;color:#fff;font-size:15px}
+  .dim-h input::placeholder{color:rgba(255,255,255,.75)}
+  .dim-h .del svg{stroke:#fff}
+  .dim-h .del{border:0;cursor:pointer;display:flex;align-items:center}
+  .dim-b{padding:14px 14px 4px}
+  .dim-b .item{margin-bottom:12px}
+  .adds{display:flex;gap:12px;margin:0 0 14px}
+  .adds .dash{flex:1;height:44px;border:1px solid var(--line);background:#fff;color:var(--blue);
+    font-size:15px;cursor:pointer}
+  .adds .dash:hover{background:#f0f8ff}
+
+  .foot{display:flex;gap:18px;padding:30px 0 60px}
+  .pill{height:34px;border:1px solid var(--blue);color:var(--blue);background:#fff;border-radius:18px;
+    padding:0 28px;font-size:15px;cursor:pointer}
+  .pill:hover{background:#f0f8ff}
+  .err{color:var(--red);font-size:12px;margin:0 0 10px 12px;display:none}
+  .toast{position:fixed;left:50%;top:70px;transform:translateX(-50%);background:#333;color:#fff;padding:8px 18px;border-radius:4px;
+    opacity:0;transition:.3s;pointer-events:none;font-size:14px}
+  .toast.show{opacity:.92}
+</style>
+</head>
+<body>
+<div class="nav">
+  <div class="logo">易面</div>
+  <a>项目</a><a class="active">评分表</a><a>面试题</a><a>岗位</a><a>面试官</a><a>面试间</a><a>组织管理 ›</a>
+  <a class="right">终端入口 ›</a>
+</div>
+
+<div class="wrap">
+  <div class="crumb">我的评分表<span>/</span>yspfb1<span>/</span>编辑评分表</div>
+  <div class="card">
+    <div class="card-h">
+      <h2>编辑评分项</h2>
+      <div class="total">总分：<b id="total">0--0</b></div>
+      <button class="btn-save" onclick="save()">保存</button>
+    </div>
+    <div class="card-b" id="root"></div>
+    <div class="card-b" style="padding-top:0">
+      <div class="foot" style="padding-top:14px">
+        <button class="pill" onclick="addScore(root)">+ 添加评分项</button>
+        <button class="pill" onclick="addChoice(root)">+ 添加不计分项</button>
+        <button class="pill" onclick="addDim()">+ 添加维度</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const root=document.getElementById('root');
+const TRASH='<svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>';
+
+function h(html){const t=document.createElement('div');t.innerHTML=html.trim();return t.firstChild}
+
+/* ---------- 计分项 ---------- */
+function stepper(v){return `<div class="stepper"><b data-s="-1">–</b><input value="${v}"><b data-s="1">+</b></div>`}
+function scoreEl(d={}){
+  const el=h(`<div class="item score" data-type="score">
+    <div class="row">
+      <div class="no"></div>
+      <div class="ttl"><input value="${d.t||''}" placeholder="评分项名称，点击编辑"></div>
+      <div class="cell">权重：<input class="w wt" value="${d.w??1}"></div>
+      <div class="cell">分值：${stepper(d.min??1)}<span style="margin:0 6px;color:#aaa">~</span>${stepper(d.max??2)}</div>
+      <div class="cell" style="padding:0 6px;gap:6px"><button class="ghost dd-btn">启用扣分模式</button><button class="ghost cm-btn">启用评语</button></div>
+      <div class="del" title="删除">${TRASH}</div>
+    </div>
+    <textarea class="desc" placeholder="点击添加描述文字">${d.d||''}</textarea>
+    <div class="cm" style="display:none">
+      <label class="ck"><input type="checkbox" class="ck-note">评语填写说明</label>
+      <textarea class="cm-note" style="display:none" placeholder="请输入评语填写说明"></textarea>
+      <label class="ck" style="margin-top:22px"><input type="checkbox" class="ck-pre">预设面试官评语</label>
+      <div class="pre" style="display:none">
+        <div class="chips"><div class="plus" title="添加预设评语">+</div></div>
+        <div class="pre-add" style="display:none">
+          <div class="del" title="取消">${TRASH}</div>
+          <input placeholder="请输入面试评语">
+          <span class="okc" title="确认"><svg viewBox="0 0 24 24"><path d="M6 12.5l4 4 8-9"/></svg></span>
+        </div>
+      </div>
+    </div>
+  </div>`);
+  return el;
+}
+
+/* ---------- 不计分项（新增） ---------- */
+function choiceEl(d={}){
+  const opts=d.opts||[];
+  const el=h(`<div class="item choice" data-type="choice">
+    <div class="row">
+      <div class="no"></div>
+      <div class="ttl"><input value="${d.t||''}" placeholder="不计分项名称，点击编辑"></div>
+      <div class="cell" style="padding:0 6px"><select class="sel"><option value="single">单选</option><option value="multi">多选</option></select></div>
+      <div class="del" title="删除">${TRASH}</div>
+    </div>
+    <textarea class="desc" placeholder="点击添加描述文字">${d.d||''}</textarea>
+    <div class="opts">
+      <div class="olist"></div>
+      <div class="err">请至少保留 2 个选项，且选项内容不能为空、不能重复</div>
+      <span class="addopt" title="添加选项"><i>+</i></span>
+    </div>
+  </div>`);
+  const list=el.querySelector('.olist');
+  opts.forEach(o=>list.appendChild(optEl(o)));
+  if(d.type==='multi'){el.querySelector('.sel').value='multi';el.classList.add('multi')}
+  refreshOpts(el);
+  return el;
+}
+function optEl(v=''){
+  return h(`<div class="opt"><span class="mark"></span><input value="${v}" placeholder="请输入选项内容"><div class="del">${TRASH}</div></div>`);
+}
+function refreshOpts(el){}
+function closeAdd(item){
+  item.querySelector('.pre-add').style.display='none';
+  item.querySelector('.plus').style.display='flex';
+}
+function confirmPre(item){
+  const inp=item.querySelector('.pre-add input'),v=inp.value.trim();
+  if(!v){toast('面试评语不能为空');return}
+  const chips=item.querySelector('.chips');
+  if([...chips.querySelectorAll('.chip span')].some(s=>s.textContent===v)){toast('面试评语内容已经存在！');return}
+  const c=document.createElement('div');c.className='chip';
+  const s=document.createElement('span');s.textContent=v;
+  const x=document.createElement('i');x.textContent='×';x.title='删除';
+  c.append(s,x);
+  chips.insertBefore(c,chips.querySelector('.plus'));
+  inp.value='';closeAdd(item);
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&e.target.closest('.pre-add'))confirmPre(e.target.closest('.item'));
+});
+
+/* ---------- 维度 ---------- */
+function dimEl(name=''){
+  const el=h(`<div class="dim">
+    <div class="dim-h"><input value="${name}" placeholder="维度名称，点击编辑"><div class="del" title="删除维度">${TRASH}</div></div>
+    <div class="dim-b">
+      <div class="dim-items"></div>
+      <div class="adds">
+        <button class="dash" data-add="score">+ 添加评分项</button>
+        <button class="dash" data-add="choice">+ 添加不计分项</button>
+      </div>
+    </div>
+  </div>`);
+  return el;
+}
+
+/* ---------- 添加 ---------- */
+// 容器：root 或 .dim-items；根层条目插入到所有元素末尾
+function addScore(c,d){c=c.classList?.contains('dim')?c.querySelector('.dim-items'):c;c.appendChild(scoreEl(d));renumber()}
+function addChoice(c,d){c=c.classList?.contains('dim')?c.querySelector('.dim-items'):c;c.appendChild(choiceEl(d));renumber()}
+function addDim(){const d=dimEl();root.appendChild(d);renumber();}
+
+/* ---------- 序号 & 总分 ---------- */
+function renumber(){
+  let i=1;
+  root.querySelectorAll('.item').forEach(it=>{it.querySelector('.no').textContent=(i++)+'.'});
+  calc();
+}
+function num(x){const n=parseFloat(x);return isNaN(n)?0:n}
+function calc(){
+  let lo=0,hi=0;
+  root.querySelectorAll('.item.score').forEach(it=>{
+    const w=num(it.querySelector('.wt').value);
+    const ins=it.querySelectorAll('.stepper input');
+    lo+=num(ins[0].value)*w;hi+=num(ins[1].value)*w;
+  });
+  document.getElementById('total').textContent=lo+'--'+hi;
+}
+
+/* ---------- 事件代理 ---------- */
+document.addEventListener('click',e=>{
+  const t=e.target;
+  // 步进器
+  if(t.dataset.s){const inp=t.parentNode.querySelector('input');inp.value=Math.max(0,num(inp.value)+Number(t.dataset.s));calc();return}
+  // 维度内添加
+  if(t.dataset.add){const dim=t.closest('.dim');t.dataset.add==='score'?addScore(dim):addChoice(dim);return}
+  // 评语开关 / 添加预设评语
+  if(t.classList.contains('cm-btn')){
+    const p=t.closest('.item').querySelector('.cm');const on=p.style.display==='none';
+    p.style.display=on?'block':'none';t.classList.toggle('on',on);t.textContent=on?'已启用评语':'启用评语';return}
+  if(t.classList.contains('dd-btn')){
+    const on=!t.classList.contains('on');t.classList.toggle('on',on);t.textContent=on?'已启用扣分模式':'启用扣分模式';return}
+  // 预设评语：加号 / 取消 / 确认 / 删除
+  if(t.closest('.plus')){const it=t.closest('.item');it.querySelector('.plus').style.display='none';
+    const a=it.querySelector('.pre-add');a.style.display='flex';a.querySelector('input').focus();return}
+  if(t.closest('.pre-add .del')){const it=t.closest('.item');it.querySelector('.pre-add input').value='';closeAdd(it);return}
+  if(t.closest('.okc')){confirmPre(t.closest('.item'));return}
+  if(t.matches('.chip i')){t.parentNode.remove();return}
+  // 删除选项
+  const od=t.closest('.opt .del');
+  if(od){od.closest('.opt').remove();return}
+  // 添加选项
+  const ao=t.closest('.addopt');
+  if(ao){const item=ao.closest('.item');item.querySelector('.olist').appendChild(optEl());return}
+  // 删除维度
+  const dd=t.closest('.dim-h .del');
+  if(dd){if(confirm('删除该维度及其下所有项？')){dd.closest('.dim').remove();renumber()}return}
+  // 删除条目
+  const d=t.closest('.row .del');
+  if(d){d.closest('.item').remove();renumber();return}
+});
+document.addEventListener('input',e=>{if(e.target.closest('.score'))calc()});
+document.addEventListener('change',e=>{
+  const c=e.target,it=c.closest('.item');
+  if(c.classList.contains('ck-note'))it.querySelector('.cm-note').style.display=c.checked?'block':'none';
+  if(c.classList.contains('ck-pre'))it.querySelector('.pre').style.display=c.checked?'block':'none';
+  if(e.target.classList.contains('sel'))e.target.closest('.item').classList.toggle('multi',e.target.value==='multi');
+});
+
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
+
+function save(){
+  // 校验不计分项
+  for(const it of root.querySelectorAll('.item.choice')){
+    const title=it.querySelector('.ttl input').value.trim();
+    const vals=[...it.querySelectorAll('.opt input')].map(i=>i.value.trim());
+    const bad=!title||vals.length<2||vals.some(v=>!v)||new Set(vals).size!==vals.length;
+    it.querySelector('.err').style.display=bad?'block':'none';
+    if(bad){toast(!title?'不计分项名称不能为空':'请检查选项：至少 2 个，不能为空或重复');it.scrollIntoView({behavior:'smooth',block:'center'});return}
+  }
+  for(const it of root.querySelectorAll('.item.score')){
+    const cm=it.querySelector('.cm');if(cm.style.display==='none')continue;
+    const noteBad=it.querySelector('.ck-note').checked&&!it.querySelector('.cm-note').value.trim();
+    const preBad=it.querySelector('.ck-pre').checked&&!it.querySelectorAll('.chip').length;
+    if(noteBad||preBad){toast(noteBad?'请填写评语填写说明':'请至少添加一条预设评语');cm.scrollIntoView({behavior:'smooth',block:'center'});return}
+  }
+  toast('保存成功（原型演示）');
+}
+
+/* 初始为空，点击底部按钮创建 */
+renumber();
+</script>
+</body>
+</html>

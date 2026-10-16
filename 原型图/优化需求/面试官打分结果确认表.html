@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>面试官打分结果确认表 PDF - 原型</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#e9ebef;color:#222;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif}
+  .bar{display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap;padding:16px}
+  .bar button{height:36px;padding:0 18px;border:1px solid #b9dcff;background:#fff;color:#1a8cff;border-radius:18px;font-size:14px;cursor:pointer}
+  .bar button.on{background:#1a8cff;color:#fff;border-color:#1a8cff}
+  .bar label{font-size:14px;color:#555;display:flex;align-items:center;gap:6px;margin-left:14px;cursor:pointer}
+  .paper{width:min(1180px,96vw);margin:0 auto 40px;background:#fff;padding:46px 44px 60px;box-shadow:0 2px 14px rgba(0,0,0,.12)}
+  h1{text-align:center;font-size:26px;margin:4px 0 26px}
+  .meta{display:flex;flex-wrap:wrap;gap:8px 34px;font-size:15px;color:#333;margin-bottom:22px}
+  table{width:100%;border-collapse:collapse;font-size:15px}
+  th,td{border:1px solid #e8e9ee;text-align:center;padding:12px 10px;vertical-align:middle}
+  th{background:#f5f6fa;color:#666;font-weight:400;line-height:1.5}
+  th.grp{color:#555}
+  td{color:#444;height:64px}
+  td.cm{text-align:left;line-height:1.7;min-width:150px}
+  td.cm div{margin:0}
+  .muted{color:#aaa}
+  .foot{display:flex;justify-content:space-between;margin-top:46px;font-size:16px}
+  @media print{.bar{display:none}body{background:#fff}.paper{box-shadow:none;margin:0;width:100%}}
+</style>
+</head>
+<body>
+<div class="paper" id="paper" style="margin-top:30px"></div>
+
+<script>
+/* 场景：items 按评分表配置顺序；cm=true 表示该评分项启用了评语 */
+const S1={name:'评分项1',t:'score',w:1,dim:'评分维度1',cm:true};
+const S2={name:'评分项2',t:'score',w:1,dim:'评分维度1',cm:false};
+const S3={name:'评分项3',t:'score',w:1,dim:'评分维度1',cm:true};
+const SC={
+  mix:{label:'综合示例',sheet:'yspfb1',overall:true,
+    items:[{k:'a',...S1},{k:'b',...S2},{k:'c',...S3},{k:'d',name:'不计分项1',t:'single'},{k:'e',name:'不计分项2',t:'multi'}],
+    rows:[{id:10,an:'ysmsap1',seq:1,v:{a:2,b:3,c:2,d:'是',e:['民事','刑事']},cm:{a:'A；B；评语XXXX',c:'C'},oc:'整体表现良好，建议进入下一轮'},
+          {id:11,an:'ysmsap1',seq:2,v:null}]}
+};
+let key='mix',showDim=false;
+const NA='<span class="muted">--</span>';
+
+function render(){
+  const S=SC[key],items=S.items;
+  const hasScore=items.some(i=>i.t==='score'),hasCm=!!S.overall;
+  const cols=[];items.forEach(i=>{cols.push({it:i});if(i.cm)cols.push({it:i,cm:true})});
+  const useDim=showDim&&items.some(i=>i.dim);
+  const hl=c=>c.cm?`${c.it.name}评语`:(c.it.t==='score'?`${c.it.name}【权重：${c.it.w}】`:c.it.name);
+  const rs=useDim?' rowspan="2"':'';
+  let h1=`<th${rs}>编号</th><th${rs}>安排名称</th><th${rs}>安排序号</th>`,h2='';
+  if(useDim){
+    for(let n=0;n<cols.length;){
+      const it=cols[n].it;
+      if(!it.dim){h1+=`<th rowspan="2">${hl(cols[n])}</th>`;n++;continue}
+      let m=n;while(m<cols.length&&cols[m].it.dim===it.dim)m++;
+      h1+=`<th class="grp" colspan="${m-n}">${it.dim}</th>`;
+      for(let x=n;x<m;x++)h2+=`<th>${hl(cols[x])}</th>`;
+      n=m;
+    }
+  }else h1+=cols.map(c=>`<th>${hl(c)}</th>`).join('');
+  if(hasScore)h1+=`<th${rs}>总分</th>`;
+  if(hasCm)h1+=`<th${rs}>面试官评语</th>`;
+
+  const body=S.rows.map(r=>{
+    let tds=`<td>${r.id}</td><td>${r.an}</td><td>${r.seq}</td>`,total=0;
+    cols.forEach(c=>{
+      const i=c.it;
+      if(c.cm){const t=r.cm&&r.cm[i.k];tds+=`<td class="cm">${t||NA}</td>`;return}
+      const v=r.v?r.v[i.k]:null;
+      if(v==null){tds+=`<td>${NA}</td>`;return}
+      if(i.t==='score'){total+=v*i.w;tds+=`<td>${v}</td>`}
+      else tds+=`<td>${i.t==='multi'?v.join('、'):v}</td>`;
+    });
+    if(hasScore)tds+=`<td>${r.v?total:NA}</td>`;
+    if(hasCm)tds+=`<td class="cm">${r.oc||NA}</td>`;
+    return `<tr>${tds}</tr>`;
+  }).join('');
+
+  document.getElementById('paper').innerHTML=`
+    <h1>面试官打分结果确认表</h1>
+    <div class="meta"><span>项目：易面-使用手册</span><span>面试日程：2026/10/15演示-现场日程</span>
+      <span>面试评分表：${S.sheet}</span><span>面试官：ysmsg1</span><span>安排名称：全部安排</span></div>
+    <table><thead><tr>${h1}</tr>${useDim?`<tr>${h2}</tr>`:''}</thead><tbody>${body}</tbody></table>
+    <div class="foot"><span>面试官签字：</span><span>日期：2026/10/15 18:16</span></div>`;
+  document.querySelectorAll('#bar button').forEach(b=>b.classList.toggle('on',b.dataset.k===key));
+}
+render();
+</script>
+</body>
+</html>
