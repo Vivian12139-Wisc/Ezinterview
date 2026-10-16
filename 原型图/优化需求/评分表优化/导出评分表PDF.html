@@ -20,7 +20,7 @@
   td.dim{width:15%}
   td.sm{font-size:16px;color:#777}
   tr.cmr td{height:auto;min-height:56px;padding:14px 12px;font-size:17px;line-height:1.6}
-  td.cmt{text-align:center}
+  td.mc{text-align:left;line-height:1.7;padding:12px 14px}
   .muted{color:#aaa}
   tr.sign td{height:84px}
   .sig{text-align:right;font-size:24px;margin:62px 100px 0 0}
@@ -48,7 +48,7 @@ function render(key){
   const S=SC[key],n=S.iv.length;
   let rows='',totMax=0,tot=S.iv.map(()=>0),hasScore=false;
   for(const b of S.blocks){
-    const span=b.items.reduce((a,it)=>a+1+(it.cm?1:0),0);
+    const span=b.items.length;
     let dimDone=false;
     for(const it of b.items){
       let lead;
@@ -60,9 +60,9 @@ function render(key){
 
       if(it.t==='score'){
         hasScore=true;totMax+=it.max*it.w;it.scores.forEach((s,k)=>tot[k]+=s*it.w);
-        rows+=`<tr>${lead}<td>${f1(it.max)}</td>${it.scores.map(s=>`<td>${f1(s)}</td>`).join('')}<td>${f1(mean(it.scores))}</td></tr>`;
-        if(it.cm)rows+=`<tr class="cmr">${b.dim?'<td class="sm">评语</td>':'<td colspan="2" class="sm">评语</td>'}<td></td>${
-          it.cm.map(c=>`<td class="cmt">${c||'<span class="muted">--</span>'}</td>`).join('')}<td></td></tr>`;
+        rows+=`<tr>${lead}<td>${f1(it.max)}</td>${it.scores.map((s,k)=>it.cm
+          ?`<td class="mc"><div>分值：${f1(s)}</div><div>评语：${it.cm[k]||'<span class="muted">--</span>'}</div></td>`
+          :`<td>${f1(s)}</td>`).join('')}<td>${f1(mean(it.scores))}</td></tr>`;
       }else{
         const cells=it.ans.map(a=>{const v=it.t==='multi'?a.join('、'):a;return `<td>${v||'<span class="muted">--</span>'}</td>`}).join('');
         rows+=`<tr>${lead}<td>-</td>${cells}<td>--</td></tr>`;

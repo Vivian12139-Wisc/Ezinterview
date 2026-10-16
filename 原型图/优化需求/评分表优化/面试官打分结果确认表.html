@@ -46,9 +46,9 @@ const NA='<span class="muted">--</span>';
 function render(){
   const S=SC[key],items=S.items;
   const hasScore=items.some(i=>i.t==='score'),hasCm=!!S.overall;
-  const cols=[];items.forEach(i=>{cols.push({it:i});if(i.cm)cols.push({it:i,cm:true})});
+  const cols=items.map(i=>({it:i}));
   const useDim=showDim&&items.some(i=>i.dim);
-  const hl=c=>c.cm?`${c.it.name}评语`:(c.it.t==='score'?`${c.it.name}【权重：${c.it.w}】`:c.it.name);
+  const hl=c=>c.it.t==='score'?`${c.it.name}【权重：${c.it.w}】`:c.it.name;
   const rs=useDim?' rowspan="2"':'';
   let h1=`<th${rs}>编号</th><th${rs}>安排名称</th><th${rs}>安排序号</th>`,h2='';
   if(useDim){
@@ -68,10 +68,13 @@ function render(){
     let tds=`<td>${r.id}</td><td>${r.an}</td><td>${r.seq}</td>`,total=0;
     cols.forEach(c=>{
       const i=c.it;
-      if(c.cm){const t=r.cm&&r.cm[i.k];tds+=`<td class="cm">${t||NA}</td>`;return}
       const v=r.v?r.v[i.k]:null;
       if(v==null){tds+=`<td>${NA}</td>`;return}
-      if(i.t==='score'){total+=v*i.w;tds+=`<td>${v}</td>`}
+      if(i.t==='score'){
+        total+=v*i.w;
+        if(i.cm){const t=r.cm&&r.cm[i.k];tds+=`<td class="cm"><div>分值：${v}</div><div>评语：${t||NA}</div></td>`}
+        else tds+=`<td>${v}</td>`;
+      }
       else tds+=`<td>${i.t==='multi'?v.join('、'):v}</td>`;
     });
     if(hasScore)tds+=`<td>${r.v?total:NA}</td>`;

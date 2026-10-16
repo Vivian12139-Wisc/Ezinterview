@@ -72,6 +72,7 @@
   .addopt i{width:22px;height:22px;border:1.5px solid var(--blue);border-radius:50%;display:inline-flex;
     align-items:center;justify-content:center;font-style:normal;font-size:18px;line-height:1}
   .hint{font-size:12px;color:var(--sub);margin:-4px 0 0 12px}
+  .item.fill .opts{display:none}
 
   .ghost{white-space:nowrap}
   .ghost.on{border-color:#ffc266;color:#e6860a;background:#fff8ea}
@@ -191,7 +192,7 @@ function choiceEl(d={}){
     <div class="row">
       <div class="no"></div>
       <div class="ttl"><input value="${d.t||''}" placeholder="不计分项名称，点击编辑"></div>
-      <div class="cell" style="padding:0 6px"><select class="sel"><option value="single">单选</option><option value="multi">多选</option></select></div>
+      <div class="cell" style="padding:0 6px"><select class="sel"><option value="single">单选</option><option value="multi">多选</option><option value="fill">填空</option></select></div>
       <div class="del" title="删除">${TRASH}</div>
     </div>
     <textarea class="desc" placeholder="点击添加描述文字">${d.d||''}</textarea>
@@ -204,6 +205,7 @@ function choiceEl(d={}){
   const list=el.querySelector('.olist');
   opts.forEach(o=>list.appendChild(optEl(o)));
   if(d.type==='multi'){el.querySelector('.sel').value='multi';el.classList.add('multi')}
+  if(d.type==='fill'){el.querySelector('.sel').value='fill';el.classList.add('fill')}
   refreshOpts(el);
   return el;
 }
@@ -306,7 +308,11 @@ document.addEventListener('change',e=>{
   const c=e.target,it=c.closest('.item');
   if(c.classList.contains('ck-note'))it.querySelector('.cm-note').style.display=c.checked?'block':'none';
   if(c.classList.contains('ck-pre'))it.querySelector('.pre').style.display=c.checked?'block':'none';
-  if(e.target.classList.contains('sel'))e.target.closest('.item').classList.toggle('multi',e.target.value==='multi');
+  if(e.target.classList.contains('sel')){
+    const box=e.target.closest('.item');
+    box.classList.toggle('multi',e.target.value==='multi');
+    box.classList.toggle('fill',e.target.value==='fill');
+  }
 });
 
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
@@ -316,7 +322,8 @@ function save(){
   for(const it of root.querySelectorAll('.item.choice')){
     const title=it.querySelector('.ttl input').value.trim();
     const vals=[...it.querySelectorAll('.opt input')].map(i=>i.value.trim());
-    const bad=!title||vals.length<2||vals.some(v=>!v)||new Set(vals).size!==vals.length;
+    const fill=it.classList.contains('fill');
+    const bad=!title||(!fill&&(vals.length<2||vals.some(v=>!v)||new Set(vals).size!==vals.length));
     it.querySelector('.err').style.display=bad?'block':'none';
     if(bad){toast(!title?'不计分项名称不能为空':'请检查选项：至少 2 个，不能为空或重复');it.scrollIntoView({behavior:'smooth',block:'center'});return}
   }

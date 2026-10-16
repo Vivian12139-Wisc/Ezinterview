@@ -54,19 +54,24 @@
   .st input{flex:1;min-width:0;border:0;border-left:1px solid #dfe3ea;border-right:1px solid #dfe3ea;text-align:center;font-size:16px;outline:0}
 
   /* 评语区 */
-  .cm{margin-top:34px}
-  .cm-l{font-weight:700;font-size:17px;margin-bottom:14px}
+  .cm{margin-top:28px;background:#f7f8fa;border-radius:6px;padding:18px 24px 6px}
+  .cm-h{display:flex;align-items:center;margin-bottom:16px}
+  .cm-t{font-size:15px;font-weight:500;color:#666}
+  .cm textarea{background:#fff}
   .ck{display:flex;align-items:center;gap:12px;margin:0 0 16px;cursor:pointer;font-size:16px;color:#444;width:max-content;max-width:100%}
   .ck input{-webkit-appearance:none;appearance:none;width:20px;height:20px;border:1px solid #d3d7de;border-radius:3px;background:#fff;margin:0;cursor:pointer;flex:none;display:grid;place-content:center}
   .ck input[type=radio]{border-radius:50%}
   .ck input[type=checkbox]:checked{background:var(--blue);border-color:var(--blue)}
   .ck input[type=checkbox]:checked::after{content:"";width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
   .ck input[type=radio]:checked{border:6px solid var(--blue)}
-  .note{margin:26px 0 12px;font-size:17px;color:#222}
+  .note{margin:22px 0 12px;font-size:15px;color:#999}
   textarea{display:block;width:100%;height:110px;border:1px solid #dcdfe6;border-radius:3px;padding:12px 14px;font:inherit;font-size:15px;outline:0;resize:vertical}
   textarea:focus{border-color:var(--blue)}
   textarea::placeholder{color:#aaa}
   .opts{margin-top:18px}
+  .fillin{display:block;width:100%;height:48px;margin-top:16px;border:1px solid #dcdfe6;border-radius:3px;padding:0 16px;font:inherit;font-size:16px;color:#333;outline:0;background:#fff}
+  .fillin:focus{border-color:var(--blue)}
+  .fillin::placeholder{color:#aaa}
   .copts{display:flex;flex-wrap:wrap;gap:40px;margin-top:16px}
   .cbox{display:inline-flex;align-items:center;gap:12px;height:48px;min-width:96px;padding:0 22px 0 14px;border:1px solid #e1e4ea;
     border-radius:3px;cursor:pointer;color:#555;font-size:16px;background:#fff}
@@ -78,6 +83,9 @@
   .cbox input[type=radio]:checked{border:5px solid var(--blue)}
   .cbox input[type=checkbox]:checked{background:var(--blue);border-color:var(--blue)}
   .cbox input[type=checkbox]:checked::after{content:"";width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+  .overall{margin:0 46px;padding-top:30px;border-top:1px solid var(--line)}
+  .overall .ov-t{font-weight:700;font-size:17px;color:#2c3e50;margin-bottom:14px}
+  .overall .note{color:#333;font-size:16px;margin:24px 0 14px}
   .foot{display:flex;justify-content:center;align-items:center;gap:36px;padding:18px 0 50px}
   .foot a{color:var(--blue);cursor:pointer}
   .toast{position:fixed;left:50%;top:80px;transform:translateX(-50%);background:#333;color:#fff;padding:8px 18px;border-radius:4px;opacity:0;transition:.3s;pointer-events:none;font-size:14px}
@@ -99,6 +107,14 @@
 </div>
 
 <div class="main" id="main"></div>
+<div class="overall">
+  <div class="ov-t">评语:</div>
+  <label class="ck"><input type="checkbox"><span>综合素质良好</span></label>
+  <label class="ck"><input type="checkbox"><span>建议进入下一轮</span></label>
+  <label class="ck"><input type="checkbox"><span>需进一步考察</span></label>
+  <div class="note">请填写对候选人的整体评价</div>
+  <textarea placeholder="评语"></textarea>
+</div>
 <div class="foot"><a>申请记录</a><button class="btn" onclick="done()">完成</button></div>
 <div class="toast" id="toast"></div>
 
@@ -110,7 +126,8 @@ const DATA=[
     {type:'choice',title:'意愿',desc:'',multi:false,opts:['是','否']} // 不计分项：单选，维度内
   ]},
   {items:[
-    {type:'choice',title:'擅长领域',desc:'',multi:true,opts:['民事','刑事','行政']} // 不计分项：多选，维度外
+    {type:'choice',title:'擅长领域',desc:'',multi:true,opts:['民事','刑事','行政']}, // 不计分项：多选，维度外
+    {type:'fill',title:'期望到岗时间',desc:''} // 不计分项：填空，维度外
   ]}
 ];
 
@@ -119,10 +136,10 @@ function scoreHTML(it,first){
   n++;
   let cm='';
   if(it.presets||it.note){
-    cm='<div class="cm"><div class="cm-l">评语:</div>';
+    cm='<div class="cm"><div class="cm-h"><span class="cm-t">评语</span></div><div class="cm-b">';
     if(it.presets)cm+=it.presets.map(p=>`<label class="ck"><input type="checkbox"><span>${p}</span></label>`).join('');
     if(it.note)cm+=`<div class="note">${it.note}</div><textarea placeholder="评语"></textarea>`;
-    cm+='</div>';
+    cm+='</div></div>';
   }
   return `<section class="it${first?' first':''}" data-score>
     <div class="sc">
@@ -140,10 +157,17 @@ function choiceHTML(it,first){
     <div class="copts">${it.opts.map(o=>`<label class="cbox"><input type="${type}" name="g${gid}"><span>${o}</span></label>`).join('')}</div>
   </section>`;
 }
+function fillHTML(it,first){
+  n++;
+  return `<section class="it${first?' first':''}">
+    <div class="t">${n}、${it.title}</div>${it.desc?`<div class="d">${it.desc}</div>`:''}
+    <input class="fillin" type="text" placeholder="请输入">
+  </section>`;
+}
 const main=document.getElementById('main');
 DATA.forEach((blk,bi)=>{
   if(blk.dim)main.insertAdjacentHTML('beforeend',`<div class="dim">${blk.dim}</div>`);
-  blk.items.forEach((it,i)=>main.insertAdjacentHTML('beforeend',(it.type==='score'?scoreHTML:choiceHTML)(it,blk.dim&&i===0)));
+  blk.items.forEach((it,i)=>main.insertAdjacentHTML('beforeend',(it.type==='score'?scoreHTML:it.type==='fill'?fillHTML:choiceHTML)(it,blk.dim&&i===0)));
 });
 
 /* 打分联动 */
