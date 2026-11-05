@@ -327,7 +327,7 @@ def gen_index_for_dir(dirpath: str, root: str = ".") -> None:
     rel_dir = os.path.relpath(dirpath, root)
     is_root = (rel_dir == ".")
 
-    name = "上座" if is_root else os.path.basename(dirpath)
+    name = "易面" if is_root else os.path.basename(dirpath)
 
     # 统计当前目录内容数量作为副标题
     try:
