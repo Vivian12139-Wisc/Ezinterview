@@ -1,224 +1,186 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>面试安排 - 序号设置原型</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>易面 - 面试安排 - 起始序号原型</title>
 <style>
+:root{
+  --blue:#3399ff; --blue-d:#1f84ee; --blue-bg:#eaf3ff;
+  --bg:#f4f6fa; --card:#fff; --side:#fff; --text:#222; --sub:#666; --line:#eceef3;
+  --orange:#f59a23; --red:#f0504b; --mask:rgba(0,0,0,.45); --menu-hover:#f2f7ff;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--bg:#15181e;--card:#1e232b;--side:#1e232b;--text:#e6e9ef;--sub:#9aa3b2;--line:#2c333e;--blue-bg:#1b2d45;--menu-hover:#243247}
+}
+:root[data-theme="dark"]{--bg:#15181e;--card:#1e232b;--side:#1e232b;--text:#e6e9ef;--sub:#9aa3b2;--line:#2c333e;--blue-bg:#1b2d45;--menu-hover:#243247}
 *{box-sizing:border-box}
-body{margin:0;font-family:"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;color:#333;background:#f5f6f8}
-button{font-family:inherit;cursor:pointer}
-a{color:#2f93fb;text-decoration:none}
-.top{display:flex;flex-wrap:wrap;align-items:stretch;background:#2f93fb;min-height:44px;color:#fff;font-size:14px}
-.top div{display:flex;align-items:center;padding:0 18px}
-.top .logo{font-size:20px;font-weight:700;letter-spacing:1px;padding:0 20px}
-.top .on{background:#fff;color:#2f93fb}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font:14px/1.5 "PingFang SC","Microsoft YaHei",-apple-system,"Helvetica Neue",Arial,sans-serif}
+.top{background:var(--blue);height:52px;display:flex;align-items:stretch;color:#fff;overflow-x:auto;white-space:nowrap}
+.logo{display:flex;align-items:center;padding:0 22px;font-size:20px;font-weight:700;letter-spacing:1px}
+.top a{display:flex;align-items:center;padding:0 16px;color:#fff;text-decoration:none}
+.top a.on{background:#fff;color:var(--blue)}
 .top .sp{flex:1}
-.layout{display:flex;flex-wrap:wrap;min-height:calc(100vh - 44px)}
-.side{width:180px;flex:0 0 180px;background:#fff;padding-top:12px}
-.side div{display:flex;align-items:center;gap:10px;height:44px;padding:0 18px 0 24px;font-size:14px;color:#444}
-.side div.on{color:#2f93fb;background:#e8f3ff;border-left:3px solid #2f93fb;padding-left:21px}
-.side svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.4}
-.main{flex:999 1 560px;min-width:0;padding:20px 24px 32px}
-.crumb{font-size:13px;color:#666;padding:0 0 16px 8px}
-.tabs{display:flex;flex-wrap:wrap;align-items:center;background:#fff;border-bottom:1px solid #eef0f3;padding:0 24px}
-.tab{background:none;border:0;border-bottom:2px solid transparent;font-size:16px;padding:20px 24px 14px;color:#333;min-height:44px}
-.tab.on{color:#2f93fb;border-bottom-color:#2f93fb}
-.card{background:#fff;margin-top:12px;padding:20px 24px}
-.bar{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding-bottom:16px}
-.bar .sp{flex:1}
-.search{display:flex;align-items:center;justify-content:space-between;width:240px;height:38px;border:1px solid #d9dde3;border-radius:19px;padding:0 14px;font-size:13px;color:#666}
-.btn{height:38px;padding:0 20px;border-radius:19px;font-size:14px;border:1px solid #c9ced6;background:#fff;color:#444}
-.btn.pri{background:#2f93fb;border-color:#2f93fb;color:#fff}
-.btn.out{border-color:#2f93fb;color:#2f93fb}
-.btn:disabled{background:#a9d2fc;border-color:#a9d2fc;cursor:not-allowed}
-.btn.sm{height:32px;padding:0 16px;font-size:13px}
-.tbl{overflow-x:auto}
-.tbl .in{min-width:980px}
-.row{display:grid;grid-template-columns:36px 64px 96px 1fr 1fr 80px 56px 80px 88px 88px 110px 150px;align-items:center;font-size:14px;border-bottom:1px solid #f0f2f5;height:54px}
-.row.h{height:52px;color:#444;border-top:1px solid #eef0f3;border-bottom:1px solid #eef0f3}
-.cb{display:inline-block;width:14px;height:14px;border:1px solid #c9ced6;border-radius:3px;margin-left:8px}
-.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#5cb85c;margin-right:6px}
-.seq{font-weight:400}
-.s2 b{font-weight:400}
-.foot{padding-top:28px;font-size:14px;color:#444}
-.foot b{color:#2f93fb;font-weight:400}
-.foot small{color:#666;font-size:12px;margin-left:16px}
-.mask{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-start;justify-content:center;padding:100px 16px 16px;overflow:auto;z-index:10}
+.layout{display:flex;min-height:calc(100vh - 52px)}
+.side{width:200px;flex:none;background:var(--side)}
+.side div{height:54px;display:flex;align-items:center;gap:10px;padding-left:22px;color:var(--sub)}
+.side div.on{background:var(--blue-bg);color:var(--blue);box-shadow:inset 3px 0 0 var(--blue)}
+.main{flex:1;padding:16px 22px;min-width:0}
+.crumb{color:var(--sub);font-size:13px;margin:4px 0 14px 4px}
+.card{background:var(--card);border-radius:4px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.info{padding:16px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.dot{width:14px;height:14px;border-radius:50%;border:4px solid var(--blue);flex:none}
+.kv{display:grid;grid-template-columns:repeat(4,auto);gap:8px 40px;font-weight:600}
+.kv span{white-space:nowrap}
+.btns{display:flex;gap:16px;justify-content:flex-start;flex-wrap:wrap;padding:12px 20px 14px 48px;border-top:1px solid var(--line)}
+.btn{border:0;border-radius:20px;padding:8px 26px;color:#fff;background:var(--blue);font:600 14px inherit;cursor:pointer}
+.btn:hover{background:var(--blue-d)}
+.btn.ghost{background:transparent;color:var(--sub);border:1px solid #aaa;font-weight:400}
+.btn.ghost:hover{background:var(--menu-hover)}
+.btn.line{background:transparent;color:var(--blue);border:1px solid var(--blue)}
+.btn.line:hover{background:var(--blue-bg)}
+.btn[disabled]{background:#c9ced6;border-color:#c9ced6;color:#fff;cursor:not-allowed}
+.btn:focus-visible,.gear:focus-visible,input:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.group{padding:12px 20px;font-weight:600;display:flex;gap:80px;flex-wrap:wrap}
+.group em{font-style:normal;color:var(--blue);font-weight:400;margin-left:6px}
+.table{padding:0 0 8px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:760px}
+th{font-weight:500;color:var(--sub);text-align:left;padding:18px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:18px 12px;color:var(--sub);border-bottom:1px solid var(--line)}
+td.num{color:var(--text);font-weight:600}
+a.name{color:var(--blue);text-decoration:underline}
+.tag{display:inline-block;border-radius:16px;padding:4px 14px;font-size:13px;margin-right:6px;cursor:pointer;background:transparent}
+.tag.o{color:var(--orange);border:1px solid var(--orange)}
+.tag.r{color:var(--red);border:1px solid var(--red)}
+.th-num{display:inline-flex;align-items:center;gap:6px;position:relative}
+.gear{width:26px;height:26px;border:0;border-radius:4px;background:transparent;color:var(--sub);cursor:pointer;display:grid;place-items:center;padding:0}
+.gear:hover,.gear[aria-expanded="true"]{background:var(--blue-bg);color:var(--blue)}
+.gear[disabled]{opacity:.4;cursor:not-allowed;background:transparent;color:var(--sub)}
+.menu{position:absolute;top:32px;left:0;z-index:20;min-width:190px;background:var(--card);border-radius:4px;box-shadow:0 4px 16px rgba(0,0,0,.18);padding:6px 0;display:none;font-weight:400}
+.menu.show{display:block}
+.menu button{display:block;width:100%;text-align:left;padding:9px 16px;border:0;background:transparent;color:var(--text);font:inherit;cursor:pointer}
+.menu button:hover{background:var(--menu-hover);color:var(--blue)}
+.menu button[disabled]{color:#aaa;cursor:not-allowed;background:transparent}
+.tip{position:absolute;top:32px;left:0;background:#333;color:#fff;font-size:12px;font-weight:400;padding:6px 10px;border-radius:4px;white-space:nowrap;display:none;z-index:25}
+.th-num:hover .tip.on{display:block}
+.mask{position:fixed;inset:0;background:var(--mask);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
 .mask.show{display:flex}
-.dlg{width:480px;max-width:100%;background:#fff;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.2)}
-.dlg.wide{width:900px}
-.dh{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid #eef0f3;font-size:16px;font-weight:600}
-.dh span{font-weight:400;color:#666;font-size:13px;margin-left:12px}
-.x{background:none;border:0;width:44px;height:44px;margin:-10px -12px -10px 0;color:#666;font-size:20px}
-.db{padding:24px}
-.df{display:flex;justify-content:flex-end;gap:12px;padding:14px 24px 20px}
-label{display:block;font-size:14px;margin-bottom:8px}
-label i{color:#e5484d;font-style:normal}
-input[type=text]{width:100%;height:40px;border:1px solid #2f93fb;border-radius:6px;padding:0 12px;font-size:14px;font-family:inherit;outline:none}
-input.bad{border-color:#e5484d}
-.err{margin-top:6px;font-size:12px;color:#d12f35;display:none}
-.prev{margin-top:12px;background:#f2f8ff;border-radius:6px;padding:10px 12px;font-size:13px}
-.prev b{color:#2f93fb}
-.tips{margin-top:14px;font-size:12px;color:#666;line-height:1.8}
-.dlg.seq{width:440px;padding:20px 24px 28px;box-shadow:0 4px 24px rgba(0,0,0,.18);border-radius:4px}
-.st{font-size:20px;font-weight:700;color:#000;margin-bottom:28px}
-.fr{display:flex;align-items:flex-start;margin-bottom:24px}
-.fl{width:100px;flex:0 0 100px;text-align:right;font-size:16px;color:#666;line-height:36px;padding-right:6px}
-.fv{flex:1;min-width:0;font-size:16px;color:#333;line-height:36px}
-.fv input[type=text]{height:36px;border:1px solid #ddd;border-radius:0;font-size:15px}
-.fv input[type=text]:focus{border-color:#339aff}
-.fv input.bad{border-color:#e5484d}
-.fb{display:flex;justify-content:center;gap:32px;margin-top:32px}
-.pill{width:100px;height:32px;border-radius:16px;border:1px solid #999;background:#fff;color:#666;font-size:16px}
-.pill.pri{background:#339aff;border-color:#339aff;color:#fff}
-.pill:disabled{background:#a9d2fc;border-color:#a9d2fc;cursor:not-allowed}
-.s2{font-size:15px;line-height:1.8;color:#333}
-.s2 small{color:#666;font-size:13px}
-.step2{display:none;padding:28px 24px 8px;font-size:14px;line-height:1.8}
-.step2 small{color:#666;font-size:13px}
-.g7{display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr 70px 1fr 1fr;background:#f7f8fa;border:1px solid #eef0f3;font-size:13px;color:#444}
-.g7 div{padding:10px 12px}
-.g7 .new{background:#e8f3ff;color:#1677e0}
-.g7 .new em{font-style:normal;font-weight:400;font-size:11px;background:#fff;border:1px solid #2f93fb;border-radius:8px;padding:1px 6px;margin-left:4px}
-.h3{font-size:14px;font-weight:600;margin:18px 0 8px}
-.h3 small{font-weight:400;color:#666;font-size:12px;margin-left:12px}
-.rules{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;font-size:13px;line-height:1.7}
-.rules div{border:1px solid #eef0f3;border-radius:6px;padding:12px 14px}
-.vt{border:1px solid #eef0f3;font-size:13px}
-.vr{display:grid;grid-template-columns:60px 110px 1fr 1fr 1.6fr;border-top:1px solid #f0f2f5}
-.vr:first-child{border-top:0;background:#f7f8fa;font-weight:600;color:#444}
-.vr div{padding:9px 12px}
-.vr.e{background:#fff5f5}
-.ok{color:#1e7a3a}.no{color:#b42328;font-weight:600}
-.imf{display:flex;align-items:center;justify-content:space-between;padding:14px 24px 20px;flex-wrap:wrap;gap:12px}
-@media(max-width:700px){.rules{grid-template-columns:1fr}}
+.dlg{background:var(--card);border-radius:6px;width:440px;max-width:100%;padding:24px 28px}
+.dlg h3{margin:0 0 22px;font-size:20px}
+.row{display:flex;align-items:center;gap:10px}
+.row label{color:var(--sub);white-space:nowrap}
+.row input{flex:1;height:40px;border:1px solid var(--blue);padding:0 12px;font-size:16px;background:var(--card);color:var(--text);border-radius:2px}
+.row input.err{border-color:var(--red)}
+.hint{color:var(--sub);font-size:12px;margin:10px 0 0 78px}
+.errmsg{color:var(--red);font-size:12px;margin:6px 0 0 78px;min-height:18px}
+.acts{display:flex;justify-content:center;gap:24px;margin-top:20px}
+.confirm p{font-size:16px;margin:0 0 6px}
+.confirm b{color:var(--blue);font-weight:400}
+.toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#52c41a;color:#fff;padding:9px 22px;border-radius:4px;display:none;z-index:80}
+.toast.show{display:block}
+.demo{position:fixed;right:14px;bottom:14px;background:var(--card);border-radius:6px;box-shadow:0 2px 12px rgba(0,0,0,.2);padding:10px 14px;font-size:12px;color:var(--sub);z-index:30;display:flex;gap:10px;align-items:center}
+.demo select{font:inherit;padding:3px 6px;background:var(--card);color:var(--text);border:1px solid var(--line)}
+@media (max-width:760px){.side{display:none}.kv{grid-template-columns:repeat(2,auto)}.main{padding:12px}}
 </style>
 </head>
 <body>
-
 <div class="top">
-  <div class="logo">易面</div><div class="on">项目</div><div>评分表</div><div>面试题</div><div>岗位</div><div>面试官</div><div>面试间</div><div>组织管理</div>
-  <div class="sp"></div><div>终端入口</div><div>帮助</div><div>superadmin</div>
+  <div class="logo">易面</div>
+  <a class="on">项目</a><a>评分表</a><a>面试题</a><a>岗位</a><a>面试官</a><a>面试间</a><a>组织管理 &gt;</a>
+  <span class="sp"></span><a>终端入口 &gt;</a><a>帮助</a><a>superadmin ▾</a>
 </div>
-
 <div class="layout">
   <div class="side">
-    <div><svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2"/></svg>日程信息</div>
-    <div><svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2"/></svg>面试官小组</div>
-    <div><svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2"/></svg>引导员管理</div>
-    <div><svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2"/></svg>候选人名单</div>
-    <div><svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2"/></svg>签到管理</div>
-    <div class="on"><svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2"/></svg>面试安排</div>
-    <div><svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2"/></svg>监控统计</div>
+    <div>日程信息</div><div>面试官小组</div><div>引导员管理</div><div>候选人名单</div><div>签到管理</div><div class="on">面试安排</div><div>监控统计</div>
   </div>
-
   <div class="main">
-    <div class="crumb">我的面试项目 / 易面-使用手册 / 演示-现场日程 / 面试安排</div>
-    <div class="tabs">
-      <button class="tab on" id="tabA">yspfb1</button>
-      <button class="tab" id="tabB">yszfb1</button>
-      <div style="flex:1"></div>
-      <button class="btn pri" id="btnImport" style="height:40px">导入面试安排</button>
-    </div>
-    <div class="card">
-      <div class="bar">
-        <div class="search">安排名称、面试对象
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#2f93fb" stroke-width="1.5"><circle cx="7" cy="7" r="5"/><path d="M11 11l3.5 3.5"/></svg></div>
-        <div class="sp"></div>
-        <button class="btn out" id="btnSeq">起始序号</button>
-        <button class="btn out">自动分组设置</button>
-        <a href="#" style="padding:0 6px;font-size:14px">展示链接</a>
-        <button class="btn pri">添加面试安排</button>
-        <button class="btn">删除</button>
+    <div class="crumb">我的面试项目 / 易面-使用手册 / 演示-远程日程 / 面试安排 / 安排详情</div>
+    <div class="card"><div class="info">
+      <span class="dot"></span>
+      <div class="kv">
+        <span>面试状态：<span id="status">未开始</span></span><span>名称：ysmsap1</span><span>编排上限：1 人</span><span>候考区：--</span>
+        <span>面试官组：ysmsgz1</span><span>面试对象数：<span id="cnt">4</span>人</span><span>开始时间：2026/11/10 00:07</span><span>结束时间：2026/11/10 00:55</span>
       </div>
-      <div class="tbl"><div class="in">
-        <div class="row h"><div><span class="cb"></span></div><div>序号</div><div>状态</div><div>名称</div><div>面试官组</div><div>面试对象</div><div>上限</div><div>时区</div><div>开始时间</div><div>结束时间</div><div>添加时间</div><div>操作</div></div>
-        <div id="rows"></div>
-      </div></div>
-      <div class="foot">已筛选<b id="n1"></b>个/共<b id="n2"></b>个安排<small>当前评分表起始序号：<span id="startNow"></span></small></div>
+      </div><div class="btns"><button class="btn">开始面试</button><button class="btn" id="setBtn">设置起始序号</button><button class="btn">添加面试对象</button></div>
+    </div>
+    <div class="card group"><span>• ysmsg1 (组长) : 0/0</span><span>• ysmsg2 : 0/0 <em>禁用</em></span></div>
+    <div class="card table">
+      <table>
+        <thead><tr>
+          <th style="width:50px"></th><th>姓名</th><th>性别</th><th>叫号状态</th><th>评分状态</th><th>考生端状态</th><th>身份证号</th>
+          <th>编号</th>
+          <th>操作</th>
+        </tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
     </div>
   </div>
 </div>
 
-<!-- 序号设置弹窗 -->
-<div class="mask" id="seqMask">
-  <div class="dlg seq">
-    <div class="st">起始序号</div>
-    <div id="step1">
-      <div class="fr"><div class="fl">起始序号:</div><div class="fv"><input type="text" id="startNo" inputmode="numeric" maxlength="4" placeholder="请输入起始序号" aria-label="起始序号"><div class="err" id="err">请输入 1 ~ 9999 的正整数</div></div></div>
-      <div class="fb"><button class="pill pri" id="seqOk">确定</button><button class="pill" id="seqCancel">取消</button></div>
-    </div>
-    <div id="step2" style="display:none">
-      <div class="s2">修改后，当前 <b id="cn"></b> 个安排的序号将变为 <b style="color:#2f93fb" id="cr"></b>。是否继续？</div>
-      <div class="fb"><button class="pill pri" id="seqGo">继续</button><button class="pill" id="seqBack">取消</button></div>
-    </div>
-  </div>
+<div class="mask" id="m1"><div class="dlg" role="dialog" aria-modal="true">
+  <h3>起始序号</h3>
+  <div class="row"><label for="inp">起始序号:</label><input id="inp" inputmode="numeric" autocomplete="off"></div>
+  <div class="errmsg" id="err"></div>
+  <div class="acts"><button class="btn" id="ok1">确定</button><button class="btn ghost" id="no1">取消</button></div>
+</div></div>
+<div class="mask" id="m2"><div class="dlg confirm" role="dialog" aria-modal="true">
+  <h3>起始序号</h3>
+  <p>修改后，当前安排的序号将变为 <b id="range"></b>。是否继续？</p>
+  <div class="acts"><button class="btn" id="ok2">继续</button><button class="btn ghost" id="no2">取消</button></div>
+</div></div>
+<div class="toast" id="toast">起始序号已修改</div>
+
+<div class="demo">演示状态：
+  <select id="sel"><option value="未开始">面试未开始</option><option value="进行中">面试进行中</option></select>
 </div>
 
 <script>
-var data = {
-  a: [
-    ['ysmsap1','ysmsgz1',2,2,'14:00','16:00','10/19 14:27'],
-    ['ysmsap2','ysmsgz2',2,2,'14:00','16:00','10/19 14:30'],
-    ['ysmsap3','ysmsgz1',3,3,'16:00','18:00','10/19 14:32'],
-    ['ysmsap4','ysmsgz2',3,3,'16:00','18:00','10/19 14:35']
-  ],
-  b: [
-    ['yszap1','yszgz1',1,2,'09:00','11:00','10/19 14:40'],
-    ['yszap2','yszgz1',2,2,'11:00','12:00','10/19 14:41']
-  ]
-};
-var starts = {a:1, b:1}, tab = 'a', draft = 1;
-var $ = function(id){return document.getElementById(id)};
-
-function names(){ return tab==='a' ? 'yspfb1' : 'yszfb1'; }
+var people=[["A同学","男"],["B同学","女"],["C同学","男"],["D同学","女"]];
+var start=1,pending=1;
+var $=function(i){return document.getElementById(i)};
 function render(){
-  var list = data[tab], s = starts[tab], h = '';
-  list.forEach(function(r,i){
-    h += '<div class="row"><div><span class="cb"></span></div><div class="seq">'+(s+i)+'</div>'
-      + '<div><span class="dot"></span>进行中</div><div style="color:#666">'+r[0]+'</div><div>'+r[1]+'</div>'
-      + '<div style="color:#666">'+r[2]+'人</div><div>'+r[3]+'</div><div>UTC+8</div><div>'+r[4]+'</div><div>'+r[5]+'</div><div>'+r[6]+'</div>'
-      + '<div style="color:#2f93fb;white-space:nowrap">编辑　链接内可显示</div></div>';
-  });
-  $('rows').innerHTML = h;
-  $('n1').textContent = $('n2').textContent = list.length;
-  $('startNow').textContent = s;
-  $('tabA').className = 'tab' + (tab==='a'?' on':'');
-  $('tabB').className = 'tab' + (tab==='b'?' on':'');
+  $("rows").innerHTML=people.map(function(p,i){
+    return '<tr><td>'+(start+i)+'</td><td><a class="name">'+p[0]+'</a></td><td>'+p[1]+'</td><td>未叫号</td><td>未开始</td><td>未签到</td><td></td><td class="num">'+(start+i)+'</td><td><span class="tag o">弃考</span><span class="tag r">舞弊</span><span style="color:var(--blue)">🗑</span> 删除</td></tr>';
+  }).join("");
+  $("cnt").textContent=people.length;
 }
-function range(s){ var n = data[tab].length; return n>1 ? s+' ~ '+(s+n-1) : String(s); }
-function check(){
-  var v = $('startNo').value, ok = /^[1-9][0-9]{0,3}$/.test(v);
-  $('startNo').className = ok ? '' : 'bad';
-  $('err').style.display = ok ? 'none' : 'block';
-  $('seqOk').disabled = !ok;
-  if(ok){ draft = parseInt(v,10); }
-  return ok;
+function locked(){return $("sel").value!=="未开始"}
+function applyLock(){
+  var l=locked();
+  $("status").textContent=$("sel").value;
+  $("setBtn").disabled=l;
+  $("setBtn").title=l?"面试已开始，不可修改起始序号":"";
 }
-function openSeq(){
-  $('startNo').value = starts[tab];
-  $('step1').style.display = 'block'; $('step2').style.display = 'none';
-  $('seqMask').className = 'mask show'; check(); $('startNo').focus();
-}
-function closeSeq(){ $('seqMask').className = 'mask'; }
-
-$('tabA').onclick = function(){ tab='a'; render(); };
-$('tabB').onclick = function(){ tab='b'; render(); };
-$('btnSeq').onclick = openSeq;
-$('seqCancel').onclick = closeSeq;
-$('seqMask').onclick = function(e){ if(e.target === this) closeSeq(); };
-$('startNo').oninput = function(){ this.value = this.value.replace(/[^0-9]/g,''); check(); };
-$('seqOk').onclick = function(){
-  if(!check()) return;
-  if(draft === starts[tab]){ closeSeq(); return; }
-  $('cn').textContent = data[tab].length; $('cr').textContent = range(draft);
-  $('step1').style.display = 'none'; $('step2').style.display = 'block';
+$("setBtn").onclick=function(){
+  $("inp").value=start;$("inp").className="";$("err").textContent="";
+  $("m1").classList.add("show");$("inp").focus();$("inp").select();
 };
-$('seqBack').onclick = closeSeq;
-$('seqGo').onclick = function(){ starts[tab] = draft; render(); closeSeq(); };
-
-render();
+function validate(){
+  var v=$("inp").value.trim();
+  if(!/^\d+$/.test(v)||+v<1){return "请输入大于等于 1 的整数"}
+  if(+v>9999){return "起始序号不能超过 9999"}
+  return "";
+}
+$("ok1").onclick=function(){
+  var m=validate();
+  $("err").textContent=m;$("inp").className=m?"err":"";
+  if(m)return;
+  pending=+$("inp").value.trim();
+  if(pending===start){$("m1").classList.remove("show");return}
+  $("range").textContent=pending+" ~ "+(pending+people.length-1);
+  $("m1").classList.remove("show");$("m2").classList.add("show");
+};
+$("inp").onkeydown=function(e){if(e.key==="Enter")$("ok1").click();if(e.key==="Escape")$("no1").click()};
+$("no1").onclick=function(){$("m1").classList.remove("show")};
+$("no2").onclick=function(){$("m2").classList.remove("show")};
+$("ok2").onclick=function(){
+  start=pending;render();$("m2").classList.remove("show");
+  $("toast").classList.add("show");setTimeout(function(){$("toast").classList.remove("show")},1800);
+};
+$("sel").onchange=applyLock;
+render();applyLock();
 </script>
 </body>
 </html>
