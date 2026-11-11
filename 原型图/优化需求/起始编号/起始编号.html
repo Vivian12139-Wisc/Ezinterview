@@ -142,11 +142,11 @@ var start=1,pending=1;
 var $=function(i){return document.getElementById(i)};
 function render(){
   $("rows").innerHTML=people.map(function(p,i){
-    return '<tr><td>'+(start+i)+'</td><td><a class="name">'+p[0]+'</a></td><td>'+p[1]+'</td><td>未叫号</td><td>未开始</td><td>未签到</td><td></td><td class="num">'+(start+i)+'</td><td><span class="tag o">弃考</span><span class="tag r">舞弊</span><span style="color:var(--blue)">🗑</span> 删除</td></tr>';
+    return '<tr><td>'+(start+i)+'</td><td><a class="name">'+p[0]+'</a></td><td>'+p[1]+'</td><td>未叫号</td><td>未开始</td><td>未签到</td><td></td><td class="num">'+(i+1)+'</td><td><span class="tag o">弃考</span><span class="tag r">舞弊</span><span style="color:var(--blue)">🗑</span> 删除</td></tr>';
   }).join("");
   $("cnt").textContent=people.length;
 }
-function locked(){return $("sel").value!=="未开始"}
+function locked(){return false}
 function applyLock(){
   var l=locked();
   $("status").textContent=$("sel").value;
