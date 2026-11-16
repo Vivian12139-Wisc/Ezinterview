@@ -107,7 +107,7 @@ table{border-collapse:collapse}
 .ex-tiles .tile{width:300px;height:170px}
 .leave{margin-left:auto;height:34px;padding:0 20px;border-radius:17px;border:1px solid #ee5a5a;color:#ff7070;font-size:13px}
 .ex-right{flex:1;display:flex;flex-direction:column;min-width:0;background:#fff}
-.stu-tabs{height:54px;display:flex;align-items:center;padding:0 12px 0 16px;border-bottom:1px solid var(--line);gap:18px;flex:none}
+.stu-tabs{height:54px;display:flex;align-items:center;padding:0 12px 0 16px;border-bottom:1px solid var(--line);gap:12px;flex:none}
 .stu-tabs a{font-size:15px;color:var(--sub);height:54px;display:flex;align-items:center;position:relative;white-space:nowrap}
 .stu-tabs a.on{color:var(--blue);font-weight:600}
 .stu-tabs a.on:after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;border-radius:2px;background:var(--blue)}
@@ -354,18 +354,37 @@ table{border-collapse:collapse}
 .mc.noread .rd-opts,.mc.noread .share-opts,.mc.free .share-opts{display:none}
 @media (max-width:760px){.mc-list{padding-left:0}.mcico{margin-right:8px}.mc-h{flex-wrap:wrap;gap:8px 16px}}
 @media (max-width:560px){.fr{flex-direction:column;gap:8px}.fr>label{text-align:left;width:auto}}
+#kShare{display:flex;gap:6px;align-items:center;padding-right:8px;border-right:1px solid var(--line)}#kShare:empty{display:none}
+.tb.chip{cursor:default;font-variant-numeric:tabular-nums;background:#f3f5f8;color:var(--sub)}.tb.chip.ok{background:var(--green-l);color:var(--green)}.tb.chip .dot{width:7px;height:7px;border-radius:50%;background:currentColor;animation:blink 1.2s infinite}
+.tb.chip.lv-orange,.tb.chip.lv-pause{background:var(--orange-l);color:var(--orange)}.tb.chip.lv-red{background:var(--red-l);color:var(--red)}
+.tb.pri{background:var(--blue);color:#fff}.tb.dlt{background:var(--red-l);color:var(--red)}
+.qlb{font-size:13px;font-weight:600;white-space:nowrap;margin-right:4px}
+.solo{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 10px;padding:0 4px;font-size:13px;color:var(--sub)}
+.zsh{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid #d6e5fb;border-radius:6px;padding:10px 16px;margin-top:14px;font-size:14px}.zsh b{font-weight:600}
+.ex-tiles .grp-b{display:none}.ex-left.grp .ex-tiles .tile{width:200px}.ex-left.grp .grp-b{display:block}
+.zhr{display:flex;align-items:center;gap:12px}
+.tb.chip[data-act]{cursor:pointer}.tb.chip svg,.zbtn.zc svg{width:12px;height:12px}
+.zbtn.zc{display:inline-flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums;background:#eef5ff;color:var(--blue)}
+.zbtn.zc.ok{background:var(--green-l);border-color:#bfe6d0;color:var(--green)}.zbtn.zc .dot{width:7px;height:7px;border-radius:50%;background:currentColor;animation:blink 1.2s infinite}
+.zbtn.zc.lv-orange,.zbtn.zc.lv-pause{background:var(--orange-l);border-color:#f7d6a8;color:var(--orange)}.zbtn.zc.lv-red{background:var(--red-l);border-color:#f3b0b0;color:var(--red)}
+.pop{position:absolute;top:100%;left:0;margin-top:6px;z-index:30;background:#fff;border-radius:8px;box-shadow:0 8px 24px rgba(20,40,80,.18);padding:6px;display:flex;flex-direction:column;gap:2px;min-width:132px}.pop.r{left:auto;right:0}
+.pop button{height:34px;padding:0 12px;border-radius:6px;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);white-space:nowrap}.pop button:hover{background:#f3f6fb}.pop button.d{color:var(--red)}.pop button svg{width:14px;height:14px}
+.modal.tm{position:relative;text-align:center;padding-bottom:26px}.modal.tm h4{text-align:left}.modal.tm .btn{width:150px;height:40px;border-radius:6px;font-size:15px}
+.mx{position:absolute;right:20px;top:14px;font-size:26px;line-height:1;color:#9aa1ad;cursor:pointer}
+.rg{--c:var(--green);width:176px;height:176px;border-radius:50%;margin:10px auto 24px;display:grid;place-items:center;background:conic-gradient(var(--c) calc(var(--p,100)*1%),#f2f4f9 0)}.rg.lv-orange,.rg.lv-pause{--c:var(--orange)}.rg.lv-red{--c:var(--red)}
+.rg>div{width:150px;height:150px;border-radius:50%;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}.rg b{font-size:34px;font-variant-numeric:tabular-nums;color:#555}.rg em{font-size:13px;color:var(--muted)}
 </style>
 </head>
 <body>
 <header class="pbar">
   <b>远程面试 · 试题共享</b>
   <div class="sw-seg" id="viewSw"><button data-view="k" class="on">考官端</button><button data-view="z">面试助理端</button><button data-view="zd">面试助理端 · 试题页（投屏）</button><button data-view="ca">考生端</button><button data-view="cfg">日程配置</button></div>
-  <button class="rst" id="resetBtn">重置</button>
+  <label class="demo"><input type="checkbox" data-opt="lot">配置抽题</label><button class="rst" id="resetBtn">重置</button>
 </header>
 
 <main class="stage" id="stage" data-view="k">
   <section class="fw" id="fwK"><div class="fw-lbl"><i></i>考官端</div><div class="fw-box"><div class="frame" id="k" data-who="k"></div></div></section>
-  <section class="fw" id="fwZ"><div class="fw-lbl"><i></i>面试助理端 · 我的项目</div><div class="fw-box"><div class="frame" id="z" data-who="zl"></div></div></section>
+  <section class="fw" id="fwZ"><div class="fw-lbl"><i></i>面试助理端 · 我的项目</div><div class="fw-box"><div class="frame" id="z" data-who="z"></div></div></section>
   <section class="fw" id="fwZd"><div class="fw-lbl"><i></i>面试助理端 · 试题页（投屏）</div><div class="fw-box"><div class="frame" id="zd" data-who="z"></div></div></section>
   <section class="fw" id="fwCa"><div class="fw-lbl"><i></i>考生端</div><div class="fw-box"><div class="frame" id="ca" data-who="ca"></div></div></section>
   <section class="fw" id="fwCfg"><div class="fw-lbl"><i></i>日程配置 · 会议配置</div>
@@ -440,12 +459,12 @@ $('#k').innerHTML=`
     <div class="layout-bar">${I.layout}布局</div>
     <div class="ex-tiles">
       <div class="tile dark"><div class="circ">${F.kao()}</div>${tag('考官A')}</div>
-      <div class="tile">${F.stu(1)}${tag('A同学',true)}</div>
+      <div class="tile">${F.stu(1)}${tag('A同学',true)}</div><div class="tile grp-b">${F.stu(0)}${tag('B同学',true)}</div>
     </div>
     <div class="vbar">${vb(I.mic,'麦克风')}${vb(I.cam,'摄像头')}<div style="flex:1"></div>${vb(I.users,'成员(2)')}<div style="flex:1"></div><button class="leave">离开房间</button></div>
   </div>
   <div class="ex-right">
-    <div class="stu-tabs"><a class="on">1. A同学</a><a>2. B同学</a><a>3. C同学</a><span class="sp"></span><div class="tbs"><span class="tb out">${I.clock}计时器</span><span class="tb lt">${I.stop2}结束</span><span class="tb lt">个人评分${I.down}</span></div></div>
+    <div class="stu-tabs"><a class="on">1. A同学</a><a>2. B同学</a><a>3. C同学</a><span class="sp"></span><span id="kShare"></span><div class="tbs"><span class="tb out">${I.clock}计时器</span><span class="tb lt">${I.stop2}结束</span><span class="tb lt">个人评分${I.down}</span></div></div>
     <div class="stu-info"><div><span>姓名：</span>A同学</div><div><span>性别：</span>男</div><div><span>编号：</span>5号</div><div><span>客户编号：</span>C0105</div><div><span>考生端状态：</span>面试中</div></div>
     <div class="strip"><span class="rf">${I.refresh}刷新</span><span class="dt">考官B - 评分中</span><button class="hist">查看历史成绩</button></div>
     <div class="seg" id="kSeg"></div>
@@ -462,20 +481,16 @@ $('#z').innerHTML=`${zHead('我的项目')}
     <div class="proj"><div class="pt"><b>A安排</b><span class="ptag">面试进行中</span></div><p>${I.clock}时间：09:30~12:00 (UTC+8)</p><p>${I.hour}第一场</p></div>
   </div>
   <div class="zl-main">
-    <div class="zm-top"><h2>A安排</h2><button class="zbig">面试进行中</button></div>
+    <div class="zm-top"><h2>A安排</h2><div class="zhr"><span class="zshare" id="zTop"></span><button class="zbig">面试进行中</button></div></div>
     <div class="judges"><span>考官A - 已评分：0 / 3</span><span>考官B - 已评分：0 / 3</span></div>
     <div class="zm-sub"><h3>候选人列表</h3><span>已核验：1 / 3</span><span>已评分：0 / 3</span><div class="search">${I.search}姓名、身份证号</div></div>
     <table class="ztab">
-      <thead><tr><th class="drag"></th><th>序号</th><th>姓名</th><th>编号</th><th>评分状态</th><th>签到状态</th><th>平均分</th><th style="text-align:right;padding-right:20px">操作</th></tr></thead>
-      <tbody>
-        <tr><td class="drag">⠿</td><td>1</td><td class="c-blue">A同学</td><td>5号</td><td class="c-blue">面试中</td><td class="c-green">已签到</td><td>--</td><td><div class="ops"><button class="zbtn" data-act="view">查看试题</button><button class="zbtn">入场核验</button></div></td></tr>
-        <tr><td class="drag">⠿</td><td>2</td><td class="c-blue">B同学</td><td>6号</td><td class="c-blue">未开始</td><td class="c-green">已签到</td><td>--</td><td><div class="ops"><button class="zbtn grey">尚未抽题</button><button class="zbtn">入场核验</button></div></td></tr>
-        <tr><td class="drag">⠿</td><td>3</td><td class="c-blue">C同学</td><td>7号</td><td class="c-blue">未开始</td><td class="c-grey">未签到</td><td>--</td><td><div class="ops"><button class="zbtn grey">尚未抽题</button><button class="zbtn">入场核验</button></div></td></tr>
-      </tbody>
+      <thead><tr><th class="drag"></th><th>序号</th><th>姓名</th><th>编号</th><th>评分状态</th><th>签到状态</th><th>平均分</th><th>试题共享</th><th style="text-align:right;padding-right:20px">操作</th></tr></thead>
+      <tbody id="zBody"></tbody>
     </table>
   </div>
 </div>
-`;
+<div class="toasts" id="zlToasts"></div><div id="zModal2"></div>`;
 
 $('#zd').innerHTML=`${zHead('A安排 - 第一场 · A同学')}
 <div class="zd-body">
@@ -516,15 +531,16 @@ $('#ca').innerHTML=`
 
 /* ---------- state ---------- */
 let lastPick=0;
-const cfg={mode:'control',read:true,dur:10,allowEdit:true,timed:true,onTimeout:'auto',multiRound:true};
+const cfg={lot:false,grp:true,mode:'control',read:true,dur:10,allowEdit:true,timed:true,onTimeout:'auto',multiRound:true};
 const p2=n=>String(n).padStart(2,'0');
 const dTxt=d=>{const h=Math.floor(d/3600),m=Math.floor(d%3600/60),x=d%60;return [h?h+' 小时':'',m?m+' 分':'',x?x+' 秒':''].filter(Boolean).join(' ')||'0 秒';};
 const readHMS=root=>{const g=k=>Math.max(0,parseInt(root.querySelector(`[data-${root.dataset.kind}="${k}"]`).value,10)||0);return g('h')*3600+g('m')*60+g('s');};
 const em=()=>!cfg.read?'off':cfg.mode;
 const canStart=()=>S.status==='hidden'||(S.status==='ended'&&cfg.multiRound);
 let speed=1,acc=0;
-const S0=()=>({status:'hidden',total:cfg.dur,remain:cfg.dur,over:0,endReason:'',last:null,tab:'试题',modal:null,modalKind:'',caPanel:true,q:0,round:0,pick:cfg.dur});
+const S0=()=>({status:'hidden',total:cfg.dur,remain:cfg.dur,over:0,endReason:'',last:null,tab:'试题',modal:null,modalKind:'',caPanel:true,q:0,round:0,pick:cfg.dur,aStop:false,pop:null});
 let S=S0();
+const N=()=>cfg.grp?2:1;
 const fmt=s=>{s=Math.max(0,Math.round(s));return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')};
 const durTxt=()=>dTxt(cfg.dur);
 const now=()=>new Date().toTimeString().slice(0,8);
@@ -538,6 +554,7 @@ function lvl(){
   return'';
 }
 function toast(w,text,type='info'){
+  if(w==='z'&&!toast.r){toast.r=1;toast('zl',text,type);toast.r=0;}
   const box=$('#'+w+'Toasts');if(!box)return;
   const d=document.createElement('div');
   d.className='toast '+type;d.innerHTML=`<i></i>${text}`;box.appendChild(d);
@@ -555,29 +572,50 @@ function kContentHTML(){
   if(S.tab==='副视角')return `<div class="vice">${I.cam}<span>考生副视角画面</span></div>`;
   const qs=`<div class="qcard">${qsHTML(false)}</div>`;
   if(em()!=='control')return qs;
-  const st=S.status;let left,btn='';
-  if(st==='hidden'){left='';btn=`<button class="btn btn-primary" data-act="start">${I.play}共享试题</button>`;}
-  else if(st==='ended'){left='';if(cfg.multiRound)btn=`<button class="btn btn-primary" data-act="start">${I.play}共享试题</button>`;}
-  else{
-    if(!cfg.timed){left='<span class="pill pill-green"><i class="dot"></i>共享中</span>';btn=`<button class="btn btn-dlt" data-act="stop">${I.stop}停止共享</button>`;}
-    else{left=`${st==='showing'&&!isOver()?'<span class="pill pill-green"><i class="dot"></i>共享中</span>':''}<span class="tmv t-lv"><b class="t-remain"></b>${isOver()?'超时':'/ '+fmt(S.total)}</span><div class="prog t-lv"><i class="t-prog"></i></div>`;
-    if(st==='paused')btn=`<span class="bgrp"><button class="btn btn-dlt" data-act="pstop">${I.stop}停止共享</button><button class="btn btn-primary" data-act="resume">${I.play}继续</button></span>`;
-    else{const [sl,si,sc]=stopLabel();btn=`<button class="btn ${sc}" data-act="stop">${si}${sl}</button>`;}}
-  }
-  const lt=st==='ended'||!S.last?'':`${S.last.who} ${S.last.t} ${S.last.text}`;
-  return `<div class="qbar"><div class="qb-l${st==='ended'&&!cfg.multiRound?' ctr0':''}">${left}</div>${btn}</div><div class="qgap"></div>${qs}`;
+  const sl=S.status;
+  const solo=(sl==='showing'||sl==='paused')?`<div class="solo"><span>A同学 · ${S.aStop?'已单独停止':sl==='paused'?'已暂停':'共享中'}</span>${S.aStop?'<button class="btn btn-primary" data-act="soloOn">重新共享</button>':'<button class="btn btn-dlt" data-act="soloOff">单独停止</button>'}</div>`:'';
+  return qs;
+}
+function popItems(){const st=S.status,a=[];if(cfg.timed&&st==='showing'&&!isOver())a.push(`<button data-act="stop">${I.pause}暂停</button>`);if(st==='paused')a.push(`<button data-act="resume">${I.play}继续</button>`);a.push(`<button class="d" data-act="stopc">${I.stop}停止共享</button>`);return a.join('');}
+function popH(p,c){return S.pop===p?`<div class="pop ${c||''}">${popItems()}</div>`:'';}
+function shLab(){return isOver()?'超时':S.status==='paused'?'已暂停':'共享中';}
+function kBarHTML(){
+  if(em()!=='control')return'';
+  const st=S.status,tm=cfg.timed;
+  if(st==='hidden'||(st==='ended'&&cfg.multiRound))return `<button class="tb pri" data-act="start">${I.play}共享试题</button>`;
+  if(st==='ended')return '<span class="tb chip">共享已结束</span>';
+  if(st==='paused')return `<button class="tb pri" data-act="pop">${I.play}共享试题</button>`;
+  return `<span class="rel"><button class="tb chip ${tm?'t-lv':''} ${st==='paused'?'':'ok'}" data-act="pop">${st==='paused'?'':'<i class="dot"></i>'}${shLab()}${tm?' <b class="t-remain"></b>':''}</button></span>`;
 }
 
 /* ---------- assistant ---------- */
 function zdStatusHTML(){
+  if(!cfg.lot)return batchHTML();
+  return'';
   if(em()!=='control')return'';
-  const st=S.status;
-  if(st==='hidden')return `<button class="zbtn pri" data-act="start">共享试题</button>`;
-  if(st==='ended')return cfg.multiRound?`<button class="zbtn pri" data-act="start">共享试题</button>`:'';
-  if(st==='paused')return `<span class="zchip t-lv">${I.pause}<b class="t-remain"></b></span><button class="zbtn warn" data-act="pstop">停止共享</button><button class="zbtn pri" data-act="resume">继续</button>`;
-  if(!cfg.timed)return `<span class="zchip"><i class="dot"></i>共享中</span><button class="zbtn warn" data-act="stop">停止共享</button>`;
-  const [sl]=stopLabel();
-  return `<span class="zchip t-lv"><i class="dot"></i><b class="t-remain"></b></span><button class="zbtn ${sl==='停止共享'?'warn':''}" data-act="stop">${sl}</button>`;
+  const s=S.status;
+  if(s==='hidden'||s==='ended')return '<span class="zd-st grey">未共享</span><span class="zd-dur">请在项目页统一共享</span>';
+  return S.aStop?'<span class="zd-st grey">已单独停止</span><button class="zbtn pri" data-act="soloOn">重新共享</button>':`<span class="zd-st ${s==='paused'?'orange':'green'}"><i class="dot"></i>${s==='paused'?'已暂停':'共享中'}</span><button class="zbtn warn" data-act="soloOff">单独停止</button>`;
+}
+function zTopHTML(){
+  let b=batchHTML();
+  if(b)b=b.replace('data-act="start"',`data-act="start" title="${cfg.lot?'已抽题 1 / 3 人，未抽题的考生不会被共享':'共享给全体在场考生（'+N()+'人）'}"`);
+  return (cfg.lot?'':'<button class="zbtn" data-act="view">查看试题</button>')+b;
+}
+function zRowsHTML(){
+  const g=cfg.grp,l=cfg.lot;
+  const shT=r=>{if(em()!=='control'||!r)return'<span class="c-grey">--</span>';const on=S.status==='showing'||S.status==='paused';const t=r==='A'&&S.aStop&&on?'已单独停止':{hidden:'未共享',showing:'共享中',paused:'已暂停',ended:'已结束'}[S.status];return `<span class="${t==='共享中'?'c-green':'c-grey'}"${t==='已暂停'?' style="color:var(--orange)"':''}>${t}</span>`;};
+  const gy='<button class="zbtn grey">尚未抽题</button>',vw='<button class="zbtn" data-act="view">查看试题</button>';
+  const T=(i,n,no,st,sg,r,v)=>`<tr><td class="drag">⠿</td><td>${i}</td><td class="c-blue">${n}</td><td>${no}</td><td class="c-blue">${st}</td><td class="${sg==='已签到'?'c-green':'c-grey'}">${sg}</td><td>--</td><td>${shT(r)}</td><td><div class="ops">${v}<button class="zbtn">入场核验</button></div></td></tr>`;
+  return T(1,'A同学','5号','面试中','已签到','A',l?vw:'')+T(2,'B同学','6号',g?'面试中':'未开始','已签到',g&&!l&&'B',l?gy:'')+T(3,'C同学','7号','未开始','未签到','',l?gy:'');
+}
+function batchHTML(){
+  if(em()!=='control')return'';
+  const st=S.status,tm=cfg.timed;
+  if(st==='hidden'||(st==='ended'&&cfg.multiRound))return '<button class="zbtn pri" data-act="start">共享试题</button>';
+  if(st==='ended')return'';
+  if(st==='paused')return '<button class="zbtn pri" data-act="pop">共享试题</button>';
+  return `<span class="rel"><button class="zbtn zc ${tm?'t-lv':''} ${st==='paused'?'':'ok'}" data-act="pop">${st==='paused'?'':'<i class="dot"></i>'}${shLab()}${tm?' <b class="t-remain"></b>':''}</button></span>`;
 }
 function renderZd(){
   const q=S.q;
@@ -593,12 +631,12 @@ function renderZd(){
 /* ---------- candidate ---------- */
 function caHeadQHTML(){
   let chip='';
-  if(em()==='control'&&cfg.timed&&!S.caPanel&&(S.status==='showing'||S.status==='paused'))
+  if(em()==='control'&&cfg.timed&&!S.caPanel&&!S.aStop&&(S.status==='showing'||S.status==='paused'))
     chip=`<em class="cbt t-lv">${S.status==='paused'?I.pause:''}<b class="t-remain"></b></em>`;
   return `<button class="cb ${S.caPanel?'on':''}" data-act="capanel">${I.doc}试题${chip}</button>`;
 }
 function caTimerHTML(){
-  if(em()!=='control'||!cfg.timed)return'';
+  if(em()!=='control'||!cfg.timed||S.aStop)return'';
   const st=S.status;
   if(st==='paused')return `<div class="ca-tm pause"><div class="row">${I.pause}<span>试题共享已暂停</span><small>剩余</small><b class="t-remain"></b></div></div>`;
   if(st!=='showing')return'';
@@ -607,7 +645,7 @@ function caTimerHTML(){
 }
 function caCardHTML(){
   if(em()==='off')return `<div class="cacard plain"><div class="empty"><div class="em-ic">${I.lock}</div><h5>面试中不可查看试题</h5></div></div>`;
-  const st=em()==='free'?'showing':S.status;
+  const st=em()==='free'?'showing':(S.aStop&&(S.status==='showing'||S.status==='paused')?'ended':S.status);
   if(st==='showing')return `<div class="cacard"><div class="qwrap">${qsHTML(true)}</div></div>`;
   if(st==='paused')return `<div class="cacard plain"><div class="empty"><div class="em-ic orange">${I.pause}</div><h5>试题共享已暂停</h5></div></div>`;
   if(st==='ended')return `<div class="cacard plain"><div class="empty"><div class="em-ic green">${I.check}</div><h5>试题共享已结束</h5></div></div>`;
@@ -616,26 +654,35 @@ function caCardHTML(){
 
 /* ---------- render ---------- */
 function modalHTML(){
+  if(S.modalKind==='status'){
+    const st=S.status,tm=cfg.timed,ov=isOver();
+    const b1=tm&&st==='showing'&&!ov?'<button class="btn btn-primary" data-act="stop">暂停</button>':st==='paused'?'<button class="btn btn-primary" data-act="resume">继续</button>':'';
+    return `<div class="mask"><div class="modal tm"><h4>试题共享</h4><span class="mx" data-act="mclose">×</span><div class="rg ${tm?'t-lv t-ring':''}" style="--p:100"><div>${tm?'<b class="t-remain"></b>':'<b style="font-size:26px">共享中</b>'}<em>${tm?shLab():''}</em></div></div><div class="mf" style="justify-content:center">${b1}<button class="btn btn-ghost" style="color:var(--red)" data-act="stopc">停止共享</button></div></div></div>`;
+  }
   if(S.modalKind==='start')return `<div class="mask"><div class="modal"><h4>确定共享试题？</h4>${cfg.timed?`<p class="mrow">共享时长：${cfg.allowEdit?`<span class="hms" data-kind="pk"><input class="tin" data-pk="h" value="${p2(Math.floor(S.pick/3600))}"><em>时</em><input class="tin" data-pk="m" value="${p2(Math.floor(S.pick%3600/60))}"><em>分</em><input class="tin" data-pk="s" value="${p2(S.pick%60)}"><em>秒</em></span>`:`<b class="mdb">${dTxt(S.pick)}</b>`}</p>`:''}<p>共享后考生端立即可见试题${cfg.timed?'，并开始倒计时':''}。</p><div class="mf"><button class="btn btn-ghost" data-act="mclose">取消</button><button class="btn btn-primary" data-act="startok">确定</button></div></div></div>`;
-  return `<div class="mask"><div class="modal"><h4>停止共享试题？</h4><p>停止后，剩余 <b class="t-remain"></b> 将作废，如需继续可重新共享试题。</p><div class="mf"><button class="btn btn-ghost" data-act="mclose">取消</button><button class="btn btn-danger" data-act="endok">确认停止</button></div></div></div>`;
+  return `<div class="mask"><div class="modal"><h4>停止共享试题？</h4><p>${cfg.timed&&!isOver()?'停止后，剩余 <b class="t-remain"></b> 将作废，如需继续可重新共享试题。':'停止后考生端将无法查看试题，如需继续可重新共享试题。'}</p><div class="mf"><button class="btn btn-ghost" data-act="mclose">取消</button><button class="btn btn-danger" data-act="endok">确认停止</button></div></div></div>`;
 }
 function render(){
   $('#kSeg').innerHTML=kSegHTML();
   $('#kContent').innerHTML=kContentHTML();
   $('#kModal').innerHTML=S.modal==='k'?modalHTML():'';
-  $('#zModal').innerHTML=S.modal==='z'?modalHTML():'';
+  const vw=$('#stage').dataset.view;
+  $('#zModal').innerHTML=S.modal==='z'&&vw==='zd'?modalHTML():'';$('#zModal2').innerHTML=S.modal==='z'&&vw==='z'?modalHTML():'';
+  $('#kShare').innerHTML=kBarHTML();$('#zTop').innerHTML=zTopHTML();$('#zBody').innerHTML=zRowsHTML();
+  $('.ex-left').classList.toggle('grp',!!cfg.grp);$('#zd .zh-title').textContent='A安排 - 第一场 · '+(cfg.lot?'A同学':'全体考生');
   renderZd();
   $('#caHeadQ').innerHTML=caHeadQHTML();
   $('#caBody').classList.toggle('nopanel',!S.caPanel);
   $('#caTimer').innerHTML=caTimerHTML();
   $('#caCard').innerHTML=caCardHTML();
-  $('#caPager').classList.toggle('dis',em()==='off'||(em()==='control'&&S.status!=='showing'));
+  $('#caPager').classList.toggle('dis',em()==='off'||(em()==='control'&&(S.status!=='showing'||S.aStop)));
   $('#cfg').classList.toggle('free',cfg.mode==='free');$('#cfg').classList.toggle('noread',!cfg.read);$('#cfg').classList.toggle('untimed',!cfg.timed);
   tickUI();
 }
 function tickUI(){
   const l=lvl(),pct=S.total?Math.max(0,S.remain/S.total*100):0,over=isOver();
   $$('.t-remain').forEach(e=>{e.textContent=over&&!e.closest('#ca')?'+'+fmt(S.over):fmt(S.remain);});
+  $$('.t-ring').forEach(e=>e.style.setProperty('--p',pct));
   $$('.t-prog').forEach(e=>{e.style.width=pct+'%';});
   $$('.t-lv').forEach(e=>{e.classList.remove('lv-orange','lv-red','lv-pause');if(over)e.classList.add('lv-red');else if(l)e.classList.add(l);});
 }
@@ -654,7 +701,7 @@ const A={
     S.modal=null;
     if(!canStart())return stale(p);
     const box=cfg.timed&&document.querySelector(`[data-who="${p}"] .modal .hms`);if(box){const d=readHMS(box);if(d<=0){toast(p,'请设置共享时长','warn');S.modal=p;S.modalKind='start';return;}S.pick=d;lastPick=d;}
-    S.round++;S.total=S.pick;S.remain=S.total;S.over=0;S.status='showing';S.caPanel=true;
+    S.round++;S.aStop=false;S.total=S.pick;S.remain=S.total;S.over=0;S.status='showing';S.caPanel=true;
     op(NAMES[p],'开始共享');
     ['k','z'].forEach(w=>toast(w,'开始共享试题','ok'));
     toast('ca',cfg.timed?`面试官已共享试题，共享时长 ${dTxt(S.total)}`:'面试官已共享试题');
@@ -675,6 +722,10 @@ const A={
   pstop(p){if(S.status!=='paused')return stale(p);S.modal=p;S.modalKind='end';},
   endok(p){S.modal=null;if(S.status==='ended')return stale(p);endNow(p);},
   mclose(){S.modal=null;},
+  pop(p){S.modal=p;S.modalKind='status';},
+  stopc(p){if(S.status!=='showing'&&S.status!=='paused')return stale(p);endNow(p);},
+  soloOff(p){if(S.status!=='showing'&&S.status!=='paused')return stale(p);S.aStop=true;op(NAMES[p],'单独停止 A同学');['k','z'].forEach(w=>toast(w,'已单独停止 A同学 的试题共享','ok'));toast('ca','面试官已停止共享试题','warn');},
+  soloOn(p){if(S.status!=='showing'&&S.status!=='paused')return stale(p);S.aStop=false;['k','z'].forEach(w=>toast(w,'已重新向 A同学 共享（按剩余时间）','ok'));toast('ca','试题共享已继续');},
   tab(p,el){S.tab=el.dataset.tab;},
   view(){setView('zd');},
   qprev(){if(S.q>0)S.q--;},
@@ -711,12 +762,14 @@ setInterval(()=>{
 
 /* ---------- events ---------- */
 document.addEventListener('click',e=>{
+  if(S.pop&&!e.target.closest('.pop,[data-act="pop"]')){S.pop=null;render();}
   const a=e.target.closest('[data-act]');if(!a)return;
   const fr=a.closest('.frame'),p=fr&&fr.dataset.who,k=a.dataset.act;
-  if(p&&A[k]){A[k](p,a);render();}
+  if(p&&A[k]){if(k!=='pop')S.pop=null;A[k](p,a);render();}
 });
 document.addEventListener('change',e=>{
   if(e.target.dataset.pk)return;
+  if(e.target.dataset.opt){cfg[e.target.dataset.opt]=e.target.checked;S=S0();render();return;}
   if(e.target.dataset.dur){const b=e.target.closest('.hms');b.dataset.kind='dur';cfg.dur=Math.max(1,readHMS(b));S=S0();render();return;}
   const t=e.target,k=t.dataset.cfg;
   const mi=t.closest('.mcc');if(mi)mi.closest('.mci').classList.toggle('on',t.checked);
