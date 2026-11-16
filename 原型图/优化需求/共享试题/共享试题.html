@@ -379,7 +379,7 @@ table{border-collapse:collapse}
 <header class="pbar">
   <b>远程面试 · 试题共享</b>
   <div class="sw-seg" id="viewSw"><button data-view="k" class="on">考官端</button><button data-view="z">面试助理端</button><button data-view="zd">面试助理端 · 试题页（投屏）</button><button data-view="ca">考生端</button><button data-view="cfg">日程配置</button></div>
-  <label class="demo"><input type="checkbox" data-opt="lot">配置抽题</label><button class="rst" id="resetBtn">重置</button>
+  <label class="demo"><input type="checkbox" data-opt="untimed">不限时</label><label class="demo"><input type="checkbox" data-opt="lot">配置抽题</label><button class="rst" id="resetBtn">重置</button>
 </header>
 
 <main class="stage" id="stage" data-view="k">
@@ -585,6 +585,7 @@ function kBarHTML(){
   if(st==='hidden'||(st==='ended'&&cfg.multiRound))return `<button class="tb pri" data-act="start">${I.play}共享试题</button>`;
   if(st==='ended')return '<span class="tb chip">共享已结束</span>';
   if(st==='paused')return `<button class="tb pri" data-act="pop">${I.play}共享试题</button>`;
+  if(!tm)return `<button class="tb dlt" data-act="stopc">${I.stop}停止共享</button>`;
   return `<span class="rel"><button class="tb chip ${tm?'t-lv':''} ${st==='paused'?'':'ok'}" data-act="pop">${st==='paused'?'':'<i class="dot"></i>'}${shLab()}${tm?' <b class="t-remain"></b>':''}</button></span>`;
 }
 
@@ -615,6 +616,7 @@ function batchHTML(){
   if(st==='hidden'||(st==='ended'&&cfg.multiRound))return '<button class="zbtn pri" data-act="start">共享试题</button>';
   if(st==='ended')return'';
   if(st==='paused')return '<button class="zbtn pri" data-act="pop">共享试题</button>';
+  if(!tm)return '<button class="zbtn warn" data-act="stopc">停止共享</button>';
   return `<span class="rel"><button class="zbtn zc ${tm?'t-lv':''} ${st==='paused'?'':'ok'}" data-act="pop">${st==='paused'?'':'<i class="dot"></i>'}${shLab()}${tm?' <b class="t-remain"></b>':''}</button></span>`;
 }
 function renderZd(){
@@ -663,6 +665,7 @@ function modalHTML(){
   return `<div class="mask"><div class="modal"><h4>停止共享试题？</h4><p>${cfg.timed&&!isOver()?'停止后，剩余 <b class="t-remain"></b> 将作废，如需继续可重新共享试题。':'停止后考生端将无法查看试题，如需继续可重新共享试题。'}</p><div class="mf"><button class="btn btn-ghost" data-act="mclose">取消</button><button class="btn btn-danger" data-act="endok">确认停止</button></div></div></div>`;
 }
 function render(){
+  $('[data-opt="untimed"]').checked=!cfg.timed;$$('[name="cfgTimed"]').forEach(r=>r.checked=(r.value==='1')===cfg.timed);
   $('#kSeg').innerHTML=kSegHTML();
   $('#kContent').innerHTML=kContentHTML();
   $('#kModal').innerHTML=S.modal==='k'?modalHTML():'';
@@ -769,7 +772,7 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('change',e=>{
   if(e.target.dataset.pk)return;
-  if(e.target.dataset.opt){cfg[e.target.dataset.opt]=e.target.checked;S=S0();render();return;}
+  if(e.target.dataset.opt){{const o=e.target.dataset.opt;if(o==='untimed')cfg.timed=!e.target.checked;else cfg[o]=e.target.checked;}S=S0();render();return;}
   if(e.target.dataset.dur){const b=e.target.closest('.hms');b.dataset.kind='dur';cfg.dur=Math.max(1,readHMS(b));S=S0();render();return;}
   const t=e.target,k=t.dataset.cfg;
   const mi=t.closest('.mcc');if(mi)mi.closest('.mci').classList.toggle('on',t.checked);
