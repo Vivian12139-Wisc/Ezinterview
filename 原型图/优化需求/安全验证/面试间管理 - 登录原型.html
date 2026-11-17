@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>面试间管理 - 邀请码登录原型</title>
+<style>
+:root{color-scheme:light;box-sizing:border-box;--blue:#0a84ff;--line:#e4e7ed;--err:#f56c6c;--ok:#52c41a;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:"PingFang SC","Helvetica Neue",Arial,"Microsoft YaHei",sans-serif;color:#303133}
+body{background:linear-gradient(180deg,#bfdcff 0%,#dbeaff 35%,#f3f8ff 70%,#fff 100%);min-height:100vh}
+.proto{background:#fffbe6;border-bottom:1px solid #ffe58f;padding:6px 12px;font-size:12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.proto button{font:inherit;border:1px solid #d9d9d9;background:#fff;border-radius:4px;padding:3px 9px;cursor:pointer}
+.proto button.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+.proto .sep{width:1px;height:16px;background:#d9d9d9;margin:0 4px}
+.stage{display:flex;align-items:center;justify-content:space-around;min-height:calc(100vh - 40px);padding:24px;gap:24px;flex-wrap:wrap}
+.ill{width:min(440px,90%)}
+.panel{width:330px;max-width:100%}
+h1{text-align:center;font-size:32px;font-weight:700;color:#2b3a55;margin:0 0 44px;letter-spacing:1px}
+.row{display:flex;gap:10px;margin-bottom:6px}
+.inp{flex:1;height:46px;border:1px solid var(--line);border-radius:3px;background:#fff;padding:0 16px;font:inherit;font-size:16px;outline:0;min-width:0;color:#303133}
+.inp::placeholder{color:#a8abb2}
+.inp:focus{border-color:var(--blue)}
+.inp.bad{border-color:var(--err)}
+.msg{font-size:12px;color:var(--err);min-height:20px;margin-bottom:8px}
+.sms{width:116px;height:46px;border:1px solid var(--blue);color:var(--blue);background:#fff;border-radius:3px;font:inherit;font-size:14px;cursor:pointer}
+.sms:disabled{border-color:var(--line);color:#a8abb2;cursor:not-allowed}
+.btn{width:100%;height:46px;border:0;border-radius:3px;background:var(--blue);color:#fff;font:inherit;font-size:16px;cursor:pointer;margin-top:14px}
+.lang{text-align:center;margin-top:30px;font-size:15px;color:#2b3a55}
+.done{text-align:center;padding-top:8px}
+.done .big{width:64px;height:64px;border-radius:50%;background:var(--ok);color:#fff;font-size:34px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+.done h2{margin:0 0 6px;font-size:20px;font-weight:500}
+.done p{margin:0 0 6px;color:#909399;font-size:14px;line-height:1.7}
+.lk{color:var(--blue);cursor:pointer;font-size:14px}
+.view{display:none}.view.on{display:block}
+#bindnote{display:none;background:#f0f9eb;border:1px solid #e1f3d8;color:#67c23a;border-radius:3px;font-size:12px;padding:6px 10px;margin-bottom:10px}
+</style>
+</head>
+<body>
+<div class="proto">
+  <b>后台是否已有手机号：</b>
+  <button data-p="no" class="on">无（需邀请码，绑定手机号）</button>
+  <button data-p="yes">已有（无需邀请码）</button>
+  <span class="sep"></span><button id="rs">重置页面</button>
+</div>
+<div class="stage">
+  <svg class="ill" viewBox="0 0 440 360" fill="none">
+    <polygon points="30,270 220,330 410,270 220,210" fill="#7fbcff"/><polygon points="30,270 30,290 220,350 220,330" fill="#5aa6f5"/><polygon points="220,330 220,350 410,290 410,270" fill="#8ec6ff"/>
+    <polygon points="90,258 220,300 350,258 220,216" fill="#c9e4ff" opacity=".9"/>
+    <circle cx="215" cy="140" r="96" fill="#4da3f0"/><circle cx="215" cy="140" r="82" stroke="#f0c14b" stroke-width="2"/>
+    <circle cx="200" cy="112" r="26" fill="#fff"/><path d="M148 190c6-34 30-48 56-48s50 14 54 48c-30 14-80 14-110 0z" fill="#fff"/>
+    <rect x="300" y="60" width="80" height="48" rx="6" fill="#7db8f2" opacity=".8"/><rect x="310" y="72" width="50" height="4" fill="#fff"/><rect x="310" y="84" width="34" height="4" fill="#f0c14b"/>
+    <rect x="70" y="200" width="56" height="34" rx="5" fill="#7db8f2" opacity=".8"/>
+    <circle cx="320" cy="48" r="9" fill="#f6d26b"/><circle cx="84" cy="250" r="8" fill="#f6d26b"/>
+  </svg>
+
+  <div class="panel">
+    <section class="view on" id="v-acc">
+      <h1>面试间管理</h1>
+      <div class="row"><input class="inp" id="ac" placeholder="请输入用户名" autocomplete="off"></div>
+      <div class="msg" id="m-ac"></div>
+      <div class="row"><input class="inp" id="pw" type="password" placeholder="请输入密码"></div>
+      <div class="msg" id="m-pw"></div>
+      <button class="btn" id="b-acc">登录</button>
+      <div class="lang">文A 简体中文 ⌄</div>
+    </section>
+    <section class="view" id="v-ver">
+      <h1>手机验证</h1>
+      <div id="r-ic"><div class="row"><input class="inp" id="ic" placeholder="请输入邀请码" maxlength="9" autocomplete="off"></div>
+      <div class="msg" id="m-ic"></div></div>
+      <div class="row"><input class="inp" id="ph" placeholder="请输入手机号" maxlength="11" inputmode="numeric"></div>
+      <div class="msg" id="m-ph"></div>
+      <div class="row"><input class="inp" id="sc" placeholder="请输入验证码" maxlength="6" inputmode="numeric"><button class="sms" id="sms">获取验证码</button></div>
+      <div class="msg" id="m-sc"></div>
+      <button class="btn" id="go">登录</button>
+      <div class="lang"><span class="lk" id="bk">返回登录</span></div>
+    </section>
+    <section class="view" id="v-ok">
+      <div class="done"><div class="big">✓</div><h2>登录成功</h2></div>
+      <button class="btn" id="back">进入面试间</button>
+    </section>
+  </div>
+</div>
+
+<script>
+var S='ok',HP=false,tm=null,sent=false;
+var $=function(i){return document.getElementById(i)};
+function pick(sel,attr,fn){var bs=document.querySelectorAll(sel);for(var i=0;i<bs.length;i++)bs[i].onclick=function(){for(var j=0;j<bs.length;j++)bs[j].classList.toggle('on',bs[j]===this);fn(this.dataset[attr])}}
+pick('.proto [data-p]','p',function(v){HP=v==='yes';$('r-ic').style.display=HP?'none':'block';if($('v-acc').classList.contains('on'))show('ver')});
+function err(id,w,t){$('m-'+id).textContent=t||'';$(w).classList.toggle('bad',!!t)}
+function clr(){err('ic','ic');err('ph','ph');err('sc','sc');err('ac','ac');err('pw','pw')}
+function show(v){var a=document.querySelectorAll('.view');for(var i=0;i<a.length;i++)a[i].classList.remove('on');$('v-'+v).classList.add('on')}
+$('b-acc').onclick=function(){clr();var ok=true;
+  if(!$('ac').value.trim()){err('ac','ac','请输入用户名');ok=false}
+  if(!$('pw').value){err('pw','pw','请输入密码');ok=false}
+  if(ok){$('r-ic').style.display=HP?'none':'block';show('ver')}};
+$('sms').onclick=function(){clr();
+  if(!/^1\d{10}$/.test($('ph').value)){err('ph','ph','请输入正确的11位手机号');return}
+  var n=60,b=this;b.disabled=true;b.textContent=n+'s 后重发';sent=true;
+  clearInterval(tm);tm=setInterval(function(){n--;if(n<=0){clearInterval(tm);b.disabled=false;b.textContent='重新获取'}else b.textContent=n+'s 后重发'},1000)};
+$('go').onclick=function(){clr();var ok=true;
+  if(!HP&&!$('ic').value.trim()){err('ic','ic','请输入邀请码');ok=false}
+  if(!/^1\d{10}$/.test($('ph').value)){err('ph','ph','请输入正确的11位手机号');ok=false}
+  if(!$('sc').value.trim()){err('sc','sc','请输入验证码');ok=false}
+  if(!ok)return;
+  if(!sent){err('sc','sc','请先获取验证码');return}
+  show('ok')};
+function reset(){clearInterval(tm);sent=false;clr();['ac','pw','ic','ph','sc'].forEach(function(i){$(i).value=''});
+  $('sms').disabled=false;$('sms').textContent='获取验证码';show('acc')}
+$('rs').onclick=reset;$('back').onclick=reset;$('bk').onclick=reset;
+</script>
+</body>
+</html>

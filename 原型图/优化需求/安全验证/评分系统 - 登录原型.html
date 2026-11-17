@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>评分系统 - 面试官实名核验原型</title>
+<style>
+:root{color-scheme:light;box-sizing:border-box;--blue:#0a84ff;--blue-d:#0070e0;--text:#303133;--sub:#909399;--line:#dcdfe6;--ok:#52c41a;--err:#f56c6c;--warn:#e6a23c;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;font-family:"PingFang SC","Helvetica Neue",Arial,"Microsoft YaHei",sans-serif;color:var(--text);background:#fff}
+.bar{position:fixed;top:0;left:0;right:0;z-index:20;background:#fffbe6;border-bottom:1px solid #ffe58f;padding:6px 12px;font-size:12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding-top:calc(6px + env(safe-area-inset-top,0px))}
+.bar b{margin-right:4px}
+.bar button{font:inherit;border:1px solid #d9d9d9;background:#fff;border-radius:4px;padding:3px 9px;cursor:pointer}
+.bar button.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+.bar .sep{width:1px;height:16px;background:#d9d9d9;margin:0 4px}
+.wrap{display:flex;height:100%;padding-top:40px}
+.left{width:20%;min-width:240px;background:linear-gradient(170deg,#00bfff 0%,#1a7bff 100%);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:56px 12px 20px;text-align:center;font-size:13px;line-height:2.1}
+.logo{display:flex;align-items:center;gap:10px}
+.logo i{width:56px;height:52px;border:5px solid #fff;border-radius:14px 14px 14px 4px;display:flex;align-items:center;justify-content:center;font:700 28px/1 Arial,sans-serif;font-style:normal}
+.logo span{font-size:46px;font-weight:300;letter-spacing:2px;line-height:1}
+.logo-en{font-size:13px;letter-spacing:.5px;text-align:right;margin-top:-6px}
+.cube{width:170px;height:130px;opacity:.55}
+.right{flex:1;display:flex;align-items:center;justify-content:center;overflow:auto;padding:24px}
+.panel{width:400px;max-width:100%}
+h1{font-size:28px;font-weight:400;margin:0;color:#606266}
+h1::after{content:"";display:block;width:40px;height:2px;background:var(--blue);margin-top:10px}
+.en{color:var(--sub);font-size:16px;margin:22px 0 34px}
+.field{margin-bottom:18px}
+.field label{display:block;font-size:13px;color:#606266;margin-bottom:6px}
+.inp{display:flex;border:1px solid var(--line);border-radius:4px;height:46px;overflow:hidden;background:#fff}
+.inp:focus-within{border-color:var(--blue)}
+.inp.bad{border-color:var(--err)}
+.inp input{flex:1;border:0;outline:0;padding:0 14px;font:inherit;font-size:15px;min-width:0}
+.inp .ic{width:46px;border-left:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:#606266;background:#fafafa}
+.msg{font-size:12px;color:var(--err);margin-top:5px;min-height:16px}
+.btn{width:100%;height:46px;border:0;border-radius:4px;background:var(--blue);color:#fff;font:inherit;font-size:16px;cursor:pointer}
+.btn:hover{background:var(--blue-d)}
+.btn.ghost{background:#fff;color:#606266;border:1px solid var(--line);margin-top:10px}
+.btn.ghost:hover{color:var(--blue);border-color:var(--blue);background:#fff}
+.hint{font-size:13px;margin-top:12px}
+.hint a,.link{color:var(--blue);cursor:pointer;text-decoration:none}
+.lang{display:flex;justify-content:center;align-items:center;gap:8px;margin-top:46px}
+.lang div{border:1px solid var(--line);border-radius:4px;padding:8px 16px;font-size:14px;color:#606266;width:210px;display:flex;justify-content:space-between}
+.steps{display:flex;align-items:center;margin:20px 0 26px;font-size:13px;color:var(--sub)}
+.steps .s{display:flex;align-items:center;gap:6px}
+.steps .n{width:22px;height:22px;border-radius:50%;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:12px}
+.steps .s.on{color:var(--blue)}.steps .s.on .n{background:var(--blue);border-color:var(--blue);color:#fff}
+.steps .s.done{color:var(--text)}.steps .s.done .n{border-color:var(--ok);color:var(--ok)}
+.steps .ln{flex:1;height:1px;background:var(--line);margin:0 8px}
+.tip{background:#f4f9ff;border:1px solid #cfe5ff;border-radius:4px;padding:10px 12px;font-size:12px;color:#606266;line-height:1.7;margin-bottom:18px}
+.cam{position:relative;width:260px;height:300px;margin:0 auto 14px;background:#2b3139;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.cam svg{position:absolute;inset:0;width:100%;height:100%}
+.ring{stroke:#fff;stroke-width:3;fill:none;stroke-dasharray:8 6}
+.cam.ok .ring{stroke:var(--ok);stroke-dasharray:none}
+.cam.bad .ring{stroke:var(--err);stroke-dasharray:none}
+.scan{position:absolute;left:30px;right:30px;height:2px;background:linear-gradient(90deg,transparent,#37c6ff,transparent);top:40px;display:none;animation:sc 1.4s ease-in-out infinite alternate}
+.cam.run .scan{display:block}
+@keyframes sc{to{top:250px}}
+.cam .lbl{position:absolute;bottom:10px;left:0;right:0;text-align:center;color:#fff;font-size:13px;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+.shot{width:100%;height:100%;display:none}
+.cam.shotted .shot{display:block}
+.result{text-align:center;padding-top:6px}
+.result .big{width:72px;height:72px;border-radius:50%;margin:0 auto 18px;display:flex;align-items:center;justify-content:center;font-size:38px;color:#fff}
+.result h2{margin:0 0 24px;font-size:20px;font-weight:500}
+.result p{margin:0 0 24px;color:var(--sub);font-size:14px;line-height:1.7}
+.chk{display:flex;align-items:center;gap:8px;justify-content:center;font-size:12px;color:var(--sub);margin-top:10px}
+.view{display:none}.view.on{display:block}
+@media(max-width:720px){.left{display:none}.right{align-items:flex-start;padding-top:40px}.bar{font-size:11px}}
+@media(prefers-reduced-motion:reduce){.scan{animation:none}}
+</style>
+</head>
+<body>
+<div class="bar" id="bar">
+  <b>原型状态：</b>
+  <button data-v="login">① 账号登录</button>
+  <button data-v="info">② 实名信息</button>
+  <button data-v="cam">③ 人脸拍照</button>
+  <button data-v="run">④ 验证中</button>
+  <button data-v="pass">⑤ 通过</button>
+  <button data-v="fail">⑥ 失败</button>
+  <span class="sep"></span>
+  <b>后台已录入身份信息：</b>
+  <button id="ni0" class="on">已录入</button><button id="ni1">未录入（需邀请码）</button>
+  <span class="sep"></span>
+  <span>说明：后台强制允许登录时，输入账号密码后直接登录，不进入核验。</span>
+</div>
+
+<div class="wrap">
+  <aside class="left">
+    <div>
+      <div class="logo"><i>m</i><span>易面</span></div>
+      <div class="logo-en">EASY INTERVIEW</div>
+    </div>
+    <svg class="cube" viewBox="0 0 170 130" fill="none" stroke="#fff" stroke-width="1.5"><path d="M20 40 85 8l65 32v50l-65 32-65-32z"/><path d="M85 8v50M20 40l65 18 65-18M85 58v64" opacity=".6"/></svg>
+    <div>面试管理专家<br>大型面试的好帮手<br>版本1.0<br>沪ICP备15043069号-5<br>Copyright © ATA, inc. All rights reserved.</div>
+  </aside>
+
+  <main class="right">
+    <div class="panel">
+
+      <!-- ① 登录 -->
+      <section class="view on" id="v-login">
+        <h1>评分系统</h1>
+        <div class="en">Evaluation System</div>
+        <div class="field"><div class="inp"><input id="acc" placeholder="账号" value="zhangyi@ata.net.cn"><span class="ic">&#9786;</span></div></div>
+        <div class="field"><div class="inp"><input id="pwd" type="password" placeholder="密码" value="123456"><span class="ic">&#128274;</span></div><div class="msg" id="m-login"></div></div>
+        <button class="btn" id="b-login">登录</button>
+        <div class="hint">如有视频日程，请先进行<a class="link">设备检测</a></div>
+        <div class="lang"><span>文A</span><div>中文简体<span>⌄</span></div></div>
+      </section>
+
+      <!-- ② 实名信息 -->
+      <section class="view" id="v-info">
+        <h1>实名核验</h1>
+        <div class="en">Identity Verification</div>
+        <div class="steps"><div class="s on"><span class="n">1</span>填写信息</div><div class="ln"></div><div class="s"><span class="n">2</span>人脸拍照</div><div class="ln"></div><div class="s"><span class="n">3</span>完成</div></div>
+        <div class="field" id="r-inv" style="display:none"><label>邀请码</label><div class="inp" id="w-inv"><input id="inv" placeholder="请输入邀请码" maxlength="9" autocomplete="off"></div><div class="msg" id="m-inv"></div></div>
+        <div class="field"><label>姓名</label><div class="inp" id="w-name"><input id="name" placeholder="请输入姓名"></div><div class="msg" id="m-name"></div></div>
+        <div class="field"><label>身份证号</label><div class="inp" id="w-id"><input id="idno" placeholder="请输入18位身份证号" maxlength="18"></div><div class="msg" id="m-id"></div></div>
+        <button class="btn" id="b-info">下一步</button>
+        <button class="btn ghost" data-v="login">返回登录</button>
+      </section>
+
+      <!-- ③ 拍照 / ④ 验证中 / 结果 -->
+      <section class="view" id="v-cam">
+        <h1>人脸验证</h1>
+        <div class="en">Face Verification</div>
+        <div class="steps"><div class="s done"><span class="n">✓</span>填写信息</div><div class="ln"></div><div class="s on"><span class="n">2</span>人脸拍照</div><div class="ln"></div><div class="s"><span class="n">3</span>完成</div></div>
+        <div class="cam" id="cam">
+          <svg viewBox="0 0 260 300"><defs><mask id="mk"><rect width="260" height="300" fill="#fff"/><ellipse cx="130" cy="140" rx="82" ry="104" fill="#000"/></mask></defs>
+            <g class="shot"><rect width="260" height="300" fill="#56606c"/><circle cx="130" cy="120" r="46" fill="#d9b8a0"/><path d="M52 300c4-70 38-96 78-96s74 26 78 96z" fill="#8a97a6"/></g>
+            <g id="live"><circle cx="130" cy="118" r="44" fill="#3f4852"/><path d="M56 300c4-66 36-90 74-90s70 24 74 90z" fill="#3f4852"/></g>
+            <rect width="260" height="300" fill="#1c2128" opacity=".72" mask="url(#mk)"/>
+            <ellipse class="ring" cx="130" cy="140" rx="82" ry="104"/></svg>
+          <div class="scan"></div>
+          <div class="lbl" id="camlbl">请将面部放入框内，保持光线充足</div>
+        </div>
+        <button class="btn" id="b-shot">拍照并验证</button>
+        <button class="btn ghost" data-v="info">上一步</button>
+      </section>
+
+      <section class="view" id="v-pass">
+        <div class="steps"><div class="s done"><span class="n">✓</span>填写信息</div><div class="ln"></div><div class="s done"><span class="n">✓</span>人脸拍照</div><div class="ln"></div><div class="s done"><span class="n">✓</span>完成</div></div>
+        <div class="result"><div class="big" style="background:var(--ok)">✓</div><h2>核验通过</h2><button class="btn">进入评分系统</button></div>
+      </section>
+
+      <section class="view" id="v-fail">
+        <div class="result"><div class="big" style="background:var(--err)">✕</div><h2>核验未通过</h2><button class="btn" data-v="cam">重新拍照</button><button class="btn ghost" data-v="login">返回登录</button></div>
+      </section>
+
+
+    </div>
+  </main>
+</div>
+
+<script>
+var result='pass',cur='login',timer=null,NI=false;
+function show(v){
+  clearTimeout(timer);cur=v;document.getElementById('r-inv').style.display=NI?'block':'none';
+  var views=document.querySelectorAll('.view');
+  for(var i=0;i<views.length;i++)views[i].classList.remove('on');
+  document.getElementById(v==='run'?'v-cam':'v-'+v).classList.add('on');
+  var cam=document.getElementById('cam'),lbl=document.getElementById('camlbl'),b=document.getElementById('b-shot');
+  cam.className='cam';document.getElementById('live').style.display='';b.disabled=false;b.textContent='拍照并验证';
+  lbl.textContent='请将面部放入框内，保持光线充足';
+  if(v==='run'){cam.className='cam shotted run';document.getElementById('live').style.display='none';lbl.textContent='正在验证，请稍候…';b.disabled=true;b.textContent='验证中…';
+    timer=setTimeout(function(){show(result)},2200);}
+  var bs=document.querySelectorAll('#bar [data-v]');
+  for(var j=0;j<bs.length;j++)bs[j].classList.toggle('on',bs[j].dataset.v===v);
+}
+document.addEventListener('click',function(e){var t=e.target.closest('[data-v]');if(t)show(t.dataset.v)});
+document.getElementById('b-login').onclick=function(){
+  var ok=document.getElementById('acc').value&&document.getElementById('pwd').value;
+  document.getElementById('m-login').textContent=ok?'':'请输入账号和密码';
+  if(ok)show('info');
+};
+function validId(s){
+  if(!/^\d{17}[\dXx]$/.test(s))return false;
+  var w=[7,9,10,5,8,4,2,1,6,3,7,9,10,5,8,4,2],c='10X98765432',sum=0;
+  for(var i=0;i<17;i++)sum+=s[i]*w[i];
+  return c[sum%11]===s[17].toUpperCase();
+}
+document.getElementById('b-info').onclick=function(){
+  var n=document.getElementById('name').value.trim(),id=document.getElementById('idno').value.trim(),ok=true;
+  document.getElementById('m-name').textContent=n?'':'请输入姓名';
+  document.getElementById('w-name').classList.toggle('bad',!n);
+  var idok=validId(id);
+  document.getElementById('m-id').textContent=id?(idok?'':'身份证号格式不正确'):'请输入身份证号';
+  document.getElementById('w-id').classList.toggle('bad',!idok);
+  var iv=document.getElementById('inv').value.trim(),ivok=!NI||!!iv;
+  document.getElementById('m-inv').textContent=ivok?'':'请输入邀请码';
+  document.getElementById('w-inv').classList.toggle('bad',!ivok);
+  if(n&&idok&&ivok)show('cam');
+};
+document.getElementById('b-shot').onclick=function(){show('run')};
+function tog(a,b,fn){var x=document.getElementById(a),y=document.getElementById(b);x.onclick=function(){x.classList.add('on');y.classList.remove('on');fn(false)};y.onclick=function(){y.classList.add('on');x.classList.remove('on');fn(true)}}
+tog('ni0','ni1',function(v){NI=v;if(cur==='info')show('info')});
+show('login');
+</script>
+</body>
+</html>
