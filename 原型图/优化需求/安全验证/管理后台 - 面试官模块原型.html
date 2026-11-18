@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>易面管理后台 - 面试官模块原型</title>
+<style>
+:root{color-scheme:light;box-sizing:border-box;--blue:#3399ff;--blue-d:#0a84ff;--text:#303133;--sub:#909399;--line:#dcdfe6;--ok:#52c41a;--err:#f56c6c;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:#fafafa;color:var(--text);font-family:"PingFang SC","Helvetica Neue",Arial,"Microsoft YaHei",sans-serif;font-size:14px}
+.proto{background:#fffbe6;border-bottom:1px solid #ffe58f;padding:6px 12px;font-size:12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.proto button{font:inherit;border:1px solid #d9d9d9;background:#fff;border-radius:4px;padding:3px 9px;cursor:pointer}
+.proto button.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+nav{background:var(--blue);height:56px;display:flex;align-items:center;color:#fff;font-size:17px;padding-left:24px}
+nav .lg{display:flex;align-items:center;gap:8px;margin-right:36px}
+nav .lg i{width:34px;height:30px;border:3px solid #fff;border-radius:9px 9px 9px 3px;display:flex;align-items:center;justify-content:center;font:700 16px Arial;font-style:normal}
+nav .lg b{font-size:26px;font-weight:300}
+nav a{padding:0 22px;height:56px;display:flex;align-items:center}
+nav a.on{background:#fafafa;color:var(--blue)}
+nav .r{margin-left:auto;display:flex;gap:26px;padding-right:28px;font-size:15px}
+main{max-width:1200px;margin:0 auto;padding:22px 20px 60px}
+.bc{color:#909399;margin-bottom:18px;font-size:15px}
+.bc span{cursor:pointer}
+.tool{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.tool .sp{flex:1}
+.search{border:1px solid var(--line);border-radius:20px;padding:7px 16px;width:230px;color:#c0c4cc;display:flex;justify-content:space-between;background:#fff}
+.lnk{color:var(--blue);text-decoration:underline;cursor:pointer}
+.bt{border:1px solid var(--blue);color:var(--blue);background:#fff;border-radius:20px;padding:8px 18px;cursor:pointer;font:inherit}
+.bt.f{background:var(--blue-d);color:#fff;border-color:var(--blue-d)}
+.bt.g{border-color:var(--line);color:#606266}
+.bt.s{padding:4px 14px;font-size:13px}
+.menu{position:relative}
+.menu ul{display:none;position:absolute;right:0;top:42px;margin:0;padding:6px 0;list-style:none;background:#fff;border:1px solid #ebeef5;border-radius:6px;box-shadow:0 2px 12px rgba(0,0,0,.12);z-index:10;width:150px;text-align:center}
+.menu.open ul{display:block}
+.menu li{padding:9px 0;color:#606266;cursor:pointer}
+.menu li:hover{background:#f0f7ff;color:var(--blue)}
+.card{background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.06);padding:0 24px;overflow-x:auto}
+.card.p{padding:36px 40px}
+table{width:100%;border-collapse:collapse}
+.lt th{font-weight:400;color:#606266;text-align:left;padding:16px 5px;border-bottom:1px solid #ebeef5;white-space:nowrap;font-size:13px}
+.lt td{padding:15px 5px;border-bottom:1px dashed #dcdfe6;white-space:nowrap;font-size:13px}
+.lt td.n{font-size:18px}
+.dd{border:1px solid var(--line);border-radius:14px;padding:3px 6px;font:inherit;font-size:13px;color:#606266;background:#fff}
+.st{display:inline-flex;align-items:center;gap:5px}
+.st::before{content:"";width:7px;height:7px;border-radius:50%;background:#c0c4cc}
+.st.ok::before{background:var(--ok)}
+.st.er::before{background:var(--err)}
+.op a{color:var(--blue);cursor:pointer;margin-right:8px}
+.view{display:none}.view.on{display:block}
+.dl{display:grid;grid-template-columns:200px 1fr 1fr;gap:20px 30px;align-items:start}
+.av{grid-row:span 7;width:130px;height:130px;border-radius:50%;background:#f0f2f5;display:flex;align-items:end;justify-content:center;overflow:hidden;margin:auto}
+.dl b,.sec b{color:#606266}
+.sec{margin-top:30px;padding-top:24px;border-top:1px dashed #dcdfe6;display:grid;grid-template-columns:1fr 1fr;gap:20px 30px;align-items:center}
+.mono{font-family:Menlo,Consolas,monospace;letter-spacing:1px}
+.tag{display:inline-block;font-size:12px;padding:1px 8px;border-radius:10px;margin:0 8px}
+.tag.e{background:#fef0f0;color:var(--err)}.tag.v{background:#f0f9eb;color:var(--ok)}
+.gt{margin-top:34px;border:1px solid #dcdfe6}
+.gt .h{background:#f5f5f5;text-align:center;padding:14px;font-weight:600;border-bottom:1px solid #dcdfe6}
+.gt table{table-layout:fixed}
+.gt th,.gt td{border:1px solid #dcdfe6;padding:14px 16px;text-align:center;font-weight:400;font-size:14px}
+.gt thead th{border-top:0}.gt th:first-child,.gt td:first-child{border-left:0}.gt th:last-child,.gt td:last-child{border-right:0}
+.gt tbody tr:last-child td{border-bottom:0}
+.r-ok{color:var(--ok)}.r-er{color:var(--err)}
+.fm{max-width:900px;margin:0 auto;padding:30px 0 20px}
+.fr{display:flex;align-items:flex-start;margin-bottom:20px}
+.fr label{width:170px;text-align:right;padding:10px 20px 0 0;font-weight:600;flex:none}
+.fr label small{font-weight:400;color:var(--sub)}
+.fr input,.fr textarea{flex:1;border:1px solid var(--line);height:42px;padding:0 12px;font:inherit;background:#fff;min-width:0}
+.fr textarea{height:120px;padding:10px 12px}
+.fr .hint{font-size:12px;color:var(--sub)}
+.mask{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:50}
+.mask.on{display:flex}
+.md{background:#fff;border-radius:6px;width:480px;max-width:94%;max-height:90vh;overflow:auto;padding:22px 26px}
+.md.w{width:720px}
+.md h3{margin:0 0 14px;font-size:17px;font-weight:500}
+.md .bd{color:#606266;line-height:1.8;margin-bottom:20px}
+.md .ft{display:flex;justify-content:flex-end;gap:10px}
+.md.c{width:420px;text-align:center;padding:26px 30px 32px}
+.md.c h3{font-weight:700;font-size:20px;margin-bottom:0}
+.md.c .bd{color:#165dff;font-size:17px;margin:26px 0 30px}
+.md.c .ft{justify-content:center;gap:34px}
+.md.c .bt{min-width:130px;padding:12px 0;font-size:18px;border-radius:30px}
+.md.c .bt.f{background:#165dff;border-color:#165dff}
+.md.c .bt.g{border:2px solid #a0a0a0;color:#909399}
+.face{cursor:pointer;display:inline-flex;vertical-align:middle}
+.vk{display:inline-flex;width:16px;height:16px;border-radius:50%;background:var(--ok);color:#fff;font-size:11px;line-height:1;align-items:center;justify-content:center;margin-left:6px;vertical-align:middle}
+.ph{width:64px;height:78px;margin:8px auto 0;background:#f0f2f5;border-radius:4px;display:flex;align-items:center;justify-content:center}
+.code{background:#f4f9ff;border:1px dashed var(--blue);border-radius:4px;text-align:center;font:600 26px Menlo,Consolas,monospace;letter-spacing:3px;padding:14px;color:var(--blue-d);margin:8px 0}
+.xl{border-collapse:collapse;width:100%;font-size:13px}
+.xl th{background:#e8f3e8;border:1px solid #bcd;padding:7px 10px;font-weight:600}
+.xl td{border:1px solid #cdd;padding:7px 10px}
+#toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#f0f9eb;border:1px solid #e1f3d8;color:#67c23a;padding:10px 20px;border-radius:4px;display:none;z-index:60;max-width:90%}
+</style>
+</head>
+<body>
+<div class="proto"><b>原型状态：</b>
+  <button data-v="list">列表页</button><button data-v="det">详情页</button><button data-v="form">添加/编辑页</button>
+  <span>（列表勾选账号后，可试用「批量操作」）</span></div>
+<nav><div class="lg"><i>m</i><b>易面</b></div><a>项目</a><a>评分表</a><a>面试题</a><a>岗位</a><a class="on">面试官</a><a>面试间</a><a>组织管理 ›</a>
+  <div class="r"><span>终端入口 ›</span><span>帮助</span><span>superadmin ▾</span></div></nav>
+<main>
+
+<section class="view" id="v-list">
+  <div class="tool"><span>面试官</span><div class="search">姓名<span style="color:var(--blue)">⌕</span></div><span class="sp"></span>
+    <span class="lnk">↓ 下载模板</span><button class="bt">批量导入面试官</button><button class="bt f" id="add">＋ 添加面试官</button>
+    <div class="menu" id="menu"><button class="bt g" id="mbtn">批量操作 ▾</button>
+      <ul><li>批量删除</li><li>批量禁用</li><li>批量启用</li><li id="m-gen">批量生成邀请码</li><li id="m-exp">导出</li></ul></div></div>
+  <div class="card"><table class="lt"><thead><tr><th><input type="checkbox" id="ck-all"></th><th>序号</th><th>姓名</th><th>性别</th><th>参面日程</th><th>账号</th><th>身份证号</th><th>账号有效期</th><th>部门</th><th>职务</th>
+    <th>操作</th></tr></thead>
+    <tbody id="tb"></tbody></table></div>
+</section>
+
+<section class="view" id="v-det">
+  <div class="bc"><span data-v="list">面试官列表</span> / 面试官详情</div>
+  <div class="card p"><div class="dl" id="d1"></div>
+    <div class="gt"><div class="h">任务安排</div><table><thead><tr><th>面试日程</th><th>安排名称</th><th>时间</th><th>评分表</th><th>地点</th><th>所属项目</th></tr></thead><tbody>
+      <tr><td>演示-现场日程</td><td>ysmsap1</td><td>昨天 19:00 - 20:00</td><td>yspfb1</td><td>博云路36号</td><td>易面-使用手册</td></tr>
+      <tr><td>演示-现场日程</td><td>ysmsap2</td><td>昨天 19:00 - 20:00</td><td>yspfb1</td><td>博云路36号</td><td>易面-使用手册</td></tr>
+      <tr><td>演示-远程日程2</td><td>1</td><td>2026/09/24 11:00 - 17:00</td><td>评分表1</td><td></td><td>易面-使用手册</td></tr></tbody></table></div>
+    <div class="gt"><div class="h">登录日志</div><table><thead><tr><th>操作时间</th><th>操作IP</th><th>操作内容</th></tr></thead><tbody id="logs"></tbody></table></div>
+  </div>
+</section>
+
+<section class="view" id="v-form">
+  <div class="bc"><span data-v="list">面试官列表</span> / 添加、编辑面试官</div>
+  <div class="card" style="padding:0"><div style="padding:22px 36px;border-bottom:1px solid #ebeef5;font-size:17px;font-weight:600">添加/编辑面试官</div>
+  <div class="fm">
+    <div class="fr"><label>姓名 <small>（必填）</small>：</label><input id="f-n"></div>
+    <div class="fr"><label>性别 <small>（必填）</small>：</label><div style="padding:10px 0 0 70px"><label style="all:unset;margin-right:80px"><input type="radio" name="g" value="男" checked style="height:auto"> 男</label><label style="all:unset"><input type="radio" name="g" value="女" style="height:auto"> 女</label></div></div>
+    <div class="fr"><label>登录账号 <small>（必填）</small>：</label><input id="f-a"></div>
+    <div class="fr"><label>登录密码 <small>（必填）</small>：</label><input type="password" value="123456"></div>
+    <div class="fr"><label>账号有效期：</label><input placeholder="mm/dd/yyyy, --:-- --"></div>
+    <div class="fr"><label>邮箱：</label><input id="f-e"></div>
+    <div class="fr"><label>手机：</label><input id="f-p"></div>
+    <div class="fr"><label>身份证号：</label><input id="f-i"></div>
+    <div class="fr"><label>部门：</label><input></div>
+    <div class="fr"><label>职务：</label><input></div>
+    <div class="fr"><label>标签：</label><div style="flex:1"><input style="width:100%"><div class="hint" style="margin-top:6px">多个标签用中文或英文逗号分隔，每项仅限文字和数字，总长度不超过100字符。</div></div></div>
+    <div class="fr"><label>备注：</label><textarea placeholder="对面试官技能的描述"></textarea></div>
+    <div style="text-align:center;margin-top:30px"><button class="bt f" id="save" style="padding:12px 70px;font-size:16px">保存</button></div>
+  </div></div>
+</section>
+</main>
+
+<div class="mask" id="mask"><div class="md" id="md"><h3 id="m-t"></h3><div class="bd" id="m-b"></div><div class="ft" id="m-f"></div></div></div>
+<div id="toast"></div>
+
+<script>
+var TODAY='2026-11-18',cv='list',cur=0,editing=-1,shown=false;
+var $=function(i){return document.getElementById(i)};
+function code(){var c='ABCDEFGHJKMNPQRSTUVWXYZ23456789',s='';for(var i=0;i<8;i++)s+=c[Math.floor(Math.random()*c.length)];return s.slice(0,4)+'-'+s.slice(4)}
+function plus(d){var x=new Date(2026,10,18+d);return x.getFullYear()+'-'+('0'+(x.getMonth()+1)).slice(-2)+'-'+('0'+x.getDate()).slice(-2)}
+function mk(s){return s?s.slice(0,4)+'**********'+s.slice(-4):'--'}
+function expd(x){return x.exp<TODAY}
+function P(n,g,c,a,id,s,cd,ex,f){return{n:n,g:g,c:c,a:a,id:id,s:s,code:cd,exp:ex,force:f,ph:'',em:a.indexOf('@')>0?a:a+'@ata.net.cn'}}
+var D=[P('张一','男',125,'zhangyi','310101199001011234',1,'K7M2-9QXA','2026-11-25',false),
+P('张四','男',16,'zhangsi','320102198812051236',0,'B4TN-82HD','2026-11-10',false),
+P('张三','男',80,'zhangsan','440305199205203218',0,'P9WC-3FEJ','2026-11-02',true),
+P('张二','男',116,'zhanger','330102199511124517',0,'M2XA-7KRV','2026-11-21',false),
+P('小李','女',19,'lijingyi','350203199803086624',1,'T8QD-5NBG','2026-10-28',false),
+P('系统培训4','男',2,'peixun4','110105198706153010',0,'H3YE-6SCU','2026-11-08',false)];
+var FACE='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3399ff" stroke-width="1.6"><circle cx="12" cy="9" r="4"/><path d="M4 21c1-5 4-7 8-7s7 2 8 7"/><path d="M3 8V4h4M21 8V4h-4M3 16v4h4M21 16v4h-4" stroke-width="1.4"/></svg>';
+function face(){modal('人脸核验照片','<div style="width:140px;height:170px;margin:0 auto;background:#f0f2f5;border-radius:8px;display:flex;align-items:center;justify-content:center">'+FACE.replace('width="22" height="22"','width="80" height="80"')+'</div>',[{t:'关闭',p:1}])}
+function logsFor(x){
+  if(x.force)return[['2026-11-18 09:30:12','10.12.9.101','账号密码登录成功（强制登录，跳过人脸核验）',0],['2026-11-17 15:12:40','10.12.9.101','人脸核验失败',1],['2026-11-17 15:12:05','10.12.9.101','人脸核验失败',1],['2026-11-17 15:11:30','10.12.9.101','账号密码登录成功',0]];
+  if(x.s)return[['2026-11-18 09:42:10','10.12.8.35','人脸核验成功',1],['2026-11-18 09:41:55','10.12.8.35','账号密码登录成功',0],['2026-11-17 14:21:05','10.12.8.35','人脸核验成功',1],['2026-11-17 14:20:33','10.12.8.35','人脸核验失败',1],['2026-11-17 14:20:02','10.12.8.35','人脸核验失败',1],['2026-11-17 14:19:40','10.12.8.35','账号密码登录成功',0],['2026-11-16 10:06:12','10.12.9.101','人脸核验成功',1],['2026-11-16 10:05:21','10.12.9.101','邀请码验证成功',0],['2026-11-16 10:04:50','10.12.9.101','账号密码登录成功',0]];
+  return[['2026-11-18 08:55:40','10.12.9.101','人脸核验失败',1],['2026-11-18 08:55:12','10.12.9.101','人脸核验失败',1],['2026-11-18 08:54:30','10.12.9.101','邀请码验证成功',0],['2026-11-18 08:53:58','10.12.9.101','账号密码登录成功',0]]}
+function st(s){return '<span class="st'+(s?' ok':'')+'">'+(s?'已认证':'未认证')+'</span>'}
+function toast(t){var e=$('toast');e.textContent=t;e.style.display='block';setTimeout(function(){e.style.display='none'},3200)}
+function cf(m,fn){modal('提示',m,[{t:'确认',p:1,fn:fn},{t:'取消'}],false,true)}
+function modal(t,b,btns,wide,c){$('md').className='md'+(wide?' w':'')+(c?' c':'');$('m-t').textContent=t;$('m-b').innerHTML=b;var f=$('m-f');f.innerHTML='';
+  btns.forEach(function(x){var e=document.createElement('button');e.className='bt'+(x.p?' f':' g');e.textContent=x.t;e.onclick=function(){$('mask').classList.remove('on');if(x.fn)x.fn()};f.appendChild(e)});$('mask').classList.add('on')}
+function rList(){var h='';
+  D.forEach(function(x,i){
+    h+='<tr><td><input type="checkbox" class="ck" data-i="'+i+'"></td><td class="n">'+(i+1)+'</td><td><span class="lnk" onclick="det('+i+')">'+x.n+'</span>'+(x.s?'<span class="vk" title="已认证">✓</span>':'')+'</td><td>'+x.g+'</td><td>'+x.c+'</td><td>'+x.a+'</td><td>'+mk(x.id)+'</td><td>--</td><td>--</td><td>--</td><td class="op"><a>禁用</a><a onclick="edit('+i+')">✎</a><a>…</a></td></tr>'});
+  $('tb').innerHTML=h;$('ck-all').checked=false}
+function sel(){var a=[],c=document.querySelectorAll('.ck');for(var i=0;i<c.length;i++)if(c[i].checked)a.push(+c[i].dataset.i);return a}
+function det(i){cur=i;var x=D[i],ex=expd(x);
+  $('d1').innerHTML='<div class="av"><svg width="110" height="110" viewBox="0 0 110 110"><circle cx="55" cy="42" r="22" fill="#d9b8a0"/><path d="M12 110c4-34 22-46 43-46s39 12 43 46z" fill="#8a7a6a"/></svg></div>'+
+  '<div><b>姓名：</b>'+x.n+'</div><div><b>部门：</b>--</div><div><b>性别：</b>'+x.g+'</div><div><b>职务：</b>--</div><div><b>账号：</b>'+x.a+'</div><div><b>邮箱：</b>'+x.em+'</div>'+
+  '<div><b>备注：</b>--</div><div><b>身份证号：</b><span class="mono" id="idv">'+mk(x.id)+'</span> <span class="lnk" style="text-decoration:none" onclick="tg()">👁</span></div>'+
+  '<div><b>手机号：</b>--</div><div><b>认证状态：</b>'+st(x.s)+'</div>'+
+  '<div><b>邀请码：</b><span class="mono">'+x.code+'</span></div>'+
+  '<div><b>邀请码有效期至：</b>'+x.exp+'<span class="tag '+(ex?'e':'v')+'">'+(ex?'已过期':'有效')+'</span><button class="bt s" onclick="regen('+i+')">重新生成</button></div>'+
+  '<div><b>强制登录：</b><span class="st'+(x.force?' ok':'')+'">'+(x.force?'已允许':'未允许')+'</span><button class="bt s" style="margin-left:14px" onclick="force('+i+')">'+(x.force?'取消强制登录':'允许强制登录')+'</button></div>';
+  var l='';logsFor(x).forEach(function(r){var bad=r[2].indexOf('失败')>-1;l+='<tr><td>'+r[0]+'</td><td>'+r[1]+'</td><td><span class="'+(bad?'r-er':'r-ok')+'">'+r[2]+'</span>'+(r[3]?'<div class="ph">'+FACE.replace('width="22" height="22"','width="40" height="40"')+'</div>':'')+'</td></tr>'});$('logs').innerHTML=l;
+  go('det')}
+function tg(){shown=!shown;$('idv').textContent=shown?D[cur].id:mk(D[cur].id)}
+function regen(i){var x=D[i];cf('点击后将重新生成新的邀请码，原邀请码立即失效，有效期更新为 7 天。',function(){x.code=code();x.exp=plus(7);det(i);toast('已重新生成，新邀请码：'+x.code)})}
+function force(i){var x=D[i];cf(x.force?'取消后，需要正常完成人脸核验。':'允许后，输入账号密码即可进入评分系统，跳过人脸核验。',function(){x.force=!x.force;det(i);toast(x.force?'已允许强制登录':'已取消强制登录')})}
+function edit(i){editing=i;var x=i>=0?D[i]:{n:'',g:'男',a:'',em:'',ph:'',id:''};
+  $('f-n').value=x.n;$('f-a').value=x.a;$('f-e').value=x.em;$('f-p').value=x.ph;$('f-i').value=x.id;
+  document.querySelector('input[name=g][value='+x.g+']').checked=true;go('form')}
+$('add').onclick=function(){edit(-1)};
+$('save').onclick=function(){var n=$('f-n').value,id=$('f-i').value,g=document.querySelector('input[name=g]:checked').value;
+  if(editing<0){var o=P(n||'新面试官',g,0,$('f-a').value||'new01',id,0,code(),plus(7),false);D.push(o);rList();go('list');
+    modal('面试官已创建','系统已生成邀请码：<div class="code">'+o.code+'</div>有效期至：'+o.exp,[{t:'知道了',p:1}]);return}
+  var x=D[editing],ch=(n!==x.n||id!==x.id);
+  function doSave(){x.n=n;x.g=g;x.a=$('f-a').value;x.em=$('f-e').value;x.ph=$('f-p').value;x.id=id;if(ch)x.s=0;rList();go('list');toast('已保存')}
+  if(ch)cf('修改信息后，认证状态将自动重置为未认证，确认保存？',doSave);else doSave()};
+$('mbtn').onclick=function(e){e.stopPropagation();$('menu').classList.toggle('open')};
+document.addEventListener('click',function(e){$('menu').classList.remove('open');var v=e.target.closest('[data-v]');if(v){v.dataset.v==='det'?det(cur):v.dataset.v==='form'?edit(editing):go(v.dataset.v)}});
+$('ck-all').onclick=function(){var c=document.querySelectorAll('.ck');for(var i=0;i<c.length;i++)c[i].checked=this.checked};
+$('m-gen').onclick=function(){var s=sel(),all=!s.length,rows=all?D.map(function(_,i){return i}):s;
+  cf(all?'确认生成全部'+D.length+'个面试官的邀请码？':'确认生成选中的'+s.length+'个面试官的邀请码？',function(){
+    var n=0;rows.forEach(function(i){if(expd(D[i])){D[i].code=code();D[i].exp=plus(7);n++}});
+    toast('已为 '+n+' 个邀请码已过期的面试官生成新邀请码'+(rows.length-n?'，跳过 '+(rows.length-n)+' 个未过期':''))})};
+$('m-exp').onclick=function(){var s=sel();toast('已导出 面试官邀请码.xlsx（'+(s.length?'选中的 '+s.length+' 个面试官':'全部 '+D.length+' 个面试官')+'）')};
+function go(v){cv=v;var a=document.querySelectorAll('.view');for(var i=0;i<a.length;i++)a[i].classList.remove('on');$('v-'+v).classList.add('on');
+  var b=document.querySelectorAll('.proto [data-v]');for(var j=0;j<b.length;j++)b[j].classList.toggle('on',b[j].dataset.v===v)}
+rList();go('list');
+</script>
+</body>
+</html>

@@ -64,6 +64,7 @@ h1::after{content:"";display:block;width:40px;height:2px;background:var(--blue);
 .result h2{margin:0 0 24px;font-size:20px;font-weight:500}
 .result p{margin:0 0 24px;color:var(--sub);font-size:14px;line-height:1.7}
 .chk{display:flex;align-items:center;gap:8px;justify-content:center;font-size:12px;color:var(--sub);margin-top:10px}
+.vt{font-size:18px;font-weight:500;color:#303133;margin:0 0 20px}
 .view{display:none}.view.on{display:block}
 @media(max-width:720px){.left{display:none}.right{align-items:flex-start;padding-top:40px}.bar{font-size:11px}}
 @media(prefers-reduced-motion:reduce){.scan{animation:none}}
@@ -73,16 +74,17 @@ h1::after{content:"";display:block;width:40px;height:2px;background:var(--blue);
 <div class="bar" id="bar">
   <b>原型状态：</b>
   <button data-v="login">① 账号登录</button>
-  <button data-v="info">② 实名信息</button>
+  <button data-v="info" id="bi" style="display:none">② 填写信息</button>
   <button data-v="cam">③ 人脸拍照</button>
   <button data-v="run">④ 验证中</button>
   <button data-v="pass">⑤ 通过</button>
   <button data-v="fail">⑥ 失败</button>
+  <button data-v="lock">⑦ 失败次数过多</button>
   <span class="sep"></span>
   <b>后台已录入身份信息：</b>
   <button id="ni0" class="on">已录入</button><button id="ni1">未录入（需邀请码）</button>
   <span class="sep"></span>
-  <span>说明：后台强制允许登录时，输入账号密码后直接登录，不进入核验。</span>
+  <span>说明：后台强制允许登录时，输入账号密码后直接登录，不进入核验。核验失败 3 次后进入「⑦ 失败次数过多」页，此后再次输入账号密码，也直接进入该页，直到管理员重置邀请码或允许强制登录。</span>
 </div>
 
 <div class="wrap">
@@ -111,9 +113,10 @@ h1::after{content:"";display:block;width:40px;height:2px;background:var(--blue);
 
       <!-- ② 实名信息 -->
       <section class="view" id="v-info">
-        <h1>实名核验</h1>
-        <div class="en">Identity Verification</div>
-        <div class="steps"><div class="s on"><span class="n">1</span>填写信息</div><div class="ln"></div><div class="s"><span class="n">2</span>人脸拍照</div><div class="ln"></div><div class="s"><span class="n">3</span>完成</div></div>
+        <h1>评分系统</h1>
+        <div class="en" style="margin-bottom:24px">Evaluation System</div>
+        <h3 class="vt">实名核验</h3>
+        
         <div class="field" id="r-inv" style="display:none"><label>邀请码</label><div class="inp" id="w-inv"><input id="inv" placeholder="请输入邀请码" maxlength="9" autocomplete="off"></div><div class="msg" id="m-inv"></div></div>
         <div class="field"><label>姓名</label><div class="inp" id="w-name"><input id="name" placeholder="请输入姓名"></div><div class="msg" id="m-name"></div></div>
         <div class="field"><label>身份证号</label><div class="inp" id="w-id"><input id="idno" placeholder="请输入18位身份证号" maxlength="18"></div><div class="msg" id="m-id"></div></div>
@@ -123,9 +126,10 @@ h1::after{content:"";display:block;width:40px;height:2px;background:var(--blue);
 
       <!-- ③ 拍照 / ④ 验证中 / 结果 -->
       <section class="view" id="v-cam">
-        <h1>人脸验证</h1>
-        <div class="en">Face Verification</div>
-        <div class="steps"><div class="s done"><span class="n">✓</span>填写信息</div><div class="ln"></div><div class="s on"><span class="n">2</span>人脸拍照</div><div class="ln"></div><div class="s"><span class="n">3</span>完成</div></div>
+        <h1>评分系统</h1>
+        <div class="en" style="margin-bottom:24px">Evaluation System</div>
+        <h3 class="vt">实名核验</h3>
+        
         <div class="cam" id="cam">
           <svg viewBox="0 0 260 300"><defs><mask id="mk"><rect width="260" height="300" fill="#fff"/><ellipse cx="130" cy="140" rx="82" ry="104" fill="#000"/></mask></defs>
             <g class="shot"><rect width="260" height="300" fill="#56606c"/><circle cx="130" cy="120" r="46" fill="#d9b8a0"/><path d="M52 300c4-70 38-96 78-96s74 26 78 96z" fill="#8a97a6"/></g>
@@ -136,12 +140,16 @@ h1::after{content:"";display:block;width:40px;height:2px;background:var(--blue);
           <div class="lbl" id="camlbl">请将面部放入框内，保持光线充足</div>
         </div>
         <button class="btn" id="b-shot">拍照并验证</button>
-        <button class="btn ghost" data-v="info">上一步</button>
+        <button class="btn ghost" id="b-prev">上一步</button>
       </section>
 
       <section class="view" id="v-pass">
-        <div class="steps"><div class="s done"><span class="n">✓</span>填写信息</div><div class="ln"></div><div class="s done"><span class="n">✓</span>人脸拍照</div><div class="ln"></div><div class="s done"><span class="n">✓</span>完成</div></div>
+        
         <div class="result"><div class="big" style="background:var(--ok)">✓</div><h2>核验通过</h2><button class="btn">进入评分系统</button></div>
+      </section>
+
+      <section class="view" id="v-lock">
+        <div class="result"><div class="big" style="background:var(--warn)">!</div><h2 style="margin-bottom:8px">核验失败次数过多</h2><p>账号已被限制登录，请联系管理员处理。</p><button class="btn" data-v="login">返回登录</button></div>
       </section>
 
       <section class="view" id="v-fail">
@@ -154,7 +162,7 @@ h1::after{content:"";display:block;width:40px;height:2px;background:var(--blue);
 </div>
 
 <script>
-var result='pass',cur='login',timer=null,NI=false;
+var result='pass',cur='login',timer=null,NI=false,LK=false;
 function show(v){
   clearTimeout(timer);cur=v;document.getElementById('r-inv').style.display=NI?'block':'none';
   var views=document.querySelectorAll('.view');
@@ -172,7 +180,7 @@ document.addEventListener('click',function(e){var t=e.target.closest('[data-v]')
 document.getElementById('b-login').onclick=function(){
   var ok=document.getElementById('acc').value&&document.getElementById('pwd').value;
   document.getElementById('m-login').textContent=ok?'':'请输入账号和密码';
-  if(ok)show('info');
+  if(ok)show(LK?'lock':NI?'info':'cam');
 };
 function validId(s){
   if(!/^\d{17}[\dXx]$/.test(s))return false;
@@ -194,7 +202,8 @@ document.getElementById('b-info').onclick=function(){
 };
 document.getElementById('b-shot').onclick=function(){show('run')};
 function tog(a,b,fn){var x=document.getElementById(a),y=document.getElementById(b);x.onclick=function(){x.classList.add('on');y.classList.remove('on');fn(false)};y.onclick=function(){y.classList.add('on');x.classList.remove('on');fn(true)}}
-tog('ni0','ni1',function(v){NI=v;if(cur==='info')show('info')});
+document.getElementById('b-prev').onclick=function(){show(NI?'info':'login')};
+tog('ni0','ni1',function(v){NI=v;document.getElementById('bi').style.display=v?'':'none';if(cur==='info'&&!NI)show('cam');else if(cur==='info')show('info')});
 show('login');
 </script>
 </body>
